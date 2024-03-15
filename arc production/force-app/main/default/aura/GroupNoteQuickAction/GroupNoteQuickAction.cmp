@@ -1,0 +1,9 @@
+<aura:component implements="force:appHostable,force:lightningQuickActionWithoutHeader,force:hasRecordId,lightning:isUrlAddressable" access="global" >
+	    <lightning:navigation aura:id="navService"/>
+    <aura:attribute name="pageReference" type="Object"/>
+        <aura:attribute name="recordId" type="String" access="global"/>
+       <aura:attribute name="url" type="String" access="global"/>
+
+    <aura:handler name="init" value="{! this }" action="{! c.init }"/>
+
+</aura:component>

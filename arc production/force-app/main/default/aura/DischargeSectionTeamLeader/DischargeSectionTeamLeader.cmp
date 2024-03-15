@@ -1,0 +1,62 @@
+<aura:component controller="DischargeSectionCtl" extends="c:DischargeSection">
+        
+    <!-- handler -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler name="dischargeSectionActionEvent" event="c:DischargeSectionActionEvent" action="{!c.handleSectionActionEvent}"/>
+    <aura:handler name="referralChanged" event="c:DischargeDispositionReferralChanged" action="{!c.handleReferralChanged}"/>
+
+    <!-- Register Events -->
+    
+    <lightning:card>
+        <lightning:layout multipleRows="true">
+            <lightning:layoutItem size="3">
+                <div id="NoSeparateReferralRequired">Patient Discharge Meeting with Team</div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="1">
+                <lightning:input type="checkbox" 
+                checked="{!v.dischargeSection.dischargeSectionObj.Patient_Discharge_Meeting_with_Team__c}" 
+                disabled="{!not(v.isEditable)}"/>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="8">
+                &nbsp;
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12">&nbsp;</lightning:layoutItem>
+            <lightning:layoutItem size="3">
+                <label for="DsichargeMeetingDate" class="slds-form-element__label"></label>
+                <div id="DsichargeMeetingDate">Discharge Meeting Date</div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="9">
+                <aura:if isTrue="{!v.isEditable}">
+                    <lightning:input type="Date" name="DischargeMeetingDate" value="{!v.dischargeSection.dischargeSectionObj.Discharge_Meeting_Date__c}" 
+                                     dateStyle="short"
+                                     />
+                    <aura:set attribute="else">
+                        <label for="Discharge_Meeting_Date__c" class="slds-form-element__label"></label>
+                        <div id="Discharge_Meeting_Date__c">
+                            <lightning:formattedDateTime value="{!v.dischargeSection.dischargeSectionObj.Discharge_Meeting_Date__c}"
+                                                         month="2-digit" day="2-digit" year="numeric"
+                                                         timeZone="UTC" />
+                        </div>
+                    </aura:set>
+                </aura:if>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12">&nbsp;</lightning:layoutItem>
+            <lightning:layoutItem size="3">
+                <label for="Comments" class="slds-form-element__label"></label>
+                <div id="Comments">Discharge Comments</div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="9">
+                <aura:if isTrue="{!v.isEditable}">
+                <lightning:InputRichText value="{!v.dischargeSection.dischargeSectionObj.Discharge_Comments__c}" 
+                                         disabledCategories="FORMAT_FONT,ALIGN_TEXT,INSERT_CONTENT,REMOVE_FORMATTING"
+                                         disabled="{!not(v.isEditable)}"
+                                         />
+                    <aura:set attribute="else">
+                        <label for="Discharge_Comments__c" class="slds-form-element__label"></label>
+                        <div id="Discharge_Comments__c"><lightning:formattedRichText value="{!v.dischargeSection.dischargeSectionObj.Discharge_Comments__c}"/></div>
+                    </aura:set>
+                </aura:if>
+            </lightning:layoutItem>
+        </lightning:layout>
+    </lightning:card>
+</aura:component>

@@ -1,0 +1,51 @@
+<template>
+    <div class='slds-form-element' data-select="single">
+        <template if:false={labelHidden}>
+            <label class="slds-form-element__label">{label}</label>        
+        </template>
+        <div  class='slds-form-element__control'>
+            <div class="slds-grid">
+                <template if:false={hidetext}>
+                    <div class="slds-col">
+                        <template if:true={readOnly}>
+                            <div class="slds-lookup__search-input ">
+                                {recordName}
+                            </div>
+                        </template>
+                        <template if:false={readOnly}>
+                            <lightning-input
+                                variant="label-hidden"
+                                value={searchKeyWord} 
+                                onblur={onTextInputBlurHandler}
+                                onchange={onTextInputChange}
+                                onkeydown={handleOnKeyDown}
+                                class="slds-lookup__search-input slds-input "
+                                placeholder={placeHolder}></lightning-input>      
+                        </template>
+                    </div>
+                </template>
+                <div class="slds-col">
+                    <lightning-icon class="slds-input__icon slds-p-top_x-small" size={iconSize} icon-name="utility:search" alternative-text="search" onclick={onSearchIconClickHandler} ></lightning-icon>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+    <template if:true={showModal} >
+       <c-modal-lwc size="small" header="Pick one" show-footer="true" onclose={closeBtnHandler}>            
+            <ul>
+                <template for:each={records} for:item="item">
+                    <li key={item.id}>
+                        <div style="text-align: center;">
+                            <a data-id={item.id} data-label={item.label} title={item.label} onclick={onSelectorItemClick}>{item.label}</a>
+                        </div>
+                    </li>
+                </template>
+            </ul>
+            <div slot="footer">                
+                <lightning-button variant="brand" class="slds-p-left_x-small" label="Close"  onclick={closeBtnHandler}></lightning-button>
+            </div>
+        </c-modal-lwc>
+    </template>
+    <c-modal-popup-lwc class="popup" ></c-modal-popup-lwc>
+</template>

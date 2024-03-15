@@ -1,0 +1,22 @@
+<aura:component  implements="flexipage:availableForAllPageTypes">
+	<aura:attribute name="selectedTabId" type="String" default="customCalendar"/>
+    <aura:attribute name="topLevelTabName" type="String" default="Scheduling"/>
+	
+	<!-- <aura:if isTrue="{!v.selectedTabId == 'dynamicParent'}" >
+		<c:dynamicParent />
+	</aura:if>
+
+	<aura:if isTrue="{!v.selectedTabId == 'oldSchedule'}" >
+		<c:UserSchedule />
+	</aura:if> -->
+
+	<aura:if isTrue="{!v.selectedTabId == 'userSchedule'}" >
+		<c:CustomCalendar context="User Schedule" topLevelTabName="{!v.topLevelTabName}"/>
+	</aura:if>	
+
+	<aura:if isTrue="{!v.selectedTabId == 'customCalendar'}" >
+		<c:CustomCalendar context="Custom Calendar" topLevelTabName="{!v.topLevelTabName}"/>
+	</aura:if>	
+
+
+</aura:component>

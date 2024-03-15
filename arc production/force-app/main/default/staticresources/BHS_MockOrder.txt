@@ -1,0 +1,1 @@
+{"status": 1, "ACK":"MSH|^~\\&|LifepointHL7|JRM|XYZ|HNA|201404281725||ACK^O21|20140000000944|T|2.5.1|20140000000943||\nMSA|AA|20140000000944| Lifepoint REST API||HL7 Message Acknowledgement created by Lifepoint Informatics"}

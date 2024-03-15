@@ -1,0 +1,82 @@
+.THIS {
+	--slds-c-card-sizing-border: 0;
+}
+
+.THIS .riggsNoBorder {
+	border: 0;
+}
+
+.THIS .header .slds-form-element_readonly {
+	border-bottom: none;
+}
+
+/* .THIS .header {
+	border-bottom: 1px solid rgb(221, 219, 218);
+} */
+
+.THIS .header-status {
+	display: inline-flex;
+	padding-top: 4px;
+}
+
+.THIS .header-status .status {
+	font-weight: bold;
+}
+
+.THIS .header .slds-card__header {
+	display: none;
+}
+
+.THIS .full-width {
+	width: 100%;
+}
+
+.THIS .patient-note-item .slds-card__header {
+	display: none;
+}
+
+.THIS .footer .slds-form-element_readonly {
+	border-bottom: none;
+}
+
+.THIS .slds-scrollable_y {
+	max-height: 90vh;
+}
+
+.THIS .footer {
+	border-top: 1px solid rgb(221, 219, 218);
+	font-size: 0.8125rem;
+	color: black;
+}
+
+.THIS .footer .slds-card__header {
+	display: none;
+}
+
+.THIS .cPicklist .slds-form-element__label {
+	display: none;
+}
+.THIS .error-message {
+	color: red;
+	background-color: red;
+	color: white;
+}
+.THIS .snapshotHtml {
+	padding: 10px;
+}
+.THIS .cPatientSidebar .slds-card__body {
+	padding-left:20px;
+}
+
+.THIS table.history_program {
+	table-layout: fixed;
+	margin: 10px;
+}
+
+.THIS table.history_program td {
+	overflow: hidden;
+}
+
+.THIS table.history_program td:nth-of-type(1) {width:150px;}
+.THIS table.history_program td:nth-of-type(2) {width:30px;}
+.THIS table.history_program td:nth-of-type(3) {width:30px;}

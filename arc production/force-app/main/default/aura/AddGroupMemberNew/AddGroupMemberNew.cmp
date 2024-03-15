@@ -1,0 +1,303 @@
+<aura:component controller="AddGroupMemberController" extends="c:ApexService" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,lightning:actionOverride,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" >
+    
+    
+    <aura:attribute name="options" type="List" default="[
+                                                        {'label': 'Staff', 'value': 'Staff'},
+                                                        {'label': 'Patient', 'value': 'Patient'}
+                                                        ]"/>
+    <lightning:overlayLibrary aura:id="overlayLib"/>
+    <aura:attribute name="selectedRecord" type="Object" default="{isRecord: false}" access="public" description="Use,for store SELECTED sObject Record"/>
+    <aura:attribute name="group" type="Group__c" access="global"/>
+    <aura:attribute name="selectedUser" type="String" default="Staff" access="public"/>
+    <aura:attribute name="Spinner" type="boolean" default="false"/>
+    <aura:attribute name="selectedUserId" type="String" default=""/>
+    <aura:attribute name="RolesStaff" type="List" access="PRIVATE"/>
+    <aura:attribute name="Rolespatient" type="List" access="PRIVATE"/>
+    <aura:attribute name="RolespatientOld" type="List" access="PRIVATE"/>
+    <aura:attribute name="staffLookupFilter" type="List" default="[]"/>
+    <aura:attribute name="patientLookupFilter" type="List" default="[]"/>
+    <aura:attribute name="selecteduserRole" type="String" access="PRIVATE"/>
+    <aura:registerEvent name="refreshEvent" type="c:refreshPatient"/>
+
+    <aura:handler name="init" value="{!this}" action="{!c.init}" />
+    <aura:attribute name="passedRecordId" type="Boolean" default="" access="public"/>
+    <aura:attribute name="isStaff" type="String" default=""/>
+    <aura:attribute name="additionalOptions" type="List" default="[]" access="public" />
+    <aura:attribute name="memberName" type="String" default=""/>
+    <aura:attribute name="EditType" type="String" default="" description="Specify either Dates or Role"/>
+    <aura:attribute name="today" type="Date" default=""/>
+    <aura:attribute name="patientObjectOld" type="Patient_Group_Member__c" access="public" default="{'sobjectType': 'Patient_Group_Member__c'}"/>
+    <aura:attribute name="patientObject" type="Patient_Group_Member__c" access="public" default="{'sobjectType': 'Patient_Group_Member__c'}"/>
+    <aura:attribute name="staffObjectOld" type="Staff_Group_Member__c" access="public"  default="{'sobjectType': 'Staff_Group_Member__c'}"/>
+    <aura:attribute name="staffObject" type="Staff_Group_Member__c" access="public"  default="{'sobjectType': 'Staff_Group_Member__c'}"/>
+    <aura:handler event="c:AddNewGroupButtonEvent" action="{!c.handleButtonClickedFromMainComponent}"/>
+    <aura:handler event="aura:waiting" action="{!c.showSpinner}"/>
+    <aura:handler event="aura:doneWaiting" action="{!c.hideSpinner}"/>
+	
+	<aura:if isTrue="{!(v.EditType == 'Role')}">
+		<lightning:layout> 
+			<lightning:layoutItem size="3"> </lightning:layoutItem>
+			<lightning:layoutItem size="9"> 
+				<div class="slds-p-left_small">
+					<div class="slds-text-heading_medium">Old Role</div>
+				</div>
+			</lightning:layoutItem>
+		</lightning:layout>
+		<br /><br />
+	</aura:if>
+    
+    <div class="slds-grid slds-gutters_direct-small ">
+        <aura:if isTrue="{!v.Spinner}">
+    <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;height:100px">
+       <div class="slds-spinner--brand  slds-spinner slds-spinner--large slds-is-relative" role="alert">
+         <span class="slds-assistive-text">Loading</span>
+         <div class="slds-spinner__dot-a"></div>
+         <div class="slds-spinner__dot-b"></div>
+       </div>
+    </div>
+ </aura:if>
+      
+        <aura:if isTrue="{!and(v.EditType != 'Dates', v.EditType != 'Role')}">
+            <div class="slds-col slds-size_2-of-12" >
+              <div class="slds-p-left_x-large">
+                <div class="slds-p-left_medium">
+            <lightning:radioGroup name="radioGroup"
+                                  label="Select User Type"
+                                  options="{! v.options }"
+                                  value="{!v.selectedUser }"
+                                  class="{!v.group.Type__c == 'Team'?'':'slds-hide'}"
+                                  type="radio" onchange="{!c.clearPill}"/><br/>
+                </div>
+              </div>
+              </div>
+            
+        </aura:if>
+      
+      
+      <aura:if isTrue="{!(v.selectedUser == 'Staff')}">
+        
+            <aura:if isTrue="{!(v.EditType == '')}">
+              <div class="slds-col slds-size_2-of-12">
+                
+          		<c:LookupComponent objectName="User" label="Add Group Member:" fieldsToSearch="Name" lookupFieldName="{!v.staffObject.Staff_Member__c}" allowFreeText="true" aura:id="staffLookup" filters="{!v.staffLookupFilter}" selectedRecord="{!v.selectedRecord}" displayField="Name" displayFieldValue="Id"  /><br/></div>
+           
+            </aura:if>
+
+           
+          <aura:if isTrue="{!(v.EditType != '')}">
+         
+         <div class="slds-col slds-size_2-of-12"> 
+          <div class="slds-p-left_xx-large">
+          	<ui:inputText disabled="true" label="Group Member" value="{!v.memberName}"/>
+            </div>
+          </div>
+          
+          </aura:if>
+        
+           
+          <aura:if isTrue="{!(v.EditType == 'Role')}">
+              <!-- <br/> Old Role -->
+          <div class="slds-col slds-size_2-of-12">
+            <ui:inputDate disabled="true" aura:id="startDateOld" label="Start Date" value="{!v.staffObjectOld.Start_Date__c}" format="MM/DD/YYYY" displayDatePicker="true"/><br/>
+          </div>
+          <!--"{!v.staffObject.Start_Date__c}"-->
+          <!-- <lightning:input type="date" name="endDate" label="End Date" value="{!v.staffObject.Planned_End_Date__c}" /><br/>-->
+          <div class="slds-col slds-size_2-of-12">
+            <ui:inputDate aura:id="endDateOld" label="End Date" value="{!v.staffObjectOld.Planned_End_Date__c}" 
+                        format="MM/DD/YYYY" displayDatePicker="true"/><br/>
+          </div>
+
+          <div class="slds-col slds-size_2-of-12">
+            <lightning:select name="staffRoleOld" label="Role" aura:id="staffRoleOld" disabled="true" value="{!v.staffObjectOld.Role__c}">
+              <aura:iteration items="{!v.RolesStaff}" var="option">
+                  <option text="{!option}" value="{!option}" selected="{!option==v.staffObjectOld.Role__c}"/>
+              </aura:iteration>
+              
+            </lightning:select>
+          </div>
+
+          <aura:if isTrue="{!or((v.group.Type__c == 'Team'), (v.group.Authorized_Signers__c))}">
+            <div class="slds-col slds-size_2-of-12">
+              <ui:inputCheckbox aura:id="auth-signer" label="Authorized Signer" value="{!v.staffObject.Authorized_Signer__c}" /><br/>
+              <!-- <ui:inputCheckbox aura:id="auth-signer" label="Authorized Signer" value="true" /><br/> -->
+            </div>
+          </aura:if>
+
+
+          </aura:if>
+            <aura:if isTrue="{!(v.EditType != 'Role')}">
+               
+               
+          
+          <div class="slds-col slds-size_2-of-12">
+          <!--<lightning:input type="date" name="startDate" label="Start Date" value="{!v.staffObject.Start_Date__c}" /><br/>-->
+            <ui:inputDate aura:id="startDate" label="Start Date" value="{!v.staffObject.Start_Date__c}" format="MM/DD/YYYY" displayDatePicker="true"/><br/>
+          </div>
+          <!--"{!v.staffObject.Start_Date__c}"-->
+          <!-- <lightning:input type="date" name="endDate" label="End Date" value="{!v.staffObject.Planned_End_Date__c}" /><br/>-->
+          <div class="slds-col slds-size_2-of-12">
+            <ui:inputDate aura:id="endDate" label="End Date" value="{!v.staffObject.Planned_End_Date__c}" format="MM/DD/YYYY" displayDatePicker="true"/><br/>
+          </div>
+
+          <div class="slds-col slds-size_2-of-12">
+            <lightning:select name="staffRole" label="Role" aura:id="staffRole" value="{!v.staffObject.Role__c}">
+                <aura:iteration items="{!v.RolesStaff}" var="option">
+                    <option text="{!option}" value="{!option}" selected="{!option==v.staffObject.Role__c}"/>
+                </aura:iteration>
+                
+            </lightning:select>
+          </div>
+          
+          <aura:if isTrue="{!or((v.group.Type__c == 'Team'), (v.group.Authorized_Signers__c))}">
+            <div class="slds-col slds-size_2-of-12">
+              <ui:inputCheckbox aura:id="auth-signer" label="Authorized Signer" value="{!v.staffObject.Authorized_Signer__c}" /><br/>
+              <!-- <ui:inputCheckbox aura:id="auth-signer" label="Authorized Signer" value="true" /><br/> -->
+            </div>
+          </aura:if>
+      </aura:if>
+	</aura:if>
+	
+
+
+      <aura:if isTrue="{!(v.selectedUser == 'Patient')}">
+        <div class="slds-col slds-size_3-of-12">  
+            <aura:if isTrue="{!(v.EditType == '')}">
+          <c:LookupComponent objectName="Contact" label="Add Group Member:" fieldsToSearch="Name,Preferred_First_Name__c" lookupFieldName="{!v.patientObject.Patient__c}" aura:id="patientLookup" selectedRecord="{!v.selectedRecord}" additionalOptions="{!v.additionalOptions}" filters="{!v.patientLookupFilter}"  displayField="Distinguished_Name__c" allowFreeText="true"  displayFieldValue="Id" />
+            </aura:if>
+            <aura:if isTrue="{!(v.EditType != '')}">
+               <div class="slds-p-left_xx-large">
+               <ui:inputText disabled="true" label="Group Member" value="{!v.memberName}"/>
+             </div>
+            </aura:if>
+            </div>
+
+           <aura:if isTrue="{!(v.EditType == 'Role')}">
+              <!--  <br/>   Old Role -->
+                    <div class="slds-col slds-size_2-of-12">
+            <ui:inputDate disabled="true" aura:id="startDateOld" label="Start Date" value="{!v.patientObjectOld.Start_Date__c}" format="MM/DD/YYYY" displayDatePicker="true"/><br/>
+          </div>
+          <!--"{!v.staffObject.Start_Date__c}"-->
+          <!-- <lightning:input type="date" name="endDate" label="End Date" value="{!v.staffObject.Planned_End_Date__c}" /><br/>-->
+          <div class="slds-col slds-size_2-of-12">
+            <ui:inputDate aura:id="endDateOld" label="End Date" value="{!v.patientObjectOld.Planned_End_Date__c}" 
+                        format="MM/DD/YYYY" displayDatePicker="true"/><br/>
+          </div>
+
+          <div class="slds-col slds-size_3-of-12">
+          <lightning:select name="patientRoleOld" disabled="true" label="Role" aura:id="patientRoleOld" value="{!v.patientObjectOld.Role__c}">
+            <aura:iteration items="{!v.RolespatientOld}" var="option">
+               <option text="{!option}" value="{!option}" selected="{!option==v.patientObjectOld.Role__c}" />
+            </aura:iteration>
+            </lightning:select>
+          </div>
+
+          </aura:if>
+          <aura:if isTrue="{!(v.EditType != 'Role')}">
+          
+          
+          <div class="slds-col slds-size_2-of-12">
+            <ui:inputDate aura:id="startDateNew" label="Start Date" value="{!v.patientObject.Start_Date__c}" format="MM/DD/YYYY" displayDatePicker="true"/><br/>
+          </div>
+          <!--"{!v.patientObject.Start_Date__c}"-->
+          <div class="slds-col slds-size_2-of-12">
+            <ui:inputDate aura:id="endDateNew" label="End Date" value="{!v.patientObject.Planned_End_Date__c }" format="MM/DD/YYYY" displayDatePicker="true" /><br/> 
+          </div>
+          
+          <div class="slds-col slds-size_3-of-12">
+            <lightning:select name="patientRole" label="Role" aura:id="patientRole" value="{!v.patientObject.Role__c}">
+                <aura:iteration items="{!v.RolespatientOld}" var="option">
+                    <option text="{!option}" value="{!option}" selected="{!option==v.patientObject.Role__c}" />
+                </aura:iteration>
+            </lightning:select>
+          </div>
+          </aura:if>
+          
+          
+      </aura:if>
+  </div>
+    <br/>
+    <aura:if isTrue="{!(v.EditType == 'Role')}">
+      <lightning:layout> 
+          <lightning:layoutItem size="3"> </lightning:layoutItem>
+          <lightning:layoutItem size="9"> 
+              <div class="slds-p-left_small">
+                  <div class="slds-text-heading_medium">New Role</div>
+              </div>
+          </lightning:layoutItem>
+
+      </lightning:layout>
+      
+          
+      
+    </aura:if><br/><br/>
+     
+    <aura:if isTrue="{!and(v.EditType == 'Role',v.selectedUser == 'Patient')}">
+          <div class="slds-p-bottom_large">
+           <div class="slds-grid slds-gutters_direct-small ">
+               <br/>  
+         
+          <div class="slds-col slds-size_3-of-12">
+          </div>
+          <div class="slds-col slds-size_2-of-12">
+            <ui:inputDate aura:id="startDateNew" label="Start Date" value="{!v.patientObject.Start_Date__c}" format="MM/DD/YYYY" displayDatePicker="true"/><br/>
+          </div>
+          <!--"{!v.patientObject.Start_Date__c}"-->
+          <div class="slds-col slds-size_2-of-12">
+            <ui:inputDate aura:id="endDateNew" label="End Date" value="{!v.patientObject.Planned_End_Date__c }" format="MM/DD/YYYY" displayDatePicker="true" /><br/> 
+          </div>
+          
+          <div class="slds-col slds-size_3-of-12">
+            <lightning:select name="patientRole" label="Role" aura:id="patientRole" value="{!v.patientObject.Role__c}">
+                <aura:iteration items="{!v.Rolespatient}" var="option">
+                    <option text="{!option}" value="{!option}" selected="{!option==v.patientObject.Role__c}" />
+                </aura:iteration>
+            </lightning:select>
+          </div>
+                 </div>
+              </div>
+        <br/>
+        <br/><br/>
+          </aura:if>
+    <aura:if isTrue="{!and(v.EditType == 'Role',v.selectedUser == 'Staff')}">
+          <div class="slds-p-bottom_large">
+           <div class="slds-grid slds-gutters_direct-small ">
+               <br/>  
+         
+          <div class="slds-col slds-size_2-of-12">
+          </div>
+          <div class="slds-col slds-size_2-of-12">
+            <ui:inputDate aura:id="startDateNewSO" label="Start Date" value="{!v.staffObject.Start_Date__c}" format="MM/DD/YYYY" displayDatePicker="true"/><br/>
+          </div>
+          <!--"{!v.patientObject.Start_Date__c}"-->
+          <div class="slds-col slds-size_2-of-12">
+            <ui:inputDate aura:id="endDateNewSO" label="End Date" value="{!v.staffObject.Planned_End_Date__c }" format="MM/DD/YYYY" displayDatePicker="true" /><br/> 
+          </div>
+          
+          <div class="slds-col slds-size_2-of-12">
+            <lightning:select name="staffRole" label="Role" aura:id="staffRole" value="{!v.staffObject.Role__c}">
+                <aura:iteration items="{!v.RolesStaff}" var="option">
+                    <option text="{!option}" value="{!option}" selected="{!option==v.staffObject.Role__c}" />
+                </aura:iteration>
+            </lightning:select>
+          </div>
+
+          <aura:if isTrue="{!or((v.group.Type__c == 'Team'), (v.group.Authorized_Signers__c))}">
+            <div class="slds-col slds-size_2-of-12">
+              <ui:inputCheckbox aura:id="auth-signer" label="Authorized Signer" value="{!v.staffObject.Authorized_Signer__c}" /><br/>
+              <!-- <ui:inputCheckbox aura:id="auth-signer" label="Authorized Signer" value="true" /><br/> -->
+            </div>
+          </aura:if>
+                 </div>
+              </div>
+        <br/>
+        <br/><br/>
+          </aura:if>
+  
+    
+    
+    
+</aura:component>

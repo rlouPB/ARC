@@ -1,0 +1,17 @@
+<aura:event
+	type="APPLICATION"
+	description="Page Event">
+	<aura:attribute
+		name="page"
+		type="Integer"
+		default="0"></aura:attribute>
+	<aura:attribute
+		name="type"
+		type="String"
+		default=""></aura:attribute>
+	<aura:attribute
+		name="messageCountMap"
+		type="Map"
+		default=""
+		description="Map from server with message counts of various types"></aura:attribute>
+</aura:event>

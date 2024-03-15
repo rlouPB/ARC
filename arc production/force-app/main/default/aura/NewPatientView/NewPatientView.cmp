@@ -1,0 +1,144 @@
+<aura:component access="public" controller="PatientController" extends="c:ApexService">
+    <aura:attribute name="patient" type="Contact" access="public" default="{'FirstName':'', 'LastName': '', 'Service_Type__c': '' }" />
+    <aura:attribute name="newActivity" type="Map" default="{'sobjectType': 'Basic_Note__c','Subject__c': ''}" access="public" description="Holds the Basic Note Record" />
+    <aura:attribute name="createdRec" type="Object" access="public" default="{'label' : '','value' : ''}" />
+    <aura:attribute name="relatedContact" type="Related_Contact__c" access="public" default="{'sObjectType':'Related_Contact__c'}" />
+
+    <!-- <aura:attribute name="svcType" type="String" access="public" default="Residential" /> -->
+    <aura:attribute name="recordValue" type="String" />
+    <aura:attribute name="additionalOptions" type="List" default="[{'label': 'Advanced Search', 'value': 'advanceSearch', 'isRecord': false, 'componentName': ''}, {'label': 'Create New Contact', 'value': 'newPatient', 'isRecord': false, 'componentName': 'c:NewContactView'}]" />
+    <aura:attribute name="relatedContactRecordType" type="Object" default="" access="public" />
+    <aura:attribute name="searchText" type="String" default="" access="public" description="search from lookup component used to populate name" />
+
+    <aura:attribute name="enableButtons" type="Boolean" default="false" access="private" />
+    <aura:attribute name="errorMessages" type="List" default="[]" access="public" />
+    <aura:attribute name="serviceTypeOptions" type="List" default="[
+		{'label': 'Residential', 'value': 'Residential'},
+		{'label': 'IOP', 'value': 'IOP'},
+		{'label': '--None--', 'value': ''}
+		]" />
+
+    <aura:registerEvent name="closeModalView" type="c:closeModal" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <lightning:notificationsLibrary aura:id="notifLib" />
+
+    <c:sldsModal>
+	<aura:set attribute="header">
+	    New Patient
+	</aura:set>
+	<aura:set attribute="content">
+	    <div class="slds-is-relative" style="padding-bottom: 100px;">
+		<lightning:spinner aura:id="spinner" variant="brand" />
+
+		<lightning:recordEditForm objectApiName="Contact" aura:id="newPatientForm" onerror="{!c.handleError}" onload="{!c.load}">
+		    <lightning:messages />
+		    <lightning:layout multipleRows="true">
+			<lightning:layoutItem padding="around-small" size="2">
+			    <div style="display:none">
+				<!-- required to load Salutation options -->
+				<lightning:inputField fieldName="Name" />
+			    </div>
+			    <lightning:inputField fieldName="Salutation" value="{!v.patient.Salutation}" onchange="{!c.setPatientModel}" />
+			</lightning:layoutItem>
+			<lightning:layoutItem padding="around-small" size="4">
+			    <lightning:input maxlength="35" aura:id="firstname" fieldName="FirstName" value="{!v.patient.FirstName}" onchange="{!c.setPatientModel}" />
+			</lightning:layoutItem>
+
+			<lightning:layoutItem padding="around-small" size="6">
+			    <lightning:input maxlength="35" class="customRequired" label="Last Name" name="lName" value="{!v.patient.LastName}" onchange="{!c.updatePatientName}" />
+			    <div class="slds-hide">
+				<lightning:inputField aura:id="lName" class="customRequired" fieldName="LastName" />
+			    </div>
+			</lightning:layoutItem>
+
+			<lightning:layoutItem padding="around-small" size="6">
+			    <lightning:inputField fieldName="Preferred_First_Name__c" onchange="{!c.setPatientModel}" />
+			</lightning:layoutItem>
+
+			<lightning:layoutItem padding="around-small" size="6">
+			    <!-- <lightning:inputField fieldName="Service_Type_Text__c" onchange="{!c.handleChangeServiceType}" value="{!v.serviceType}" /> -->
+			    <lightning:combobox name="serviceType" label="Service Type" value="{!v.patient.Service_Type__c}" onchange="{!c.handleChangeServiceType}" placeholder="Select Service Type" options="{! v.serviceTypeOptions }" disabled="false" />
+			</lightning:layoutItem>
+
+			<lightning:layoutItem padding="around-small" size="6">
+			    <lightning:inputField fieldName="Suffix_Credentials__c" value="{!v.patient.Suffix_Credentials__c}" onchange="{!c.setPatientModel}" />
+			</lightning:layoutItem>
+
+			<!-- Removed 180921 JN
+			<lightning:layoutItem padding="around-small" size="6">
+			    <lightning:input type="text" label="Phone" name="phone" value="{!v.patient.Phone}" onchange="{!c.onFieldChange}"/>
+			</lightning:layoutItem>
+			<lightning:layoutItem padding="around-small" size="6">
+			    <lightning:inputField fieldName="Gender__c" onchange="{!c.setPatientModel}"/>
+			</lightning:layoutItem>
+
+			<lightning:layoutItem padding="around-small" size="6">
+			    <lightning:inputField fieldName="Email" onchange="{!c.setPatientModel}"/>
+			</lightning:layoutItem>
+			<lightning:layoutItem padding="around-small" size="6">
+			    <lightning:inputField fieldName="Gender_Identifies_As__c" onchange="{!c.setPatientModel}"/>
+			</lightning:layoutItem>
+
+			<lightning:layoutItem padding="around-small" size="6">
+			    <lightning:inputField fieldName="Height__c" onchange="{!c.setPatientModel}"/>
+			</lightning:layoutItem>
+			<lightning:layoutItem padding="around-small" size="6">
+			    <lightning:inputField fieldName="Preferred_Pronouns__c" onchange="{!c.setPatientModel}"/>
+			</lightning:layoutItem>
+
+			<lightning:layoutItem padding="around-small" size="6">
+			    <lightning:inputField fieldName="Weight__c" onchange="{!c.setPatientModel}"/>
+			</lightning:layoutItem>
+			<lightning:layoutItem padding="around-small" size="6">
+			    <ui:inputDate value="{!v.patient.Birthdate}" label="Birthdate (MM/DD/YYYY)" displayDatePicker="true" format="MM/dd/yyyy" />
+			</lightning:layoutItem>
+
+			<lightning:layoutItem padding="around-small" size="6">
+			    <lightning:inputField fieldName="Occupation__c" onchange="{!c.setPatientModel}"/>
+			</lightning:layoutItem>
+			<lightning:layoutItem padding="around-small" size="6">
+			    <lightning:inputField fieldName="Marital_Status__c" onchange="{!c.setPatientModel}"/>
+			</lightning:layoutItem>
+
+			<lightning:layoutItem padding="around-small" size="6">
+			    <lightning:inputField fieldName="On_Medical_Leave__c" onchange="{!c.setPatientModel}"/>
+			</lightning:layoutItem>
+			<lightning:layoutItem padding="around-small" size="6">
+			    <lightning:inputField fieldName="Stated_Age__c" onchange="{!c.setPatientModel}"/>
+			</lightning:layoutItem>
+
+			<lightning:layoutItem padding="around-small" size="6">
+			    <lightning:inputField fieldName="Carries_Emergency_Medication__c" onchange="{!c.setPatientModel}"/>
+			</lightning:layoutItem>
+			<lightning:layoutItem padding="around-small" size="6">
+			    <lightning:inputField fieldName="Place_of_Birth__c" onchange="{!c.setPatientModel}"/>
+			</lightning:layoutItem>
+		    -->
+		    </lightning:layout>
+		</lightning:recordEditForm>
+		<!-- removed 180921 JN
+		<h1 class="slds-text-heading_medium slds-hyphenate slds-p-top_x-small" style="text-align:center;">Related Contact</h1>
+		<lightning:recordEditForm objectApiName="Related_Contact__c" aura:id="relatedContactForm" recordTypeId="{!v.relatedContactRecordType.value}" >
+		    <lightning:messages />
+		    <lightning:layout multipleRows="true">
+			<lightning:layoutItem padding="around-small" size="6">
+			    <label> <span class="slds-form-element__label"></span> </label>
+			    <lightning:inputField fieldName="Payor__c" onchange="{!c.onFieldChange}"/>
+			</lightning:layoutItem>
+			<lightning:layoutItem padding="around-small" size="6">
+			    <label> <span class="slds-form-element__label"></span> </label>
+			    <lightning:inputField fieldName="Insurance_Contact__c" onchange="{!c.onFieldChange}"/>
+			</lightning:layoutItem>
+
+		    </lightning:layout>
+		</lightning:recordEditForm >
+	    -->
+	    </div>
+	</aura:set>
+	<aura:set attribute="footer">
+	    <lightning:button variant="brand" label="Cancel" onclick="{!c.cancel}" disabled="{!!v.enableButtons}" />
+	    <lightning:button variant="brand" label="Save" onclick="{!c.save}" disabled="{!!v.enableButtons}" />
+	</aura:set>
+    </c:sldsModal>
+</aura:component>

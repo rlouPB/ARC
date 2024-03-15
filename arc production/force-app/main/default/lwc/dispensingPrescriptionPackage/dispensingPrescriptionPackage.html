@@ -1,0 +1,10 @@
+<template>
+    <lightning-card>
+        <lightning-record-edit-form object-api-name="Package__c" record-id={recordId} onsubmit={onSubmitHandler} onload={onloadHandler}>
+            <lightning-input-field class="slds-has-error" field-name="Start_Date__c" required ></lightning-input-field>
+            <lightning-input-field field-name="End_Date__c"></lightning-input-field>
+            <lightning-input-field field-name="Package_Delivery_ETA__c"></lightning-input-field>
+        </lightning-record-edit-form>
+        <lightning-spinner if:true={showSpinner}></lightning-spinner>
+    </lightning-card>
+</template>

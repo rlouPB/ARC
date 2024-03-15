@@ -1,0 +1,142 @@
+<aura:component>
+    <aura:attribute name="domain" type="Object"/>
+    <aura:attribute name="isFirstDraftTreatmentPlan" type="Boolean"/>
+    <aura:attribute name="newTargetDate" type="Date" access="global"/>
+    <aura:attribute name="ratings" type="List" description="List of ratings" default="[{'label':'1','value':'1'},
+    {'label':'2','value':'2'},
+    {'label':'3','value':'3'},
+    {'label':'4','value':'4'},
+    {'label':'5','value':'5'},
+    {'label':'6','value':'6'}
+    ]"/>
+    <aura:attribute name="itemRatingScale" type="String" default="1 = significant weakness, 2 = moderate weakness, 3 = relative weakness, 4 = relative strength, 5 = moderate strength, 6 = significant strength" />
+    <aura:attribute name="ratingItem" type="Integer" description="item rating"/>
+    <aura:attribute name="conductEGO" type="Boolean" default="false"/>
+    <aura:attribute name="egoStatus" type="String" default=""/>
+    <aura:attribute name="isEGOR" type="Boolean" default="false"/>
+    <aura:attribute name="columnClasses" type="Map" default="{'item': 'slds-size_3-of-12', 'rating': 'slds-size_3-of-12', 'comments': 'slds-size_6-of-12'}" description="CSS classes for specified columns" />
+    <aura:attribute name="showResetDomainsModal" type="Boolean" default="false"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <!-- Hide Domain 6 ARC-2078 Domain 6 - don't display in EGO -->
+    <aura:if isTrue="{!v.domain.domainObj.Domain_Number__c!= 6}" >
+        <div class="c-domain-container slds-box c-fill-blue-stripes">
+            <div class="c-domain-inner c-fill-white">
+                <div class="c-header">
+                    <div class="slds-text-heading_large slds-p-around_small c-fill-white">
+                        <b>Domain&nbsp;&nbsp;&nbsp;&nbsp;{!v.domain.domainObj.Domain_Number__c}.&nbsp;{!v.domain.domainObj.Label__c}</b>
+                    </div>
+                    <div class="c-header-gradient"></div>
+                </div>
+                <lightning:card>
+                    <div class="{slds-p-around_small}">
+                        <!-- <br/><br/> -->
+                        <div class="slds-grid slds-wrap" >
+                            <!-- <lightning:layoutItem size="1">
+                                <div class="slds-text-heading_small"></div>
+                            </lightning:layoutItem> -->
+                            <lightning:layoutItem size="12">
+                                <div class="slds-text-body_small slds-text-color_weak">Item Rating Scale:<br/>{!v.itemRatingScale}</div>
+                            </lightning:layoutItem>
+                            <div class="{!v.columnClasses.item}">
+                                <div class="slds-text-heading_small">Item</div>
+                            </div>
+                            <div class="{!v.columnClasses.rating}">
+                                <div class="slds-text-heading_small">Rating</div>
+                            </div>
+                            <div class="{!v.columnClasses.comments}">
+                                <div class="slds-text-heading_small">Comments</div>
+                            </div>
+                        </div>
+                        <aura:iteration items="{!v.domain.ratingItems}" var="domainRatingItem" start="0" end="1">
+                            <div class="slds-p-top_xx-small slds-p-bottom_xx-small">
+                                <div class="slds-grid slds-wrap" >
+                                    <div class="{!v.columnClasses.item}">
+                                        {!v.domain.domainObj.Domain_Number__c}.{!domainRatingItem.itemNumber}&nbsp;&nbsp;{!domainRatingItem.ratingItem.Label__c}
+                                    </div>
+                                    <div class="{!v.columnClasses.rating}" aura:id="{!v.domain.domainObj.Domain_Number__c+'.'+domainRatingItem.itemNumber+'_div'}">
+                                        <lightning:radioGroup 
+                                        class="horizontalRadioCls" aura:id="domainRating"
+                                                            name="{!v.domain.domainObj.Domain_Number__c+'.'+domainRatingItem.itemNumber+'_rating'}" 
+                                                            options="{!v.ratings}" 
+                                                            value="{!domainRatingItem.ratingItem.Rating__c}"
+                                                            title="{!v.itemRatingScale}"
+                                                            type="button"
+                                                            disabled="{!not(v.conductEGO)}"/>
+                                    </div>
+                                    <div class="{!v.columnClasses.comments}">
+                                        <aura:if isTrue="{!v.conductEGO}">
+                                        <lightning:input class="domain-comments" variant="label-hidden" maxlength="255" type="text" value="{!domainRatingItem.ratingItem.Comments__c }" />
+                                        <aura:set attribute="else">
+                                            <div>{!domainRatingItem.ratingItem.Comments__c }</div>
+                                        </aura:set>
+                                        </aura:if>
+                                    </div>                                    
+                                </div>
+                            </div>
+                        </aura:iteration>
+                        <aura:iteration items="{!v.domain.ratingItems}" var="domainRatingItem" start="1">
+                            <div class="slds-border_top slds-p-top_xx-small slds-p-bottom_xx-small">
+                                <div class="slds-grid slds-wrap" >
+                                    <div class="{!v.columnClasses.item}">
+                                        <div id="Label__c">{!v.domain.domainObj.Domain_Number__c}.{!domainRatingItem.itemNumber}&nbsp;&nbsp;{!domainRatingItem.ratingItem.Label__c}</div>
+                                    </div>
+                                    <div class="{!v.columnClasses.rating}">
+                                        <div id="rating">
+                                            <lightning:radioGroup aura:id="domainRating"
+                                                                class="horizontalRadioCls" 
+                                                                name="{!v.domain.domainObj.Domain_Number__c+'.'+domainRatingItem.itemNumber+'_rating'}" 
+                                                                options="{!v.ratings}" 
+                                                                value="{!domainRatingItem.ratingItem.Rating__c}" 
+                                                                title="{!v.itemRatingScale}"
+                                                                type="button"
+                                                                disabled="{!not(v.conductEGO)}"/>
+                                        </div>
+                                    </div>
+                                    <div class="{!v.columnClasses.comments}">
+                                        <div id="Comments__c">
+                                            <aura:if isTrue="{!v.conductEGO}">
+                                                <lightning:input type="text" maxlength="255" variant="label-hidden" class="domain-comments" value="{!domainRatingItem.ratingItem.Comments__c }" />
+                                                <!-- <lightning:input type="number" maxlength="2" variant="label-hidden" class="domain-comments" value="{!domainRatingItem.ratingItem.Order__c }"/> -->
+                                                <aura:set attribute="else">
+                                                    <div>{!domainRatingItem.ratingItem.Comments__c }</div>
+                                                </aura:set>
+                                            </aura:if>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </aura:iteration>
+                        <lightning:button class="slds-p-left_medium" variant="base" label="Reset These Domain Ratings" title="Reset action" onclick="{! c.handleResetClick }"/>
+                    </div>
+                </lightning:card>
+                <c:TreatmentPlan_EGO_Goals aura:id="egoGoals" 
+                                        goalList="{!v.domain.goals}" 
+                                        newTargetDate="{!v.newTargetDate}" 
+                                        domain="{!v.domain}"
+                                        conductEGO="{!v.conductEGO}"
+                                        egoStatus="{!v.egoStatus}"
+                                        isEGOR="{!v.isEGOR}"
+                                        />
+                <br/>
+            </div>
+        </div>
+    </aura:if>
+    <aura:if isTrue="{!v.showResetDomainsModal}">
+        <c:sldsModal instanceName="resetDomains" showXIcon="false">
+            <aura:set attribute="header">
+                
+            </aura:set>
+            <aura:set attribute="content">
+                <div class="slds-p-horizontal--small">
+                    Click Confirm to remove all the ratings from this one domain.
+                </div>
+            </aura:set>
+            <aura:set attribute="footer">
+                <lightning:button label="Confirm" variant="destructive" onclick="{!c.handleConfirmResetClick}"/>
+                <lightning:button label="Cancel" 
+                variant="neutral" 
+                onclick="{!c.handleBackToEGO}"/>
+            </aura:set>
+        </c:sldsModal>
+    </aura:if>
+</aura:component>

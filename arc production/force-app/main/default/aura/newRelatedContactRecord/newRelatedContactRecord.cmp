@@ -1,0 +1,291 @@
+<aura:component access="public" Controller="NewRelatedContactCtl" extends="c:ApexService" implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickActionwithoutheader">
+	<!--Attribute Sections-->
+	<aura:attribute name="contact" type="Map" access="public" default="{'sobjectType':'Contact'}" />
+	<aura:attribute name="contactRecordTypeList" type="list" access="public" Description="Used to store  Contact RecordType List" />
+	<aura:attribute name="personalContactAdditionalOptions" type="List" default="[]" access="public" />
+	<aura:attribute name="personalContactFilter" type="List" default="[]" access="public" />
+	<aura:attribute name="professionalContactAdditionalOptions" type="List" default="[]" access="public" />
+	<aura:attribute name="professionalContactFilter" type="List" default="[]" access="public" />
+	<aura:attribute name="recordId" type="String" access="public" Description="Used to store Account Id" />
+	<aura:attribute name="relatedContact" type="Related_Contact__c" access="public" default="{'sobjectType':'Related_Contact__c'}" />
+	<aura:attribute name="relatedContactRecordId" type="String" />
+	<aura:attribute name="account" type="Account" default="{'sobjectType':'Account'}" />
+	<aura:attribute name="currentAdmissionStage" type="String" />
+	<aura:attribute name="relatedContactRecordTypeList" type="list" access="public" Description="Used to store related Contact RecordType List" />
+	<aura:attribute name="searchText" type="String" default="" access="public" />
+	<aura:attribute name="selectedCallerRecord" type="Map" default="{}" access="public" />
+	<aura:attribute name="selectedRecordType" type="Map" default="{'label':'','value':'','relatedValue':''}" access="public" Description="Used to Selected RecordType " />
+	<aura:attribute name="showModal" type="Boolean" access="public" default="true" />
+
+	<!-- Validation -->
+	<aura:attribute name="enableButtons" type="Boolean" default="false" access="private" description="if true, buttons can be clicked" />
+	<aura:attribute name="errorMessage" type="String" default="" access="public" Description="Used to Error Message " />
+	<aura:attribute name="errorMessages" type="List" default="[]" access="public" />
+
+	<aura:attribute name="lookupError" type="Map" default="{message: 'a', show: false}" access="public" description="error displayed on lookup component" />
+	<aura:attribute name="requiredFields" type="Object" default="{}" access="public" />
+	<!--Event Registers-->
+	<aura:registerEvent name="closeModalView" type="c:closeModal" />
+	<aura:registerEvent name="refreshList" type="c:refreshRelatedList" />
+
+	<!--Handlers-->
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+	<aura:handler name="change" value="{!v.showModal}" action="{!c.handleShowModalChanged}" />
+
+	<!--Modal Starts-->
+	<c:sldsModal>
+		<lightning:notificationsLibrary aura:id="notifLib" />
+		<aura:set attribute="header">
+			<aura:if isTrue="{!not(empty(v.relatedContactRecordId))}">
+				Edit {!v.selectedRecordType.label} Related Contact
+				<aura:set attribute="else">
+					{!v.selectedRecordType.label == '' ? 'Choose Record Type' : v.selectedRecordType.label + ' Related Contact'}
+				</aura:set>
+			</aura:if>
+		</aura:set>
+
+		<aura:set attribute="content">
+			<div class="slds-is-relative" style="height:80vh;">
+				<lightning:spinner aura:id="spinner" variant="brand" />
+
+				<aura:if isTrue="{!empty(v.relatedContactRecordId)}">
+					<aura:if isTrue="{!v.selectedRecordType.label == ''}">
+						<!-- <lightning:combobox name="progress" label="Select a Record Type" placeholder="Select a Record Type" options="{! v.contactRecordTypeList }" onchange="{! c.onrecordTypeChange }"/> -->
+						<div style="width: 100%; font-size: large;" class="slds-grid slds-grid_align-center">
+							<div class="slds-size_1-of-2">
+								<lightning:radioGroup name="radioGroup" class="recordtypeRadio slds-p-around_small" options="{! v.contactRecordTypeList }" type="radio" onchange="{! c.onrecordTypeChange }" />
+							</div>
+						</div>
+
+					</aura:if>
+
+					<aura:if isTrue="{!v.selectedRecordType.label == ''}">
+						<div class="slds-p-bottom_large"></div>
+						<div class="slds-p-bottom_medium"></div>
+						<div class="slds-p-bottom_medium"></div>
+						<div class="slds-p-bottom_medium"></div>
+						<div class="slds-p-bottom_medium"></div>
+					</aura:if>
+				</aura:if>
+				<aura:if isTrue="{!v.selectedRecordType.label == 'Personal'}">
+					<!-- <h1 class="slds-text-heading_medium slds-hyphenate slds-p-top_x-small" style="text-align:center;">Related Contact</h1>         -->
+
+					<lightning:recordEditForm objectApiName="Related_Contact__c" aura:id="relatedContactFormPersonal"
+											  recordTypeId='{!v.selectedRecordType.relatedValue}' onerror="{!c.handleOnError}"
+											  recordId="{!v.relatedContactRecordId}">
+						<!--onload="{!c.handleOnLoad}"-->
+						<lightning:messages />
+						<lightning:layout multipleRows="true">
+							<lightning:layoutItem  size="12">
+                                <lightning:layout multipleRows="true">
+                                    <lightning:layoutItem padding="around-small" size="6">
+                                        <aura:if isTrue="{!not(empty(v.relatedContactRecordId))}">
+                                            <lightning:inputField aura:id="relatedContactField" fieldName="Contact__c" disabled="true" />
+                                            <aura:set attribute="else">
+                                                <c:LookupComponent required="true" aura:id="contactLookup" selectedRecord="{!v.selectedCallerRecord}"
+                                                                additionalOptions="{!v.personalContactAdditionalOptions}" filters="{!v.personalContactFilter}"
+                                                                displayField="Name" allowFreeText="true" lookupFieldName="{!v.relatedContact.Contact__c}"
+                                                                splitSearchTextBySeperator="true" label="Contact Name" validationError="{!v.lookupError}"
+                                                                objectName="Contact" displayFieldValue="Id" fieldsToSearch="Name" SearchKeyWord="{!v.searchText}" />
+                                            </aura:set>
+                                        </aura:if>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem padding="around-small" size="6">
+                                        <lightning:inputField fieldName="Insurance_Contact__c" onchange="{!c.onFieldChangeRelated}" />
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem padding="around-small" size="6">
+                                        <aura:if isTrue="{!not(v.account.Current_Admission_Stage__c == 'Admitted')}">
+                                            <lightning:inputField fieldName="Contact_Permissions__c" onchange="{!c.onFieldChangeRelated}" />
+                                        </aura:if>
+                                    </lightning:layoutItem>
+                                </lightning:layout>
+								
+							</lightning:layoutItem>
+							
+                            <!--
+							<aura:if isTrue="{!v.account.Current_Admission_Stage__c == 'Admitted'}">
+								<lightning:layoutItem padding="around-small" size="6">
+									<label for="AuthorizationLevel" class="slds-form-element__label">Authorization Level</label>
+									<lightning:helptext
+														content="Level 1 – If this individual contacts us, we may acknowledge your presence at Riggs and receive
+					information from them.
+					Level 2 – We may obtain information for assessment purposes, share general information about
+					treatment status, and disclose information related to specific issues that directly affect the provision of
+					treatment, as determined by clinical staff to be clinically appropriate." />
+									<div id="AuthorizationLevel">
+										<lightning:inputField fieldName="Authorization_Level__c" onchange="{!c.onFieldChangeRelated}"
+															  variant="label-hidden" />
+									</div>
+								</lightning:layoutItem>
+								<lightning:layoutItem padding="around-small" size="6">
+									<lightning:inputField fieldName="Letters__c" onchange="{!c.onFieldChangeRelated}" />
+								</lightning:layoutItem>
+							</aura:if>
+                        -->
+							<lightning:layoutItem padding="around-small" size="6">
+								<lightning:inputField fieldName="Role__c" class="customRequired" onchange="{!c.onFieldChangeRelated}" />
+							</lightning:layoutItem>
+                        <!--
+							<lightning:layoutItem padding="around-small" size="6">
+								<lightning:inputField fieldName="Primary_Contact__c" onchange="{!c.onFieldChangeRelated}" />
+							</lightning:layoutItem>
+                        -->
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Payor__c" onchange="{!c.onFieldChangeRelated}" />
+                            </lightning:layoutItem>
+							<lightning:layoutItem padding="around-small" size="6">
+								<lightning:inputField fieldName="Role_Details__c" onchange="{!c.onFieldChangeRelated}" />
+							</lightning:layoutItem>
+							
+
+							<lightning:layoutItem padding="around-small" size="3">
+								<!-- <lightning:inputField fieldName="Start_Date__c" onchange="{!c.onFieldChangeRelated}" /> -->
+								<ui:inputDate value="{!v.relatedContact.Start_Date__c}" label="Start Date (MM/DD/YYYY)" displayDatePicker="true" format="M/d/yyyy" />
+							</lightning:layoutItem>
+							<lightning:layoutItem padding="around-small" size="3">
+								<!-- <lightning:inputField fieldName="End_Date__c" onchange="{!c.onFieldChangeRelated}" /> -->
+								<ui:inputDate value="{!v.relatedContact.End_Date__c}" label="End Date (MM/DD/YYYY)" displayDatePicker="true" format="M/d/yyyy" />
+							</lightning:layoutItem>
+							
+
+							<lightning:layoutItem padding="around-small" size="6">
+								<lightning:inputField fieldName="Notes__c" onchange="{!c.onFieldChangeRelated}" />
+							</lightning:layoutItem>
+
+							<lightning:layoutItem padding="around-small" size="6">
+								<lightning:inputField aura:id="relatedContactField" fieldName="Video_Conference_ID__c" onchange="{!c.onFieldChangeRelated}" />
+							</lightning:layoutItem>
+
+							<lightning:layoutItem padding="around-small" size="6">
+								<lightning:inputField fieldName="Former__c" onchange="{!c.onFieldChangeRelated}" />
+							</lightning:layoutItem>
+						</lightning:layout>
+					</lightning:recordEditForm>
+				</aura:if>
+
+				<aura:if isTrue="{!v.selectedRecordType.label == 'Professional'}">
+					<!-- <h1 class="slds-text-heading_medium slds-hyphenate slds-p-top_x-small" style="text-align:center;">Related Contact</h1>         -->
+					<lightning:recordEditForm objectApiName="Related_Contact__c" aura:id="relatedContactFormProfessional" recordTypeId='{!v.selectedRecordType.relatedValue}'
+											  onerror="{!c.handleOnError}" recordId="{!v.relatedContactRecordId}" onload="{!c.handleOnLoad}">
+						<lightning:messages />
+						<lightning:layout multipleRows="true">
+							<lightning:layoutItem size="12">
+                                <lightning:layout multipleRows="true">
+                                    <lightning:layoutItem padding="around-small" size="6">
+                                        <aura:if isTrue="{!not(empty(v.relatedContactRecordId))}">
+                                            <lightning:inputField aura:id="relatedContactField" fieldName="Contact__c" disabled="true" />
+                                            <aura:set attribute="else">
+                                                <c:LookupComponent required="true" aura:id="contactLookup" selectedRecord="{!v.selectedCallerRecord}"
+                                                                additionalOptions="{!v.professionalContactAdditionalOptions}" filters="{!v.professionalContactFilter}"
+                                                                displayField="Name" allowFreeText="true" lookupFieldName="{!v.relatedContact.Contact__c}"
+                                                                splitSearchTextBySeperator="true" label="Contact Name" validationError="{!v.lookupError}"
+                                                                objectName="Contact" displayFieldValue="Id" fieldsToSearch="Name" SearchKeyWord="{!v.searchText}" />
+                                            </aura:set>
+                                        </aura:if>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem padding="around-small" size="6">
+                                        <aura:if isTrue="{!not(v.account.Current_Admission_Stage__c == 'Admitted')}">
+                                            <lightning:layoutItem padding="around-small" size="6">
+                                                <lightning:inputField fieldName="Contact_Permissions__c" onchange="{!c.onFieldChangeRelated}" />
+                                            </lightning:layoutItem>
+                                        </aura:if>
+                                    </lightning:layoutItem>
+                                </lightning:layout>
+							</lightning:layoutItem>
+
+							
+                            <!--
+							<aura:if isTrue="{!v.account.Current_Admission_Stage__c == 'Admitted'}">
+								<lightning:layoutItem padding="around-small" size="6">
+									<lightning:inputField fieldName="Authorization_Level__c" onchange="{!c.onFieldChangeRelated}" />
+								</lightning:layoutItem>
+								<lightning:layoutItem padding="around-small" size="6">
+									<lightning:inputField fieldName="Letters__c" onchange="{!c.onFieldChangeRelated}" />
+								</lightning:layoutItem>
+							</aura:if>
+                        -->
+							<lightning:layoutItem padding="around-small" size="6">
+								<lightning:inputField fieldName="Role__c" class="customRequired" onchange="{!c.onFieldChangeRelated}" />
+							</lightning:layoutItem>
+							<lightning:layoutItem padding="around-small" size="6">
+								<lightning:inputField fieldName="Referrer__c" onchange="{!c.onFieldChangeRelated}" />
+							</lightning:layoutItem>
+							<lightning:layoutItem padding="around-small" size="6">
+								<lightning:inputField fieldName="Role_Details__c" onchange="{!c.onFieldChangeRelated}" />
+							</lightning:layoutItem>
+							<lightning:layoutItem padding="around-small" size="6">
+								<!-- <lightning:inputField fieldName="Start_Date__c" onchange="{!c.onFieldChangeRelated}" /> -->
+								<ui:inputDate value="{!v.relatedContact.Start_Date__c}" label="Start Date (MM/DD/YYYY)" displayDatePicker="true" format="M/d/yyyy" />
+							</lightning:layoutItem>
+							<lightning:layoutItem padding="around-small" size="6">
+								<lightning:inputField fieldName="Notes__c" onchange="{!c.onFieldChangeRelated}" />
+							</lightning:layoutItem>
+							<lightning:layoutItem padding="around-small" size="6">
+								<!-- <lightning:inputField fieldName="End_Date__c" onchange="{!c.onFieldChangeRelated}" /> -->
+								<ui:inputDate value="{!v.relatedContact.End_Date__c}" label="End Date (MM/DD/YYYY)" displayDatePicker="true" format="M/d/yyyy" />
+							</lightning:layoutItem>
+
+							<lightning:layoutItem padding="around-small" size="6">
+								<lightning:inputField aura:id="relatedContactField" fieldName="Video_Conference_ID__c" onchange="{!c.onFieldChangeRelated}" />
+							</lightning:layoutItem>
+							<lightning:layoutItem padding="around-small" size="6">
+								<lightning:inputField fieldName="Former__c" onchange="{!c.onFieldChangeRelated}" />
+							</lightning:layoutItem>
+						</lightning:layout>
+
+					</lightning:recordEditForm>
+				</aura:if>
+
+				<aura:if isTrue="{!v.selectedRecordType.label == 'Patient'}">
+					<lightning:recordEditForm objectApiName="Related_Contact__c" aura:id="relatedContactFormPatient" recordId="{!v.relatedContactRecordId}"
+											  onerror="{!c.handleOnError}" onsuccess="{!c.handleSuccess}" onload="{!c.handleOnLoad}">
+						<lightning:messages />
+						<lightning:layout multipleRows="true">
+							<lightning:layoutItem padding="around-small" size="6">
+								<aura:if isTrue="{!not(empty(v.relatedContactRecordId))}">
+									<lightning:inputField aura:id="relatedContactField" fieldName="Contact__c" disabled="true" />
+									<aura:set attribute="else">
+										<c:LookupComponent required="true" aura:id="contactLookup" selectedRecord="{!v.selectedCallerRecord}"
+														   additionalOptions="{!v.professionalContactAdditionalOptions}" filters="{!v.professionalContactFilter}"
+														   displayField="Name" allowFreeText="true" lookupFieldName="{!v.relatedContact.Contact__c}"
+														   splitSearchTextBySeperator="true" label="Contact Name" validationError="{!v.lookupError}"
+														   objectName="Contact" displayFieldValue="Id" fieldsToSearch="Name" SearchKeyWord="{!v.searchText}" />
+									</aura:set>
+								</aura:if>
+
+
+							</lightning:layoutItem>
+
+							<lightning:layoutItem padding="around-small" size="6">
+								<lightning:inputField aura:id="relatedContactField" fieldName="Role__c" class="customRequired" onchange="{!c.onFieldChangeRelated}" />
+							</lightning:layoutItem>
+							<lightning:layoutItem padding="around-small" size="6">
+								<lightning:inputField aura:id="relatedContactField" fieldName="Role_Details__c" onchange="{!c.onFieldChangeRelated}" />
+							</lightning:layoutItem>
+							<lightning:layoutItem padding="around-small" size="6">
+								<lightning:inputField aura:id="relatedContactField" fieldName="Notes__c" onchange="{!c.onFieldChangeRelated}" />
+							</lightning:layoutItem>
+							<lightning:layoutItem padding="around-small" size="6">
+								<lightning:inputField fieldName="Insurance_Contact__c" onchange="{!c.onFieldChangeRelated}" />
+							</lightning:layoutItem>
+							<lightning:layoutItem padding="around-small" size="6">
+								<lightning:inputField aura:id="relatedContactField" fieldName="Video_Conference_ID__c" onchange="{!c.onFieldChangeRelated}" />
+							</lightning:layoutItem>
+						</lightning:layout>
+					</lightning:recordEditForm>
+				</aura:if>
+				<aura:if isTrue="{!not(empty(v.relatedContactRecordId))}">
+					<c:LightningHistory recordId="{!v.relatedContactRecordId}" sObjectName="Related_Contact__c" />
+				</aura:if>
+			</div>
+		</aura:set>
+
+		<aura:set attribute="footer">
+			<lightning:button variant="brand" label="Cancel" onclick="{!c.closeModal}" disabled="{!!v.enableButtons}" />
+			<aura:if isTrue="{!or(v.selectedRecordType.label != '', not(empty(v.relatedContactRecordId)))}">
+				<lightning:button variant="brand" label="Save" onclick="{!c.save}" disabled="{!!v.enableButtons}" />
+			</aura:if>
+		</aura:set>
+	</c:sldsModal>
+
+</aura:component>

@@ -1,0 +1,198 @@
+<template>
+
+    <lightning-card >
+
+
+		<div slot="header"  if:true={patient} class="header slds-card__body_inner">
+			<slot name="sideBarHeader" ></slot>
+			<lightning-layout multiple-rows>
+
+				<!-- <template if:true={patient.Photo__c} > -->
+
+				<!-- <aura:if isTrue="{!v.data.patient.Photo__c}"> -->
+
+					<lightning-layout-item size="12">
+
+						<!-- <aura:unescapedHtml value="{!v.data.patient.Photo__c}" /> -->
+
+						
+
+						<!-- <lightning-formatted-rich-text value={patient.Photo__c} ></lightning-formatted-rich-text> -->
+
+					
+
+					</lightning-layout-item>
+
+				<!-- </template> -->
+
+				
+
+				<template if:true={patient.Name} >
+
+					<!-- <aura:if isTrue="{!v.data.patient.Name}"> -->
+
+					<lightning-layout-item size="12" class="slds-var-p-around_xx-small">
+
+						<label class="slds-form-element__label">Patient</label>
+
+						<div class="slds-form-element__control">
+
+							<c-record-link record-id={patient.Id} record-name={patient.Name} ></c-record-link>
+
+						</div>
+
+					</lightning-layout-item>
+
+				</template>
+
+			</lightning-layout>
+
+
+			<div class="recordFieldsStyle slds-scrollable_y">
+
+				<lightning-layout multiple-rows>
+
+					<lightning-layout-item size="12">
+
+						<lightning-layout multiple-rows>
+
+							<!--template for:each={recordFields} for:item="field" >
+
+							
+
+								<lightning-layout-item size="12" key={field.name}>
+
+									
+
+								</lightning-layout-item>
+
+							</template-->
+
+						</lightning-layout>
+
+					</lightning-layout-item>
+
+					<lightning-layout-item size="12">
+
+						<!-- {!v.fields} -->
+
+					</lightning-layout-item>
+
+				</lightning-layout>
+
+			</div>
+
+		</div>
+
+		
+
+		<div slot="actions" >
+
+			<!-- Collapse "X" button? TODO -->
+
+		</div>
+
+
+		<div slot="footer" >
+			<slot name="sideBarFooter" ></slot>
+			<!--
+			<lightning-layout multiple-rows >
+
+				<lightning-layout-item size="12"  padding="horizontal-large">
+					<button class="slds-button slds-button_brand slds-button_stretch slds-var-m-top_x-small" onclick={handleSendAsMessageClick}>Send As Message</button>
+				</lightning-layout-item>
+
+				<lightning-layout-item size="12"  padding="horizontal-large">
+					<button class="slds-button slds-button_brand slds-button_stretch slds-var-m-top_x-small" onclick={handleGeneratePresentationClick}>Generate Presentation</button>
+				</lightning-layout-item>
+
+				<lightning-layout-item size="12"  padding="horizontal-large">
+					<button class="slds-button slds-button_brand slds-button_stretch slds-var-m-top_x-small" onclick={handleSaveClick}>Save</button>
+				</lightning-layout-item>
+
+				<lightning-layout-item size="12" padding="horizontal-large" >
+					<button class="slds-button slds-button_brand slds-button_stretch slds-var-m-top_x-small" onclick={handlePreviewPresentationClick}>View Presentation</button>
+				</lightning-layout-item>
+
+				<lightning-layout-item size="12" padding="horizontal-large" >
+					<button class="slds-button slds-button_brand slds-button_stretch slds-var-m-top_x-small" onclick={handleFinalizeClick}>Finalize</button>
+				</lightning-layout-item>
+
+			</lightning-layout>
+			-->
+			<!--
+			<p>@@--@@</p>
+			-->
+			<!-- buttons -->
+			<!--
+			<div class="slds-grid slds-wrap" >
+
+				<lightning-button label="Save" variant="brand" disabled="true" class="slds-p-horizontal_large slds-button_stretch slds-var-m-top_xx-small sidebarButton" ></lightning-button>				
+
+				<lightning-button label="Generate Presentation" variant="brand" disabled="true" class="slds-p-horizontal_large slds-size_1_of_1 slds-button_stretch slds-var-m-top_xx-small sidebarButton" ></lightning-button>				
+
+				<lightning-button label="Finalize" variant="brand" disabled="true" class="slds-p-horizontal_large slds-size_1_of_1 slds-button_stretch slds-var-m-top_xx-small sidebarButton"></lightning-button>				
+
+			</div>
+			-->
+		</div>
+
+
+		<div class="sidebarBody" >
+			
+			<lightning-layout multiple-rows >
+
+				<lightning-layout-item size="12" >
+
+					<!-- Patient Photo -->
+
+					<template if:true={patient}>
+						<lightning-formatted-rich-text value={patient.Photo__c} ></lightning-formatted-rich-text>
+					</template>
+				</lightning-layout-item>
+
+				<!-- Patient Fields -->
+				<lightning-layout-item size="12" >
+					<div class="slds-var-m-left_medium">
+						<template if:true={patient}>
+							<template if:true={patient.Name}>
+								<p>Patient:</p>
+								<p>&nbsp;&nbsp;<c-record-link record-id={patient.Id} record-name={patient.Name}></c-record-link></p>
+							</template>
+							<template if:true={patient.Gender_Identifies_As__c}>
+								<p>Gender:</p>
+								<p>&nbsp;&nbsp;{patient.Gender_Identifies_As__c}</p>
+							</template>
+							
+							<template if:true={patient.Preferred_Pronouns__c}>
+								<p>Preferred Pronous:</p>
+								<p>&nbsp;&nbsp;{patient.Preferred_Pronouns__c}</p>
+							</template>
+
+							<template if:true={patient.Age__c}>
+								<p>Age:</p>
+								<p>&nbsp;&nbsp;{patient.Age__c}</p>
+							</template>
+
+							<template if:true={patient.Admit_Date__c}>
+								<p>Admit Date:</p>
+								<p>&nbsp;&nbsp;{patient.Admit_Date__c}</p>
+							</template>
+
+							
+							<p>Previous Admissions:</p>
+							<p>&nbsp;&nbsp;{patient.Previous_Admissions_Numeric__c}</p>
+						
+						</template>
+					</div>	
+					
+				</lightning-layout-item>
+				<slot name="sideBarBody" ></slot>
+			</lightning-layout>
+
+		</div>
+
+
+	</lightning-card>
+
+</template>

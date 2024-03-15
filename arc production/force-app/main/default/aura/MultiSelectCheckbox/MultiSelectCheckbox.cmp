@@ -1,0 +1,24 @@
+<aura:component controller="MultiSelectCheckboxCtl">
+	<aura:attribute name="class" type="String"/>
+	<aura:attribute name="name" type="String" default="checkboxGroup"/>
+	<aura:attribute name="label" type="String" default="Checkbox Group"/>
+	<aura:attribute name="objectName" type="String"/>
+	<aura:attribute name="fieldName" type="String"/>
+	<aura:attribute name="options" type="List" default="[]"/>
+	<aura:attribute name="value" type="List" default="[]"/>
+	<aura:attribute name="variant" type="String" default="standard"/>
+	<aura:attribute name="selectedOptionsString" type="String" description="Semi-colon delimited options list."/>
+	<aura:attribute name="readOnly" type="Boolean" default="false" description="Render list of values only if it is read only"/>
+
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+	
+	<aura:if isTrue="{!v.readOnly}">
+		<aura:iteration items="{!v.value}" var="item">
+			{!item}<br/>
+		</aura:iteration>
+		<aura:set attribute="else">
+			<lightning:checkboxGroup class="{!v.class}" name="{!v.name}" label="{!v.label}" variant="{!v.variant}"
+				options="{!v.options}" value="{!v.value}" onchange="{!c.handleChange}"/>
+		</aura:set>
+	</aura:if>
+</aura:component>

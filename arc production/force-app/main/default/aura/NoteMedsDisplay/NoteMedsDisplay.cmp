@@ -1,0 +1,128 @@
+<aura:component extends="c:NoteItemPlugin">
+	<div class="wrapper slds-p-left_medium">
+		<div class="medTable">
+			<div class="slds-text-title">
+				Psychiatric Medications
+			</div>
+			<table class="slds-table slds-table_cell-buffer slds-table_bordered">
+				<thead>
+					<tr>
+						<th scope="col">
+							Medication
+						</th>
+						<th scope="col">
+							Dose
+						</th>
+						<th scope="col">
+							Frequency
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>
+							Clonazepam
+						</td>
+						<td>
+							1mg
+						</td>
+						<td>
+							Twice Daily
+						</td>
+					</tr>
+				</tbody>
+			</table>	
+		</div>
+
+		<div class="medTable">
+			<div class="slds-text-title">
+				PRN Medications
+			</div>
+			<table class="slds-table slds-table_cell-buffer slds-table_bordered">
+				<thead>
+					<tr>
+						<th scope="col">
+							Medication
+						</th>
+						<th scope="col">
+							Dose
+						</th>
+						<th scope="col">
+							Frequency
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>
+							Benadryl
+						</td>
+						<td>
+							25mg
+						</td>
+						<td>
+							Take every 6 hours as needed
+						</td>
+					</tr>
+					<tr>
+						<td>
+							Lorazepam
+						</td>
+						<td>
+							1mg
+						</td>
+						<td>
+							every 6 hrs
+						</td>
+					</tr>
+				</tbody>
+		
+			</table>	
+		</div>
+
+		<div class="medTable">
+			<div class="slds-text-title">
+				Non-Psychiatric Medications
+			</div>
+			<table class="slds-table slds-table_cell-buffer slds-table_bordered">
+				<thead>
+					<tr>
+						<th scope="col">
+							Medication
+						</th>
+						<th scope="col">
+							Dose
+						</th>
+						<th scope="col">
+							Frequency
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>
+							Cyproheptadine
+						</td>
+						<td>
+							4mg
+						</td>
+						<td>
+							bedtime
+						</td>
+					</tr>
+					<tr>
+						<td>
+							Hormonal IUD
+						</td>
+						<td>
+							
+						</td>
+						<td>
+							
+						</td>
+					</tr>
+				</tbody>
+			</table>	
+		</div>
+	</div>
+</aura:component>

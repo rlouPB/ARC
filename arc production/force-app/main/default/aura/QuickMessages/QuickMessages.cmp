@@ -1,0 +1,61 @@
+<aura:component controller="CreateMessageController" implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickActionwithoutheader,lightning:actionOverride,lightning:utilityItem">
+  <aura:handler name="init" value="{!this}" action="{!c.init}" />
+  <aura:handler event="c:UtilityBarEvent" action="{!c.handleUtilityBarEvent}"></aura:handler>
+  <aura:registerevent name="messageUnreadEvent" type="c:MessageUnreadEvent"></aura:registerevent>
+
+  <aura:attribute name="data" type="List" default="[]" />
+  <aura:attribute name="activeUser" type="String" />
+  <aura:attribute name="badgeMessage" type="String" />
+  <aura:attribute name="url" type="String" />
+  <aura:attribute name="pageReference" type="String" />
+  <aura:attribute name="type" type="String" />
+  <aura:attribute name="label" type="String" />
+  <aura:attribute name="unread" type="Integer" />
+  <aura:attribute name="barId" type="String" />
+  <aura:attribute name="utilityId" type="String" />
+
+  <aura:attribute name="supportsPopOut" type="Boolean" default="false" />
+
+  <lightning:card title="{!v.badgeMessage}">
+    <aura:set attribute="actions">
+      <lightning:button label="Open Messaging" onclick="{! c.handleViewMessage }" />
+    </aura:set>
+
+    <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+      <thead>
+        <tr>
+          <th class="" scope="col" data-column="subject">
+            <div class="slds-truncate" title="Subject">Subject</div>
+          </th>
+
+          <th class="" scope="col" data-column="sent">
+            <div class="slds-truncate" title="Sent">Sent</div>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <aura:iteration items="{!v.data}" var="message">
+          <tr>
+            <td class="pointer" data-label="Subject" data-id="{!message.id}">
+              <div class="slds-truncate" title="{!message.subject}">{!message.subject}</div>
+            </td>
+
+            <td class="pointer" data-label="Sent" onclick="{!c.preview}" data-id="{!message.id}">
+              <div class="slds-truncate" title="{!message.sent}">
+                <lightning:formattedDateTime value="{!message.sent}" year="numeric" month="numeric" day="numeric" hour="2-digit" minute="2-digit" hour12="true" />
+              </div>
+            </td>
+          </tr>
+        </aura:iteration>
+      </tbody>
+    </table>
+  </lightning:card>
+
+  <lightning:empApi aura:id="empApi" />
+  <lightning:navigation aura:id="navService" />
+  <lightning:overlayLibrary aura:id="overlayLib" />
+  <lightning:notificationsLibrary aura:id="notifLib" />
+  <!--lightning:utilityBarAPI aura:id="utilitybar"/-->
+
+  {!v.body}
+</aura:component>

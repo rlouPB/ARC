@@ -1,0 +1,25 @@
+.THIS .slds-scrollable_y{
+    max-height: 50vh;
+}
+.THIS li {
+    list-style-type: disc;
+}
+.THIS .goalList {
+    max-height: 32vh;
+}
+.THIS .c-fill-blue-stripes{
+    background: repeating-linear-gradient(45deg, 
+            rgb(83,105,140), 
+            rgb(83,105,140) 20px, 
+            rgba(83,105,140,.95) 20px, 
+            rgba(83,105,140,.95) 40px);
+}
+.THIS .c-fill-white{
+    background: white;
+}
+.THIS .c-text-white{
+    color: white;
+}
+.THIS .Goal-Objective-Value{
+    font-size: 1rem;
+}

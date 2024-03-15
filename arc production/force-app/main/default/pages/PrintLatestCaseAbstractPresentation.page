@@ -1,0 +1,2 @@
+<apex:page renderAs="pdf" applyBodyTag="false" controller="PrintLatestCaseAbstractController" action="{!init}">
+</apex:page>

@@ -1,0 +1,17 @@
+.THIS .meeting-type-middle
+{
+    text-align: center;
+    transform: translateY(30%);
+    margin: auto;
+}
+
+.THIS .meeting-row
+{
+    height: 100%;
+}
+.THIS label.title {
+    font-weight: bold;
+}
+.THIS .slds-rich-text-editor__output table {
+    width: 100%;
+}

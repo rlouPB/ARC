@@ -1,0 +1,350 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId">
+    <aura:attribute name="accountRecord" type="Object"/>
+    <aura:attribute name="contactRecord" type="Object"/>
+    <aura:attribute name="preferredPronounsFilter" type="List" default="[]" access="public" />
+    <aura:attribute name="preferredPronounsText" type="String" />
+    <aura:attribute name="isEdit" type="Boolean" default="false" />
+    <aura:attribute name="loading" type="Boolean" default="false" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <force:recordData aura:id="recordLoader"
+        recordId="{!v.recordId}"
+        targetFields="{!v.accountRecord}"
+        fields="Name, Patient_Contact__c"
+        layoutType="FULL"                
+    />
+    <aura:if isTrue="{!v.accountRecord.Patient_Contact__c != NULL}">
+        <force:recordData aura:id="contactRecordLoader"
+            recordId="{!v.accountRecord.Patient_Contact__c}"
+            targetFields="{!v.contactRecord}"
+            fields="Name,MobilePhone,npe01__WorkPhone__c,Phone"
+            layoutType="FULL"
+            recordUpdated="{!c.editOff}"
+        />
+    </aura:if>
+
+
+        
+    <div class="slds-card" style="min-height: 200px"> 
+        <!-- <aura:if isTrue="{!or ( v.loading, v.accountRecord.Patient_Contact__c == null ) }">
+            <div style="position: absolute; width: 100%; height: 25vw; top: -5px;">
+                <lightning:spinner class="logCallSpinner" variant="brand" alternativeText="Loading" size="medium" />
+            </div>
+            <div style="position: absolute; width: 100%; height: 100vw; top: -5px;">
+                <lightning:spinner class="logCallSpinner" variant="brand" alternativeText="Loading" size="medium" />
+            </div>
+        </aura:if> -->
+        <aura:if isTrue="{!v.accountRecord.Patient_Contact__c != null}">
+            <lightning:spinner class="{!v.loading?'slds-show':'slds-hide'}" variant="brand" alternativeText="Loading" size="medium" />
+            <aura:if isTrue="{!v.isEdit}">
+                <lightning:recordEditForm recordId="{!v.accountRecord.Patient_Contact__c}" objectApiName="Contact" onsubmit="{!c.handleSaveRecord}" onerror="{!c.onEditError}" onsuccess="{!c.onEditSuccess}">
+                    <lightning:card variant="Base" title="Contact Info" iconName="standard:contact">
+                        <!-- <lightning:messages /> -->
+                        <lightning:messages />
+                        <aura:set attribute="actions">
+                            <!-- <lightning:button variant="neutral" type="submit" name="edit" label="Edit" onclick="{!c.editOn}" /> -->
+                        </aura:set>
+                        <div style="position: relative;">
+                            <!-- <div style="text-align: center;">
+                                <lightning:button label="Cancel" title="Cancel" onclick="{!c.editOff}" />
+                                <lightning:button variant="brand" type="submit" name="update" label="Update"  />
+                            </div> -->
+                            <div class="slds-grid">
+                                <lightning:inputField fieldName="Salutation" />
+                                <lightning:inputField fieldName="FirstName" />
+                            </div>
+                            <div class="slds-grid">
+                                <lightning:inputField fieldName="MiddleName" />
+                                <lightning:inputField fieldName="LastName" class="customRequired" />
+                            </div>
+                            <div class="slds-grid">
+                                <!--<lightning:inputField fieldName="Name"/>-->
+                                <lightning:inputField fieldName="Suffix_Credentials__c"/>
+                            </div>
+                            <div class="slds-grid">
+                                <lightning:inputField fieldName="Preferred_First_Name__c"/>
+                                <lightning:inputField fieldName="Sex_Assigned_at_Birth__c"/>
+                            </div>
+                            <div class="slds-grid">
+                                <div style="width: 100%;">
+                                    <aura:if isTrue="{!v.contactRecord != NULL}">
+                                        <c:LookupComponent aura:id="preferredPronounsLookup" 
+                                            label="Pronouns" 
+                                            objectName="Custom_Picklist_Value__mdt" 
+                                            fieldsToSearch="Label__c"
+                                            displayField="Label__c" 
+                                            displayFieldValue="Label__c" 
+                                            lookupFieldName="{!v.preferredPronounsText}" 
+                                            splitSearchTextBySeperator="true" 
+                                            allowFreeText="true" 
+                                            minimumSearchTextLength="0" 
+                                            maxQuickSearchRows="10"
+                                            filters="{!v.preferredPronounsFilter}" 
+                                            orderByClause="Order__c ASC NULLS FIRST"
+                                            fillPillOnSelect="false"
+                                        /> 
+                                    </aura:if>
+                                    <div style="display: none;">
+                                        <!-- This hidden field is our way of hooking the value in the LookupComponent above, to the saved record.
+                                        This input field serves only to exist with the chosen value in it, which is picked up when the record saves. -->
+                                        <lightning:inputField fieldName="Preferred_Pronouns__c" value="{!v.preferredPronounsText}" />
+                                    </div>
+                                </div>
+                                <div style="width: 100%;">
+                                    <lightning:inputField fieldName="Other_Sex_Assigned_at_Birth__c"/>
+                                </div>
+                            </div>
+                            <div class="slds-grid">
+                                <lightning:inputField fieldName="Occupation__c"/>
+                                <lightning:inputField fieldName="Gender_Identifies_As__c"/>
+                            </div>
+                            <div class="slds-grid">
+                                <lightning:inputField fieldName="On_Medical_Leave__c"/>
+                                <lightning:inputField fieldName="Other_Gender_Identification__c"/>
+                            </div>
+                            <div class="slds-grid">
+                                <lightning:inputField fieldName="npe01__PreferredPhone__c"/>
+                                <lightning:inputField fieldName="MobilePhone"/>                                
+                            </div>
+                            <div class="slds-grid">
+                                <lightning:inputField fieldName="npe01__WorkPhone__c"/>
+                                <lightning:inputField fieldName="Phone"/>
+                            </div>
+                            <div class="slds-grid">
+                                <lightning:inputField fieldName="Telephone_Notes__c"/>
+                                <lightning:inputField fieldName="Email"/>
+                            </div>
+                            <div class="slds-grid">
+                                <lightning:inputField fieldName="Height__c"/>
+                                <lightning:inputField fieldName="Birthdate" />
+                            </div>                         
+                            <div class="slds-grid">
+                                <lightning:inputField fieldName="Weight__c"/>
+                                <lightning:inputField fieldName="Stated_Age__c"/>
+                            </div>
+                            <div class="slds-grid">
+                                <lightning:inputField fieldName="BMI__c"/>
+                                <lightning:inputField fieldName="Place_of_Birth__c"/>
+                            </div>
+                            <div class="slds-grid">
+                                <lightning:inputField fieldName="Ethnicity__c"/>
+                                <lightning:inputField fieldName="Marital_Status__c"/>
+                            </div>
+                            <div class="slds-grid">
+                                <lightning:inputField fieldName="Race__c"/>
+                                <lightning:inputField fieldName="Other_Marital_Status__c"/>
+                            </div>
+                            <div class="slds-grid">
+                                <lightning:inputField fieldName="Other_Race__c"/>
+                                <lightning:inputField fieldName="Contact_by_Mobile_Allowed__c"/>
+                            </div>
+                            <div class="slds-grid">
+                                <lightning:inputField fieldName="Employer__c"/>
+                                <lightning:inputField fieldName="Social_Security_Number__c"/>
+                            </div>
+                            <div class="slds-grid">
+                                <div class="slds-col slds-size_1-of-2">&nbsp;</div>
+                                <div class="slds-col slds-size_1-of-2"><lightning:inputField fieldName="Deceased__c"/></div>
+                            </div>
+                        </div>
+                    </lightning:card>
+                    <div style="text-align: center; position: sticky; bottom: 0; padding-top: 10px; padding-bottom: 10px; background: #e2e2e2; z-index: 3;">
+                        <lightning:button label="Cancel" title="Cancel" onclick="{!c.editOff}" />
+                        <lightning:button variant="brand" type="submit" name="update" label="Save"  />
+                    </div>
+                </lightning:recordEditForm>
+                <aura:set attribute="else">
+                    <lightning:recordViewForm recordId="{!v.accountRecord.Patient_Contact__c}" objectApiName="Contact">
+                        <lightning:card variant="Base" title="Contact Info" iconName="standard:contact">
+                            <aura:set attribute="actions">
+                                <!-- <lightning:button variant="neutral" type="submit" name="edit" label="Edit" onclick="{!c.editOn}" /> -->
+                            </aura:set>
+                            <div style="position: relative;">
+                                <!-- <div style="text-align: center;">
+                                    <lightning:button variant="neutral" type="submit" name="edit" label="Edit" onclick="{!c.editOn}" />
+                                </div> -->
+                                <div class="slds-grid">
+                                    <div class="field">
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="Distinguished_Name__c"/>
+                                        
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                    <div class="field">
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="Suffix_Credentials__c"/>
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                </div>
+                                <div class="slds-grid">
+                                    <div class="field">
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="Preferred_First_Name__c"/>
+                                        
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                    <div class="field">
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="Sex_Assigned_at_Birth__c"/>
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                </div>
+                                <div class="slds-grid">
+                                    <div class="field">
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="Preferred_Pronouns__c" value="{!v.preferredPronounsText}" />
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                    <div class="field">
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="Other_Sex_Assigned_at_Birth__c"/>
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                </div>
+                                <div class="slds-grid">
+                                    <div class="field">
+                                        
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="Occupation__c"/>
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                    <div class="field">
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="Gender_Identifies_As__c"/>
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                </div>
+                                <div class="slds-grid">
+                                    <div class="field">
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="On_Medical_Leave__c"/>
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                    <div class="field">
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="Other_Gender_Identification__c"/>
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                </div>
+                                <div class="slds-grid">
+                                    <div class="field">
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="npe01__PreferredPhone__c"/>
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                    <div class="field">
+                                        <div class="slds-form-element_readonly slds-form-element slds-form-element_stacked">
+                                            <span class="slds-form-element__label">Mobile Phone</span>
+                                            <lightning:formattedText class="slds-form-element__static" value="{!v.contactRecord.MobilePhone}" />
+                                        </div>
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                </div>
+                                <div class="slds-grid">
+                                    <div class="field">
+                                        <div class="slds-form-element_readonly slds-form-element slds-form-element_stacked">
+                                            <span class="slds-form-element__label">Work Phone</span>
+                                            <lightning:formattedText class="slds-form-element__static" value="{!v.contactRecord.npe01__WorkPhone__c}" />
+                                        </div>
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+
+                                    </div>
+                                    <div class="field">
+                                        <div class="slds-form-element_readonly slds-form-element slds-form-element_stacked">
+                                            <span class="slds-form-element__label">Home Phone</span>
+                                            <lightning:formattedText class="slds-form-element__static" value="{!v.contactRecord.Phone}" />
+                                        </div>
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                </div>
+                                <div class="slds-grid">
+                                    <div class="field">
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="Telephone_Notes__c"/>
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                    <div class="field">
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="Email"/>
+                                        
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                </div>
+                                <div class="slds-grid">
+                                    <div class="field">
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="Height__c"/>
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                    <div class="field">
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="Birthdate"/>
+                                        
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                </div>
+                                <div class="slds-grid">
+                                    <div class="field">
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="Weight__c"/>
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                    <div class="field">
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="Stated_Age__c"/>
+                                        
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                </div>
+                                <div class="slds-grid">
+                                    <div class="field">
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="BMI__c"/>
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                    <div class="field">
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="Place_of_Birth__c"/>
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                </div>
+                                <div class="slds-grid">
+                                    <div class="field">
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="Ethnicity__c"/>
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                    <div class="field">
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="Marital_Status__c"/>
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                </div>
+                                <div class="slds-grid">
+                                    <div class="field">
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="Race__c"/>
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                    <div class="field">
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="Other_Marital_Status__c"/>
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                </div>
+                                <div class="slds-grid">
+                                    <div class="field">
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="Other_Race__c"/>
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                    <div class="field">
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="Contact_by_Mobile_Allowed__c"/>
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                </div>
+                                <div class="slds-grid">
+                                    <div class="field">
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="Employer__c"/>
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                    <div class="field">
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="Social_Security_Number__c"/>
+                                        <!-- lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/ -->
+                                    </div>
+                                </div>
+                                <div class="slds-grid">
+                                    <div class="field">
+                                        &nbsp;
+                                    </div>
+                                    <div class="field">
+                                        <lightning:outputField class="slds-form-element_readonly" fieldName="Deceased__c"/>
+                                        <lightning:buttonIcon class="pencil" iconName="utility:edit" variant="bare" onclick="{!c.editOn}"/>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </lightning:card>
+                    </lightning:recordViewForm>
+                </aura:set>
+            </aura:if>
+        </aura:if>
+    </div>
+</aura:component>

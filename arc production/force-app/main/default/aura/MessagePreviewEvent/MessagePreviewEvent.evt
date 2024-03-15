@@ -1,0 +1,33 @@
+<aura:event
+	type="APPLICATION"
+	description="Message Preview Event">
+	<aura:attribute
+		name="id"
+		type="String"
+		default=""
+		description=""></aura:attribute>
+	<aura:attribute
+		name="messageType"
+		type="String"
+		default=""
+		description=""></aura:attribute>
+	<aura:attribute
+		name="clientId"
+		type="String"
+		default=""
+		description=""></aura:attribute>
+	<aura:attribute
+		name="isRead"
+		type="Boolean"
+		default=""
+		description=""></aura:attribute>
+	<aura:attribute
+		name="update"
+		type="Boolean"
+		default=""
+		description=""></aura:attribute>
+	<aura:attribute
+		name="page"
+		type="Integer"
+		default="0"></aura:attribute>
+</aura:event>

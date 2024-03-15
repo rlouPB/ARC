@@ -1,0 +1,64 @@
+.THIS {
+  background-color: white !important;
+}
+
+.THIS .topFix {
+  padding-top: 2.1rem !important;
+}
+
+.THIS .logCallSpinner {
+  z-index: 1 !important;
+  position: fixed;
+}
+
+.THIS .customRequired {
+  font-weight: t(fontWeightRegular);
+}
+
+.THIS .customRequired a:not(.display),
+.THIS .customRequired input {
+  border: 1px solid red;
+}
+
+.THIS .scrolledContent {
+  overflow: auto;
+}
+
+.THIS .btnClass {
+  width: 19rem;
+}
+
+.THIS .hideOnPatientFile {
+  display: none;
+}
+
+.THIS .highlighted {
+  background-color: rgb(242, 207, 91, 0.5);
+}
+
+.THIS .longText textarea.slds-textarea {
+  height: 40vh;
+}
+
+.THIS .lightningInputRichText .slds-rich-text-editor {
+  min-height: 20vh;
+  max-height: 80vh;
+}
+
+.THIS .slds-rich-text-area__content {
+  max-height: 100%;
+}
+
+.THIS .caller-lookup .cLookupComponent {
+  display: inline-block;
+  width: 94%;
+}
+
+.THIS .caller-lookup-alternate .cLookupComponent {
+  display: inline-block;
+  width: 93%;
+}
+
+.THIS .lightningInputRichText div.slds-rich-text-editor {
+  overflow-y: auto;
+}

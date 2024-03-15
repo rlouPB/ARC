@@ -1,0 +1,109 @@
+<aura:component controller="NoteAttendanceCtl" extends="c:NoteItemPlugin">
+    <aura:attribute name="showSpinner" type="Boolean" default="false" access="private" />
+    
+	<aura:attribute name="meetingTypeList" type="List" default="[]" description="List of attendance by time period by meeting type" />
+	<aura:attribute name="attended" type="String" description="Text list of dates patient attended meetings" />
+	<aura:attribute name="absences" type="String" description="Text list of dates patient was absent from meetings" />
+	<aura:attribute name="showCalendarModal" type="Boolean" default="false" description="Controls display of Custom Calendar modal."/>
+	<aura:attribute name="userID" type="String"/>
+	<aura:attribute name="startOfMonth" type="Date" description="Start of month derived from {!v.theNote.patientNote.Contact_Date__c}"/>
+	<aura:attribute name="endOfMonth"  type="Date" description="End of month derived from {!v.theNote.patientNote.Contact_Date__c}"/>
+	
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+	<aura:handler name="change" value="{!v.theNote.patientNote.Attendance_Comments__c}" action="{!c.handleAttendanceCommentChange}"/>
+	<aura:handler name="closeCalendarModalEvent" event="c:closeModal" action="{!c.closeCustomCalendar}"/>
+	<aura:handler name="closeModalEvent" event="c:closeModal" action="{!c.closeCustomCalendar}"/>
+    
+    <lightning:spinner aura:id="mySpinner" variant="brand" size="medium" class="{!v.showSpinner ? 'slds-show' : 'slds-hide'}"/>
+    <!-- <p>Patient Attendance</p> -->
+    <div class="slds-box">
+        <aura:if isTrue="{!empty(v.theNote.patientNote.Contact_Date__c)}">
+            <lightning:layout multipleRows="true">
+                <lightning:layoutItem size="12">Please fill in the Contact Date</lightning:layoutItem>
+            </lightning:layout>
+            <aura:set attribute="else">
+                <aura:if isTrue="{!v.theNote.patientNote.Status__c == 'Draft'}">
+                    <lightning:layout multipleRows="true">
+                        <lightning:layoutItem size="10">&nbsp;</lightning:layoutItem>
+                        <lightning:layoutItem size="2">
+                            <lightning:button label="Open Schedule" disabled="false" onclick="{!c.openCustomCalendar}"/>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                    <lightning:layout>
+                        <lightning:layoutItem size="3" padding="around-small">&nbsp;</lightning:layoutItem>
+                        <lightning:layoutItem size="3" padding="around-small">Attended</lightning:layoutItem>
+                        <lightning:layoutItem size="3" padding="around-small">Did not attend</lightning:layoutItem>
+                        <lightning:layoutItem size="3" padding="around-small">Unknown</lightning:layoutItem>
+                    </lightning:layout>
+                    <aura:iteration items="{!v.meetingTypeList}" var="meetingType">
+                        <lightning:layout>
+                            <lightning:layoutItem size="3" padding="around-small">
+                                <div class="meeting-row meeting-type-middle">
+                                    {!meetingType.meetingType}
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="3" padding="around-small">
+                                <div class="slds-box meeting-row">
+                                    {!meetingType.attended}
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="3" padding="around-small">
+                                <div class="slds-box meeting-row">
+                                    {!meetingType.didNotAttend}
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="3" padding="around-small">
+                                <div class="slds-box meeting-row">
+                                    {!meetingType.unknown}
+                                </div>
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </aura:iteration>
+
+                    <aura:set attribute="else">
+                        
+                        <lightning:layout >
+                            <!-- <lightning:layoutItem size="2" ></lightning:layoutItem> -->
+                            <lightning:layoutItem size="12" class="slds-m-left_small slds-m-bottom_medium" >
+                                <lightning:formattedRichText value="{!v.theNote.patientNote.NoteAttendanceHtml__c}" />
+                            </lightning:layoutItem>
+                            <!-- <lightning:layoutItem size="4" >
+                                <lightning:formattedText value="{!v.theNote.patientNote.Attended_Meetings__c}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="4" >
+                                <lightning:formattedText value="{!v.theNote.patientNote.Attended_Meetings__c}" />
+                            </lightning:layoutItem> -->
+                        </lightning:layout>
+                    </aura:set>
+                </aura:if>
+                <lightning:layout>
+                    <lightning:layoutItem size="12">
+                        <label for="Comments" class="slds-text-heading_small title" >Comments</label>
+                        <aura:if isTrue="{!v.theNote.patientNote.Status__c == 'Draft'}">
+                            <lightning:InputRichText value="{!v.theNote.patientNote.Attendance_Comments__c}" 
+                                                     disabledCategories="FORMAT_FONT,ALIGN_TEXT,INSERT_CONTENT,REMOVE_FORMATTING"
+                                                     />
+                            <aura:set attribute="else">
+                                <lightning:formattedRichText class="slds-m-top_xx-small" value="{!v.theNote.patientNote.Attendance_Comments__c}"/>
+                            </aura:set>
+                        </aura:if>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </aura:set>
+        </aura:if>
+	</div>
+	
+	<aura:if isTrue="{!v.showCalendarModal}">
+		<c:sldsModal instanceName="CustomCalendar" closeIconVariant="border-filled">
+			<aura:set attribute="content">
+				<c:CustomCalendar
+						displayMode="PatientAttendance"
+						patientId="{!v.theNote.patientNote.Account__c}"
+						userId="{!v.userID}"
+						viewStartDate="{!v.startOfMonth}"
+						viewEndDate="{!v.theNote.patientNote.Contact_Date__c}"
+				/>
+			</aura:set>
+		</c:sldsModal>
+	</aura:if>
+</aura:component>

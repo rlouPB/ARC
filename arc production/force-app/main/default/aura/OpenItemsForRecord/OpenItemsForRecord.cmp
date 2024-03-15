@@ -1,0 +1,8 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId">
+	<lightning:card >
+		<CMTD:EnhancedRelatedList objectAPIName="Outstanding_Tag__c" displayType="List" 
+								relatedListName="OpenTags" title="Open Item Tags" 
+								hideOnNoRecord="false" parentId="{!v.recordId}" parentObjectIdField="Id" 
+								parentField="Record_ID__c" newRecord="" showHeader="true" />
+	</lightning:card>
+</aura:component>

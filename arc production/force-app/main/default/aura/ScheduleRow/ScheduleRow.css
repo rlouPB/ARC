@@ -1,0 +1,66 @@
+.THIS .free-block, .THIS .busy-block {
+    display: inline-block;
+    text-overflow: clip;
+    height: 32px;
+}
+
+.THIS .header-block {
+    display: inline-block;
+    text-overflow: clip;
+    height: 25px;
+}
+
+.THIS .container {
+    white-space:nowrap;
+    display: inline-block;
+    padding-right: 10px;
+}
+
+.THIS .container .date-header {
+    text-align: left;
+    width: 900px;
+    min-height: 25px;
+}
+
+.THIS .container .block-container {
+    display: inline-block;
+    width: 900px;
+    min-height: 25px;
+}
+
+.THIS .block-container .subject {
+    padding-left: 2px;
+}
+
+.THIS .free-block {
+    border: 1px solid grey;
+}
+
+.THIS .header-block {
+    border: 1px solid grey;
+}
+
+.THIS .header-block lightning-formatted-date-time {
+    padding-left: 5px;
+}
+
+.THIS .busy-block {
+    border: 1px  solid #2196f3;
+    border-left: 5px solid #2196f3;
+    background-color: #ddffff;
+}
+
+.THIS.meeting-popover-class {
+    white-space: pre-line;
+}
+
+.THIS .popover-container {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+
+.THIS .popover {
+    z-index: 900;
+    /*position: absolute;*/
+}

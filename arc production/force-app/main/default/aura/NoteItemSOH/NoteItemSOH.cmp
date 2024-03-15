@@ -1,0 +1,17 @@
+<aura:component extends="c:NoteItemPlugin" controller="NoteItemSOHController">
+    <aura:attribute name="subsetHtml" type="String" description="SOH subset snap shot html"  />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <lightning:spinner aura:id="mySpinner" variant="brand" size="medium" class="{!v.showSpinner ? 'slds-show' : 'slds-hide'}"/>
+    <lightning:layout> 
+		<lightning:layoutItem size="10"> </lightning:layoutItem>
+        <lightning:layoutItem size="2"> 
+            <div class="slds-p-left_small">
+                <lightning:button label="Refresh" title="Refresh" variant="brand"
+                                onclick="{!c.refreshFromSource}"/>
+            </div>
+        </lightning:layoutItem>
+	</lightning:layout>
+    <div class="slds-p-left_medium">
+        <aura:unescapedHtml value="{!v.subsetHtml}"/>
+    </div>
+</aura:component>

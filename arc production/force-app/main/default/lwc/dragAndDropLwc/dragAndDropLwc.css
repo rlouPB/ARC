@@ -1,0 +1,29 @@
+.card_wrapper{
+    padding: 0.5rem;
+    display: flex;
+    justify-content: space-around;
+    background: #fff;
+}
+.column_heading{
+    display: block;
+    position: relative;
+    border-radius: 0px 50px 50px 0px;
+    width: 107%;
+    padding: var(--lwc-spacingXSmall,0.5rem) var(--lwc-spacingXSmall,0.5rem) var(--lwc-spacingXSmall,0.5rem) var(--lwc-spacingLarge,1.5rem);
+    background: var(--lwc-brandAccessible,rgb(1, 118, 211));
+    color: var(--lwc-pipelineHeaderColor,#FFF);
+    font-size: 0.8125rem;
+    text-align: left;
+    letter-spacing: var(--lwc-pipelineHeaderLetterSpacing,.9px);
+    white-space: nowrap;
+    overflow: hidden;
+    word-wrap: normal;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+}
+.stageContainer{
+    float:left;
+    border: 2px solid #d8dde6;
+    margin: 0.05rem;
+    border-radius: .25rem;
+}

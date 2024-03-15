@@ -1,0 +1,22 @@
+.THIS .slds-button {
+    width: 100%;
+}
+
+.THIS .action-items {
+    width: 240px; 
+}
+
+@media print {
+    .THIS.printDoc {
+            background-color: white;
+            height: 100%;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            margin: 0;
+            padding: 15px;
+            font-size: 14px;
+            line-height: 18px;
+        }
+    }

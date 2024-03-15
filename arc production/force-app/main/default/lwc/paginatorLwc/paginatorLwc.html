@@ -1,0 +1,5 @@
+<template>
+    <template if:true={showPaginator}>
+        <lightning-radio-group type="button" options={pagesArray} onchange={onPaging} value={currentPage}></lightning-radio-group>        
+    </template>
+</template>

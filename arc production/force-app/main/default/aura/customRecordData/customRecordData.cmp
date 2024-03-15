@@ -1,0 +1,14 @@
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" controller="CustomRecordDataController" >
+	<aura:attribute name="recordId" type="string" required="true"/>
+    <aura:attribute name="selectFields" type="string" required="true"/>
+    <aura:attribute name="target" type="Object"/>
+    <aura:attribute name="error" type="String"/>
+    <aura:attribute name="withSharing" type="Boolean" default="false"/>
+    <aura:attribute name="autoRefresh" type="Boolean" default="false"/>
+    <aura:handler name="init" value="{!this}" 	action="{!c.onInitHandler}" />
+    <aura:handler event="force:refreshView"		action="{!c.onRefreshHandler}" />
+    
+    <aura:method name="getRecord" action="{!c.getRecordHandler}">
+        <aura:attribute name="reload" type="Boolean" default="false"/>
+    </aura:method>
+</aura:component>

@@ -1,0 +1,45 @@
+<aura:component controller="ViewInterventionsCtl" extends="c:ApexService" 
+implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome">
+    
+    <aura:attribute name="treatmentPlanId" type="String"/>
+    <aura:attribute name="instanceName" type="String"/>
+    <aura:attribute name="columns" type="List" default="[]" />
+    <aura:attribute name="data" type="List" default="[]" />
+    <aura:attribute name="keyField" type="String" default="id" />
+    <aura:attribute name="options" type="List" default="[
+    {'label': 'All', 'value': 'All'},
+    {'label': 'Current', 'value': 'Current'}
+    ]"/>
+    <aura:attribute name="value" type="String" default="Current"/>
+
+    <aura:registerEvent name="closeModalEvent" type="c:closeModal" />
+    
+    <aura:handler name="init" value="{! this }" action="{!c.doInit}"/>
+
+    <lightning:layout multipleRows="true">
+        <lightning:layoutItem size="1">
+            <lightning:radioGroup name="HideDiscontinuedInterventionsRadioGroup"
+                          label=""
+                          options="{! v.options }"
+                          value="{! v.value }"
+                          type="button"
+                          onchange="{!c.handleShowDiscontinuedInterventions}"/>
+        </lightning:layoutItem>
+        <lightning:layoutItem size="10">&nbsp;</lightning:layoutItem>
+        <lightning:layoutItem size="1">
+            <lightning:button variant="brand" label="Close" title="Close" onclick="{!c.handleCloseViewInterventions}"/>
+        </lightning:layoutItem>
+        <lightning:layoutItem size="12">&nbsp;</lightning:layoutItem>
+        <lightning:layoutItem size="12">&nbsp;</lightning:layoutItem>
+        <lightning:layoutItem size="12">
+            <lightning:datatable
+            columns="{!v.columns}"
+            data="{!v.data}"
+            keyField="{!v.keyField}"
+            showRowNumberColumn="false"
+            hideCheckboxColumn="true"/>
+            
+        </lightning:layoutItem>
+    </lightning:layout>
+
+</aura:component>

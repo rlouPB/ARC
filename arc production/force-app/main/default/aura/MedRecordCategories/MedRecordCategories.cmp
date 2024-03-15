@@ -1,0 +1,8 @@
+<aura:component>
+    <aura:attribute name="flowName" type="String" />
+    <aura:attribute name="inputParams" type="Map[]" />
+    <lightning:flow aura:id="flow" />
+    <div class="slds-card">
+        <c:medRecordCategoriesLwc oncategoryselected="{!c.onCategorySelected}"/>
+    </div>
+</aura:component>

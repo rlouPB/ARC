@@ -1,0 +1,36 @@
+<aura:component>
+    <aura:attribute name="domains" type="Domain[]" description="List of domains" access="global"/>
+    <aura:attribute name="isFirstDraftTreatmentPlan" type="Boolean"/>
+    <aura:attribute name="newTargetDate" type="Date" access="global"/>
+    <aura:attribute name="ratings" type="List" description="List of ratings" default="[{'label':'1','value':'1'},
+    {'label':'2','value':'2'},
+    {'label':'3','value':'3'},
+    {'label':'4','value':'4'},
+    {'label':'5','value':'5'},
+    {'label':'6','value':'6'}
+    ]"/>
+    <aura:attribute name="itemRatingScale" type="String" default="1 = significant weakness, 2 = moderate weakness, 3 = relative weakness, 4 = relative strength, 5 = moderate strength, 6 = significant strength" />
+    <aura:attribute name="ratingItem" type="Integer" description="item rating"/>
+    <aura:attribute name="conductEGO" type="Boolean" default="false"/>
+    <aura:attribute name="egoStatus" type="String" default=""/>
+    <aura:attribute name="isEGOR" type="Boolean" default="false"/>
+    <aura:attribute name="columnClasses" type="Map" default="{'item': 'slds-size_3-of-12', 'rating': 'slds-size_3-of-12', 'comments': 'slds-size_6-of-12'}" description="CSS classes for specified columns" />
+
+    <!-- Handler -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <aura:iteration items="{!v.domains}" var="domain">
+        <c:TreatmentPlan_EGO_Domain aura:id="domain" 
+                                          domain="{!domain}"
+                                          isFirstDraftTreatmentPlan="{!v.isFirstDraftTreatmentPlan}"
+                                          newTargetDate="{!v.newTargetDate}"
+                                          ratings="{!v.ratings}"
+                                          itemRatingScale="{!v.itemRatingScale}"
+                                          ratingItem="{!v.ratingItem}"
+                                          conductEGO="{!v.conductEGO}"
+                                          egoStatus="{!v.egoStatus}"
+                                          isEGOR="{!v.isEGOR}"
+                                          columnClasses="{!v.columnClasses}"
+                                          />
+    </aura:iteration>
+</aura:component>

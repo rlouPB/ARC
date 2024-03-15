@@ -1,0 +1,59 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId,force:hasSObjectName" access="global" controller="LightningHistoryCtrl" >
+	
+    <ltng:require scripts="{!$Resource.lodash}" afterScriptsLoaded="{!c.doInit}"/>
+    
+    <aura:attribute name="histories" type="object[]" />
+    <aura:attribute name="showSpinner" type="boolean" />
+    
+    <aura:attribute name="objectLabel" type="string" />
+    
+    <!--error handling-->
+    <aura:registerEvent name="handleCallbackError" type="c:handleCallbackError"/>
+    <c:LightningErrorHandler errorHandlerName="LightningHistory"/>
+
+	<lightning:card variant="narrow">
+		<aura:set attribute="title">{!v.objectLabel} History</aura:set>
+		<div class="slds-scrollable">
+		    <table class="slds-table slds-table--bordered">
+				<thead>
+				    <tr class="slds-text-title--caps">
+				    	<th class="slds-text-title--caps">Date</th>
+					    <th class="slds-text-title--caps">Field</th>
+					    <th class="slds-text-title--caps">By</th>
+				        <th class="slds-text-title--caps">Old</th>
+					    <th class="slds-text-title--caps">New</th>
+					</tr>
+				</thead>
+				<tbody>
+				    <aura:iteration items="{!v.histories}" var="change">
+				    	<tr>
+				    		<th scope="row" data-label="Date">
+								<div class="slds-truncate" title="Field">
+									<lightning:formattedDateTime value="{!change.CreatedDate}" year="numeric" month="numeric" day="numeric"  hour="2-digit" minute="2-digit" timeZoneName="short" timeZone="America/New_York"/>
+								</div>
+				    		</th>
+				    		<th scope="row" data-label="Field">
+								<div class="slds-truncate" title="Field">{!change.Field}</div>
+				    		</th>
+		      				<td data-label="By">
+		        				<div class="slds-truncate" title="{!change.createdByName}">{!change.createdByName}</div>
+		      				</td>
+				    		<td data-label="Old">
+		        				<div class="slds-truncate" title="{!change.OldValue}">{!change.OldValue}</div>
+		      				</td>
+		      				<td data-label="New">
+		        				<div class="slds-truncate" title="{!change.NewValue}">{!change.NewValue}</div>
+		      				</td>
+				        </tr>        
+				    </aura:iteration>			
+				</tbody>
+		    </table>
+		</div>
+	    <aura:if isTrue="{!v.showSpinner}">
+		    <div class="slds-is-relative">
+		        <lightning:spinner/>
+		    </div>
+		</aura:if>
+	</lightning:card>
+
+</aura:component>

@@ -1,0 +1,85 @@
+.THIS .customCss {
+    border-right: 1px solid rgb(217, 219, 221);
+}
+.THIS .customCss th {
+    height: 40px;
+    text-align:center;
+    border-left: 1px solid rgb(221, 219, 218) !important;
+}
+.THIS .customCss td {
+    border-left: 1px solid rgb(221, 219, 218) !important;
+}
+.THIS .customCss tr {
+    cursor: pointer;
+}
+.THIS .rowHighLight {
+    background-color: darkgrey;
+}
+.THIS .slds-table .slds-cell-buffer_right {
+    padding-right: 0.5rem !important;
+}
+.THIS .slds-table .slds-cell-buffer_right {
+	padding-left: 0.5rem !important;
+}
+.THIS .requestItems td {
+    white-space: normal;
+}
+.THIS .requestItems {
+    min-height: 60px;
+    /*max-height:400px;*/
+    display:block;
+    overflow-x:auto;
+    border-collapse: collapse;
+}
+.THIS .requestItems thead {
+    display:table;
+    width:100%;
+    table-layout:fixed;/* even columns width , fix width of table too*/
+}
+.THIS .requestItems tbody tr {
+    display:table;
+    width:100%;
+    table-layout:fixed;/* even columns width , fix width of table too*/
+}
+.THIS .requestItems thead {
+    width: calc( 100% - 0em )/* scrollbar is average 1em/16px width, remove it from thead width */
+}
+.THIS .requestItems th, .THIS .requestItems td  {
+    padding: 0px;
+}
+.THIS .requestItems th div  {
+    padding: 5px 0px;
+    text-align: center;
+}
+.THIS .admissionTable td {
+    white-space: initial !important;
+}
+.THIS .requestItems .slds-icon_small {
+    width: 1.0rem !important;
+    height: 1.0rem !important;
+}
+.THIS .requestItemHeader {
+    background-color: rgb(250, 250, 249);
+    padding: 4px;
+    border: 1px solid rgb(221, 219, 218);
+    text-align: center;
+}
+.THIS .requestItemRow div:not(.slds-grid) {
+    border: 1px solid rgb(221, 219, 218);
+    padding: .5rem;
+    text-align: left;
+}
+.THIS .parentFilterCss {
+    margin-left:40px;
+}
+.THIS .slds-file-selector__dropzone {
+    height: 100px;
+    width: 100%;
+    padding-top: 40px;
+}
+.THIS .slds-file-selector.slds-file-selector_files {
+    width: 100%;
+}
+.THIS .slds-hs-drag-over {
+    
+}

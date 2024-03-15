@@ -1,0 +1,18 @@
+<template>
+    <lightning-quick-action-panel header={fillHeaderStr}>
+        <c-dispensing-prescription-fill record-id={recordId}></c-dispensing-prescription-fill>
+        <div slot="footer">
+            <lightning-button
+                variant="neutral"
+                label="Cancel"
+                onclick={closePanel}
+            ></lightning-button>
+            <lightning-button
+                variant="brand"
+                label="Save"
+                class="slds-m-left_x-small"
+                onclick={saveRecord}
+            ></lightning-button>
+        </div>
+    </lightning-quick-action-panel>
+</template>

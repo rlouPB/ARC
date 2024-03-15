@@ -1,0 +1,23 @@
+<template>
+    <div style="width: 100%; text-align: left">
+        <template if:true={messageLinks.patientUrl} >
+            <div style="width: 30%; margin: auto; display: inline-block">
+                Patient:&nbsp;
+                <a href={messageLinks.patientUrl} target="_blank">{messageLinks.patientName}</a>
+            </div>
+        </template>
+
+        <template if:true={messageLinks.patientNoteUrl}>
+            <div style="width: 69%; margin: auto; display: inline-block">
+                Patient Note:&nbsp;
+                <a href={messageLinks.patientNoteUrl} target="_blank">{messageLinks.patientNoteType}</a>
+            </div>
+        </template>
+
+        <template if:true={messageLinks.prescriptionUrl}>
+            <div style="width: 69%; margin: auto; display: inline-block">
+                <a href={messageLinks.prescriptionUrl} target="_blank">{messageLinks.prescriptionLabel}</a>
+            </div>
+        </template>
+    </div>
+</template>

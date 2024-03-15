@@ -1,0 +1,9 @@
+<aura:event
+	type="APPLICATION"
+	description="Message Delete Event">
+	<aura:attribute
+		name="id"
+		type="String"
+		default=""
+		description=""></aura:attribute>
+</aura:event>

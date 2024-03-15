@@ -1,0 +1,365 @@
+<aura:component controller="EditMeetingCtl" implements="flexipage:availableForRecordHome,force:hasRecordId">
+  <aura:attribute name="instanceName" type="String" />
+  <aura:attribute name="patientId" type="String" description="Id passed in by container to prepopulate Patient lookup on Create Meeting, otherwise null" />
+  <aura:attribute name="patientContact" type="Map" default="{}" />
+  <aura:attribute name="user" type="Map" default="{}" />
+  <aura:attribute name="meetingRecord" type="Object" />
+  <aura:attribute name="recordError" type="String" default="" />
+
+  <!-- <aura:attribute name="ownerLookupAdditionalOptions" type="List" default="[]"/> -->
+  <aura:attribute name="ownerLookupFilter" type="List" default="[]" />
+  <aura:attribute name="ownerSearchText" type="String" default="" />
+  <aura:attribute name="selectedOwner" type="Map" default="{}" />
+
+  <!-- <aura:attribute name="patientLookupAdditionalOptions" type="List" default="[]"/> -->
+  <aura:attribute name="patientLookupFilter" type="List" default="[]" />
+  <aura:attribute name="patientSearchText" type="String" default="" />
+  <aura:attribute name="selectedPatient" type="Map" default="{}" />
+  <aura:attribute name="staffGroupLookupFilter" type="List" default="[]" />
+  <aura:attribute name="patientGroupLookupFilter" type="List" default="[]" />
+  <aura:attribute name="groupSearchText" type="String" default="" />
+  <aura:attribute name="selectedGroup" type="Map" default="{}" />
+
+  <aura:attribute name="resourceLookupAdditionalOptions" type="List" default="[]" />
+  <aura:attribute name="resourceLookupFilter" type="List" default="[]" />
+  <aura:attribute name="resourceSearchText" type="String" default="" />
+  <aura:attribute name="selectedResource" type="Map" default="{}" />
+  <aura:attribute name="originalResourceId" type="String" />
+
+  <aura:attribute name="lookupError" type="Map" default="{message: 'error', show: false}" />
+  <aura:attribute name="showEditRecurrenceModal" type="Boolean" default="false" />
+  <aura:attribute name="showCancelModal" type="Boolean" default="false" />
+  <aura:attribute name="showDeleteModal" type="Boolean" default="false" />
+  <aura:attribute name="closeMeetingModal" type="Boolean" default="false" />
+  <aura:attribute name="showSelectResourceModal" type="Boolean" default="false" />
+  <aura:attribute name="isLoaded" type="Boolean" default="false" />
+  <aura:attribute name="isDirty" type="Boolean" default="false" />
+  <aura:attribute name="showSpinner" type="Boolean" default="true" />
+  <aura:attribute name="readOnly" type="Boolean" default="false" />
+
+  <aura:attribute name="isRecurrence" type="Boolean" default="false" />
+  <aura:attribute name="recurrence" type="Map" default="{}" />
+  <aura:attribute name="recurrenceRecord" type="Map" />
+  <aura:attribute name="isRecurrenceSaved" type="Boolean" default="false" />
+  <aura:attribute name="isRecurrenceDirty" type="Boolean" default="false" />
+  <aura:attribute name="recurrenceSelected" type="String" default="" />
+
+  <aura:attribute name="isMeetingUpdateOnly" type="Boolean" default="true" description="if false, start or end datetime has been modified" />
+  <aura:attribute name="selectedRecordList" type="List" default="[]" />
+  <aura:attribute name="availableResources" type="List" default="[]" />
+  <aura:attribute name="startDateTime" type="Datetime" />
+  <aura:attribute name="endDateTime" type="Datetime" />
+  <aura:attribute name="durationInMinutes" type="Integer" />
+
+  <aura:attribute name="showGroupNote" type="Boolean" default="false" description="if true, show group note component" />
+  <aura:attribute name="canEditMeeting" type="Boolean" default="true" description="if true, user can edit meeting" />
+  <aura:attribute name="meetingTypeMap" type="Map" default="{}}" description="meeting types for select options grouped by focus" />
+  <aura:attribute name="meetingFocus" type="String" default="Patient" description="determines whether to show Patient lookup or Group lookup and meeting types" />
+  <aura:attribute
+    name="meetingFocusOptions"
+    type="List"
+    description="radio options for focus"
+    default="[
+				{'label': 'Patient', 'value': 'Patient'},
+				{'label': 'Patient Group', 'value': 'Patient Group'},
+				{'label': 'Staff Group', 'value': 'Staff Group'},
+				{'label': 'Other', 'value': 'Other'}]"
+  />
+  <aura:attribute name="attendanceOptions" type="List" />
+  <aura:attribute name="showAllDay" type="Boolean" default="false" description="Handles choice between All Day Meeting or selecting start and end times" />
+  <aura:attribute name="enableRecurrenceButton" type="Boolean" default="true" />
+
+  <aura:method name="editRecurrence" action="{!c.handleEditRecurrence}" />
+  <aura:method name="saveMeeting" action="{!c.handleSave}" />
+  <aura:method name="cancelMeeting" action="{!c.handleCancel}" />
+  <aura:method name="deleteMeeting" action="{!c.handleDelete}" />
+
+  <aura:registerEvent name="closeModalEvent" type="c:closeModal" />
+  <aura:registerEvent name="calendarMeetingLoadedEvent" type="c:CalendarMeetingLoaded" />
+  <aura:handler name="closeModalEvent" event="c:closeModal" action="{!c.handleBackToMeeting}" />
+
+  <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+  <!-- <aura:handler name="change" value="{!v.selectedStaff}" action="{!c.handleSelectedStaffChange}"/>
+	<aura:handler name="change" value="{!v.selectedContact}" action="{!c.handleSelectedContactChange}"/>
+	<aura:handler name="change" value="{!v.selectedGroup}" action="{!c.handleSelectedGroupChange}"/> -->
+  <!-- <aura:handler name="change" value="{!v.meetingRecord.Start_Date_Time__c}" action="{!c.handleStartDateTimeChange}"/> -->
+  <aura:handler name="change" value="{!v.meetingRecord.End_Date_Time__c}" action="{!c.handleEndDateTimeChange}" />
+
+  <aura:handler name="change" value="{!v.selectedGroup}" action="{!c.handleGroupSelectionChange}" />
+
+  <aura:handler name="meetingChangedEvent" event="c:MeetingChangedEvent" action="{!c.handleIsDirty}" />
+
+  <aura:handler name="removedItemEvent" event="c:removedItemEvent" action="{!c.handleIsDirty}" />
+
+  <!-- <force:recordData aura:id="recordEditor"
+		mode="EDIT"
+		layoutType="FULL"
+		recordId="{!v.recordId}"
+		targetFields="{!v.meetingRecord}"
+		targetError="{!v.recordError}"
+		recordUpdated="{!c.handleRecordUpdated}"/> -->
+
+  <div class="wrapper" onchange="{!c.handleIsDirty}">
+    <aura:if isTrue="{!not(empty(v.recordError))}">
+      <div class="record-error slds-text-heading_medium slds-text-align_center">{!v.recordError}</div>
+    </aura:if>
+
+    <lightning:card>
+      <aura:if isTrue="{!v.showSpinner}">
+        <lightning:spinner alternative-text="Loading" size="small" />
+      </aura:if>
+
+      <lightning:layout verticalAlign="end" horizontalAlign="center">
+        <lightning:layoutItem size="8">
+          <div class="slds-p-horizontal_small">
+            <lightning:input aura:id="meetingField" class="customRequired" label="Subject" value="{!v.meetingRecord.Subject__c}" required="true" disabled="{!v.readOnly}" />
+
+            <lightning:layout>
+              <lightning:layoutItem size="12">
+                <lightning:input type="checkbox" checked="{!v.showAllDay}" value="{!v.meetingRecord.All_Day_Meeting__c}" label="All Day Meeting" name="allDayMeeting" disabled="{!v.readOnly}" onchange="{!c.handleAllDayChange}" />
+              </lightning:layoutItem>
+            </lightning:layout>
+
+            <aura:if isTrue="{!v.showAllDay}">
+              <lightning:layout>
+                <lightning:layoutItem size="3">
+                  <lightning:input class="datePicker customRequired" type="date" label="All Day Date" dateStyle="short" value="{!v.meetingRecord.All_Day_Date__c}" required="true" disabled="{!v.readOnly}" onchange="{!c.handleAllDayDateChange}" />
+                </lightning:layoutItem>
+              </lightning:layout>
+
+              <aura:set attribute="else">
+                <lightning:layout>
+                  <lightning:layoutItem size="6">
+                    <lightning:input class="datePicker customRequired" aura:id="meetingField" type="datetime" dateStyle="short" label="Start Date/Time" value="{!v.meetingRecord.Start_Date_Time__c}" required="true" onchange="{!c.handleStartDateTimeChange}" disabled="{!v.readOnly}" />
+                  </lightning:layoutItem>
+
+                  <lightning:layoutItem size="6">
+                    <lightning:input class="datePicker customRequired" aura:id="meetingField" type="datetime" dateStyle="short" label="End Date/Time" value="{!v.meetingRecord.End_Date_Time__c}" required="true" onchange="{!c.handleEndDateTimeChange}" disabled="{!v.readOnly}" min="{!v.meetingRecord.Start_Date_Time__c}" />
+                  </lightning:layoutItem>
+                </lightning:layout>
+              </aura:set>
+            </aura:if>
+
+            <!-- <lightning:layout>
+							<lightning:layoutItem size="6">
+								<aura:if isTrue="{!v.readOnly}">
+									{!v.selectedOwner.Name}
+									<aura:set attribute="else">
+										<c:LookupComponent aura:attribute="ownerLookup" selectedRecord="{!v.selectedOwner}" additionalOptions=""
+												filters="{!v.ownerLookupFilter}" displayField="Name" allowFreeText="true"
+												lookupFieldName="{!v.meetingRecord.OwnerId}" splitSearchTextBySeperator="true"
+												label="Staff Owner" validationError="{!v.lookupError}" objectName="User" displayFieldValue="Id"
+												fieldsToSearch="Name" SearchKeyWord="{!v.ownerSearchText}" required="true"/>
+									</aura:set>
+								</aura:if>
+
+							</lightning:layoutItem>
+						</lightning:layout> -->
+
+            <lightning:layout>
+              <lightning:layoutItem size="4">
+                <lightning:radioGroup value="{!v.meetingRecord.Meeting_Focus__c}" options="{!v.meetingFocusOptions}" onchange="{!c.handleFocusChange}" disabled="{!v.readOnly}" />
+              </lightning:layoutItem>
+              <lightning:layoutItem size="8">
+                <aura:if isTrue="{!v.meetingRecord.Meeting_Focus__c == 'Patient'}">
+                  <aura:if isTrue="{!v.readOnly}">
+                    {!v.selectedPatient.Name}
+                    <aura:set attribute="else">
+                      <c:LookupComponent aura:id="patientLookup" selectedRecord="{!v.selectedPatient}" additionalOptions="" filters="{!v.patientLookupFilter}" displayField="Name" allowFreeText="false" lookupFieldName="{!v.meetingRecord.Patient_Account__c}" splitSearchTextBySeperator="true" label="Patient" validationError="{!v.lookupError}" objectName="Account" displayFieldValue="Id" fieldsToSearch="Name" SearchKeyWord="{!v.patientSearchText}" required="true" />
+                    </aura:set>
+                  </aura:if>
+
+                  <lightning:select value="{!v.meetingRecord.Patient_Meeting_Type__c}" label="Meeting Type" class="customrequired" disabled="{!v.readOnly}">
+                    <aura:iteration items="{!v.meetingTypeMap.Patient_Meeting_Type__c}" var="type">
+                      <option value="{!type.value}" text="{!type.label}" />
+                    </aura:iteration>
+                  </lightning:select>
+                </aura:if>
+                <aura:if isTrue="{!v.meetingRecord.Meeting_Focus__c == 'Patient Group'}">
+                  <aura:if isTrue="{!v.readOnly}">
+                    {!v.selectedGroup.Name}
+                    <aura:set attribute="else">
+                      <c:LookupComponent aura:id="groupLookup" selectedRecord="{!v.selectedGroup}" additionalOptions="" filters="{!v.patientGroupLookupFilter}" displayField="Name" allowFreeText="false" lookupFieldName="{!v.meetingRecord.Group_Membership__c}" splitSearchTextBySeperator="true" label="Group Membership" validationError="{!v.lookupError}" objectName="Group__c" displayFieldValue="Id" fieldsToSearch="Name" SearchKeyWord="{!v.groupSearchText}" required="true" />
+                    </aura:set>
+                  </aura:if>
+
+                  <lightning:select value="{!v.meetingRecord.Patient_Group_Meeting_Type__c}" label="Meeting Type" class="customrequired" disabled="{!v.readOnly}">
+                    <aura:iteration items="{!v.meetingTypeMap.Patient_Group_Meeting_Type__c}" var="type">
+                      <option value="{!type.value}" text="{!type.label}" />
+                    </aura:iteration>
+                  </lightning:select>
+                </aura:if>
+                <aura:if isTrue="{!v.meetingRecord.Meeting_Focus__c == 'Staff Group'}">
+                  <lightning:layout>
+                    <lightning:layoutItem size="6">
+                      <aura:if isTrue="{!v.readOnly}">
+                        {!v.selectedGroup.Name}
+                        <aura:set attribute="else">
+                          <c:LookupComponent aura:id="groupLookup" selectedRecord="{!v.selectedGroup}" additionalOptions="" filters="{!v.staffGroupLookupFilter}" displayField="Name" allowFreeText="false" lookupFieldName="{!v.meetingRecord.Group_Membership__c}" splitSearchTextBySeperator="true" label="Group Membership" validationError="{!v.lookupError}" objectName="Group__c" displayFieldValue="Id" fieldsToSearch="Name" SearchKeyWord="{!v.groupSearchText}" required="true" />
+                        </aura:set>
+                      </aura:if>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="6" />
+                  </lightning:layout>
+                  <lightning:layout>
+                    <lightning:layoutItem size="6">
+                      <lightning:select value="{!v.meetingRecord.Staff_Group_Meeting_Type__c}" label="Meeting Type" class="customrequired" disabled="{!v.readOnly}">
+                        <aura:iteration items="{!v.meetingTypeMap.Staff_Group_Meeting_Type__c}" var="type">
+                          <option value="{!type.value}" text="{!type.label}" />
+                        </aura:iteration>
+                      </lightning:select>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="6">
+                      <aura:if isTrue="{!v.readOnly}">
+                        {!v.selectedPatient.Name}
+                        <aura:set attribute="else">
+                          <c:LookupComponent aura:id="patientLookup" selectedRecord="{!v.selectedPatient}" additionalOptions="" filters="{!v.patientLookupFilter}" displayField="Name" allowFreeText="false" lookupFieldName="{!v.meetingRecord.Patient_Account__c}" splitSearchTextBySeperator="true" label="Patient" validationError="{!v.lookupError}" objectName="Account" displayFieldValue="Id" fieldsToSearch="Name" SearchKeyWord="{!v.patientSearchText}" />
+                        </aura:set>
+                      </aura:if>
+                    </lightning:layoutItem>
+                  </lightning:layout>
+                </aura:if>
+
+                <aura:if isTrue="{!v.meetingRecord.Meeting_Focus__c == 'Other'}">
+                  <lightning:select value="{!v.meetingRecord.Other_Meeting_Type__c}" label="Meeting Type" class="customrequired" disabled="{!v.readOnly}">
+                    <aura:iteration items="{!v.meetingTypeMap.Other_Meeting_Type__c}" var="type">
+                      <option value="{!type.value}" text="{!type.label}" />
+                    </aura:iteration>
+                  </lightning:select>
+                </aura:if>
+              </lightning:layoutItem>
+            </lightning:layout>
+
+            <lightning:layout class="select-resource-container" horizontalAlign="center">
+              <lightning:layoutItem size="6">
+                <span><strong>Room: </strong></span>
+                <aura:if isTrue="{!not(empty(v.selectedResource))}">
+                  <lightning:pill label="{!v.selectedResource.label}" onremove="{!c.handleRemoveResource}" />
+                </aura:if>
+                <aura:if isTrue="{!and(not(empty(v.meetingRecord.Start_Date_Time__c)), not(empty(v.meetingRecord.End_Date_Time__c)))}">
+                  <lightning:button class="select-resource-button" label="Select a Room" variant="brand" onclick="{!c.handleSelectResource}" disabled="{!v.readOnly}" />
+                </aura:if>
+              </lightning:layoutItem>
+              <lightning:layoutItem size="6">
+                <aura:if isTrue="{!v.attendanceOptions.length > 0}">
+                  <lightning:radioGroup name="attendanceInput" id="attendanceInput" label="Attendance" value="{!v.meetingRecord.Patient_Attendance__c}" class="slds-m-vertical_medium" options="{!v.attendanceOptions}" disabled="{!v.readOnly}" />
+                </aura:if>
+              </lightning:layoutItem>
+            </lightning:layout>
+
+            <lightning:input aura:id="meetingField" label="Videoconference Link" value="{!v.meetingRecord.Videoconference_Link__c}" required="false" disabled="{!v.readOnly}" />
+
+            <aura:if isTrue="{!v.meetingRecord.Videoconference_Link__c != ''}">
+              <span style="font-size: 1rem">
+                <lightning:icon iconName="utility:video" title="Video" />
+                <lightning:formattedUrl value="{!v.meetingRecord.Videoconference_Link__c}" label=" Join Remotely" target="_blank"> </lightning:formattedUrl>
+              </span>
+            </aura:if>
+
+            <lightning:textarea name="description" label="Description" value="{!v.meetingRecord.Description__c}" disabled="{!v.readOnly}" />
+          </div>
+        </lightning:layoutItem>
+      </lightning:layout>
+
+      <lightning:layout horizontalAlign="center">
+        <lightning:layoutItem size="12">
+          <c:ScheduleTable aura:id="schedule-table" selectedRecordList="{!v.selectedRecordList}" startDateTime="{!v.startDateTime}" endDateTime="{!v.endDateTime}" readOnly="{!v.readOnly}" />
+        </lightning:layoutItem>
+      </lightning:layout>
+    </lightning:card>
+  </div>
+
+  <aura:if isTrue="{!v.showCancelModal}">
+    <c:sldsModal instanceName="cancelMeeting">
+      <aura:set attribute="header"> </aura:set>
+      <aura:set attribute="content">
+        <div class="slds-p-horizontal_small">Are you sure you want to cancel? Any unsaved changes will be lost.</div>
+      </aura:set>
+      <aura:set attribute="footer">
+        <lightning:button label="Discard Changes" variant="destructive" onclick="{!c.handleDiscardChanges}" />
+        <lightning:button label="Go back to my Meeting" variant="neutral" onclick="{!c.handleBackToMeeting}" />
+      </aura:set>
+    </c:sldsModal>
+  </aura:if>
+
+  <aura:if isTrue="{!v.showDeleteModal}">
+    <c:sldsModal instanceName="deleteMeeting">
+      <aura:set attribute="header"> </aura:set>
+      <aura:set attribute="content">
+        <aura:if isTrue="{!v.recurrenceSelected == 'single'}">
+          <div class="slds-p-horizontal_small">This meeting will be permanently removed from all schedules. Are you sure?</div>
+        </aura:if>
+        <aura:if isTrue="{!v.recurrenceSelected == 'series'}">
+          <div class="slds-p-horizontal_small">This entire series of meetings will be permanently removed from all schedules. Are you sure?</div>
+        </aura:if>
+      </aura:set>
+      <aura:set attribute="footer">
+        <lightning:button label="{!if(v.recurrenceSelected == 'single', 'Delete Meeting from Schedules', 'Delete Meeting Series from Schedules')}" variant="destructive" onclick="{!c.handleConfirmDelete}" />
+        <lightning:button label="Go Back to Meeting" variant="neutral" onclick="{!c.handleBackToMeeting}" />
+      </aura:set>
+    </c:sldsModal>
+  </aura:if>
+
+  <aura:if isTrue="{!v.showEditRecurrenceModal}">
+    <c:sldsModal instanceName="editRecurrence">
+      <aura:set attribute="header"> Recurrence </aura:set>
+      <aura:set attribute="content">
+        <c:EditRecurrence aura:id="recurrenceModal" recordId="{!v.meetingRecord.Recurrence__r.Id}" recurrence="{!v.recurrence}" isSaved="{!v.isRecurrenceSaved}" isDirty="{!v.isRecurrenceDirty}" recurrenceRecord="{!v.recurrenceRecord}" />
+      </aura:set>
+      <aura:set attribute="footer">
+        <aura:if isTrue="{!v.canEditMeeting}">
+          <lightning:button label="Save" variant="brand" onclick="{!c.handleEditRecurrenceSave}" />
+        </aura:if>
+
+        <lightning:button label="Cancel" variant="destructive" onclick="{!c.handleEditRecurrenceCancel}" />
+      </aura:set>
+    </c:sldsModal>
+  </aura:if>
+  <aura:if isTrue="{!v.showGroupNote}"> </aura:if>
+  <aura:if isTrue="{!v.showSelectResourceModal}">
+    <c:sldsModal instanceName="selectResource" modalSize="small">
+      <aura:set attribute="header"> Select a Room </aura:set>
+      <aura:set attribute="content">
+        <lightning:layout class="slds-grid_align-center">
+          <lightning:layoutItem size="6" padding="horizontal-small">
+            <lightning:layout>
+              <lightning:layoutItem size="12">
+                <lightning:layout class="slds-grid_align-center">
+                  <lightning:layoutItem size="6">
+                    <strong>Building</strong>
+                  </lightning:layoutItem>
+                  <lightning:layoutItem size="6">
+                    <strong>Room</strong>
+                  </lightning:layoutItem>
+                </lightning:layout>
+              </lightning:layoutItem>
+            </lightning:layout>
+          </lightning:layoutItem>
+        </lightning:layout>
+        <aura:iteration items="{!v.availableResources}" var="resource">
+          <lightning:layout class="slds-grid_align-center">
+            <lightning:layoutItem size="6" padding="horizontal-small">
+              <lightning:layout>
+                <lightning:layoutItem size="12">
+                  <lightning:layout class="slds-grid_align-center">
+                    <lightning:layoutItem size="6">
+                      <div>{!resource.Building__c}</div>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="6">
+                      <a href="javascript:void(0)" data-id="{!resource.Id}" onclick="{!c.handleResourceSelected}">{!resource.Name}</a>
+                    </lightning:layoutItem>
+                  </lightning:layout>
+                </lightning:layoutItem>
+              </lightning:layout>
+            </lightning:layoutItem>
+          </lightning:layout>
+        </aura:iteration>
+      </aura:set>
+      <aura:set attribute="footer">
+        <lightning:button label="Cancel" variant="destructive" onclick="{!c.handleSelectResourceCancel}" />
+      </aura:set>
+    </c:sldsModal>
+  </aura:if>
+
+  <lightning:notificationsLibrary aura:id="notifLib" />
+</aura:component>

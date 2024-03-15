@@ -1,0 +1,17 @@
+<aura:component controller="ContentFileUploader" access="public" >
+    <!-- Attributes Section -->
+    <aura:attribute name="parentId" type="String" Description="Store is to parent Id" access="public" />
+    <aura:attribute name="contentId" type="String" Description="Store is to content Id" access="public" />
+    <aura:attribute name="fileType" type="String" default="*" access="public"/>
+    <aura:attribute name="fileName" type="String" default="No file selected!" />
+    
+    <!-- Aura Method -->
+    <aura:method name="uploadFiles" action="{!c.uploadContent}" access="public" >
+        <aura:attribute name="contentDocument" type="Map"/>
+        <aura:attribute name="contentUploaderCallback" type="function" />
+        <aura:attribute name="errorCallback" type="function" />
+    </aura:method>
+    <!-- File Upload -->
+    <lightning:input style="cursor:pointer;" aura:id="fileId" onchange="{!c.handleFileChange}" type="file" name="file" label="Upload Attachment" multiple="false"/>
+    <span class="slds-text-body_small slds-text-color_error">{!v.fileName}</span>
+</aura:component>

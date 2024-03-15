@@ -1,0 +1,47 @@
+<aura:component>
+    <aura:attribute name="goalList" type="Goal[]" access="global"/>
+    <aura:attribute name="showRatingScale" type="Boolean" default="false"/>
+    <aura:attribute name="goalRatingScale" type="String" 
+            default="1 = no progress, 2 = minor progress, 3 = moderate progress, 4 = significant progress, 5 = very significant progress, 6 = goal/objective met" />
+    <aura:attribute name="newTargetDate" type="Date" access="global"/>
+    <aura:attribute name="domain" type="Object"/>
+    <aura:attribute name="conductEGO" type="Boolean" default="false"/>
+    <aura:attribute name="egoStatus" type="String" default=""/>
+    <aura:attribute name="isEGOR" type="Boolean" default="false"/>
+    
+    <!-- Handler -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler name="goalCancelEvent" event="c:TreatmentPlanGoalCancelEvent" action="{!c.cancelGoal}"/>
+    
+    <lightning:card>
+        <aura:set attribute="title"><div class="slds-text-heading_medium"><b>{!v.domain.domainObj.Label__c} Goals</b></div></aura:set>
+        <aura:if isTrue="{!v.showRatingScale}">
+            <lightning:layout>
+                <!-- <lightning:layoutItem size="1"></lightning:layoutItem> -->
+                <lightning:layoutItem size="12">
+                    <p class="slds-text-body_small slds-var-p-left_medium slds-var-p-right_xx-small slds-var-p-top_xx-small slds-var-p-bottom_xx-small">
+                        Goal/Objective Rating Scale:<br/>1 = no progress, 2 = minor progress, 3 = moderate progress, 4 = significant progress, 5 = very significant progress, 6 = goal/objective met</p>
+                </lightning:layoutItem>
+            </lightning:layout>
+        </aura:if>
+        <aura:iteration items="{!v.goalList}" var="goal" indexVar="goalCounter">
+            <aura:if isTrue="{!not(goal.isDeleted)}">
+                <c:TreatmentPlan_EGO_Goal aura:id="goal" 
+                                          goal="{!goal}" 
+                                          goalCounter="{!goalCounter}" 
+                                          newTargetDate="{!v.newTargetDate}" 
+                                          domain="{!v.domain}"
+                                          conductEGO="{!v.conductEGO}"
+                                          egoStatus="{!v.egoStatus}"
+                                          isEGOR="{!v.isEGOR}"
+                                          goalRatingScale="{!v.goalRatingScale}"
+                                          />
+            </aura:if>
+        </aura:iteration>
+        <div class="slds-p-top_small slds-p-left_small">
+            <aura:if isTrue="{!v.conductEGO}">
+                <lightning:button variant="brand" label="Add Goal" title="Add Goal" onclick="{!c.addNewGoal}"/>
+            </aura:if>
+        </div>
+    </lightning:card>
+</aura:component>

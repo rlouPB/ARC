@@ -1,0 +1,23 @@
+<aura:component controller="CreateNewCtl" implements="force:hasRecordId,force:hasSObjectName">
+    <aura:attribute name="showmodal" type="Boolean" />
+    <aura:attribute name="flowName" type="String" />
+    <aura:attribute name="contactDate" type="Date" />
+    <aura:attribute name="inputParams" type="Map[]" />
+    <aura:handler name="closeModalEvent" event="c:closeModal" action="{!c.onCloseModalHandler}" />
+    <div class="slds-card">
+        <c:createNewLwc recordId="{!v.recordId}" oncategoryselected="{!c.onCategorySelected}" />
+        <div class="{!v.showmodal?'slds-show':'slds-hide'}">
+            <aura:if isTrue="{!v.showmodal}">
+                <c:sldsModal instanceName="showCreateNewFLow">
+                    <aura:set attribute="content">
+                        <lightning:flow aura:id="flow" onstatuschange="{!c.onStatusChangeHandler}" />
+                    </aura:set>
+                    <aura:set attribute="footer">
+                        <lightning:button class="slds-button slds-button_neutral" variant="brand" label="Cancel" title="Cancel" onclick="{!c.onCloseModalHandler}" />
+                    </aura:set>
+                </c:sldsModal>
+            </aura:if>
+        </div>
+        <c:modalPopupLwc aura:id="modal" />
+    </div>
+</aura:component>

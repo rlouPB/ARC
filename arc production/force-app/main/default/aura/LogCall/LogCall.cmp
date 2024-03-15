@@ -1,0 +1,377 @@
+<aura:component controller="Ctl_LogCall" extends="c:ApexService" implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickActionwithoutheader,lightning:actionOverride" access="global">
+	<!-- Attributes -->
+	<aura:attribute name="Errormsg" type="string" description="Holds a is Error Message" />
+	<aura:attribute name="autosaveId" type="Decimal" default="[]" access="public" />
+	<aura:attribute name="autosaveInterval" type="Integer" default="30000" access="public" description="Auto save interval in milliseconds from first keyup" />
+	<aura:attribute name="autosaveMinimumNoteLength" type="Integer" default="27" access="public" description="Minimum characters in Notes to autosave" />
+	<aura:attribute name="callType" type="String" description="typee of call, inquiry vs. non-starter" />
+	<aura:attribute name="callerAdditionalOptions" type="List" default="[]" access="public" />
+	<aura:attribute name="callerFilter" type="List" default="[]" access="public" />
+	<aura:attribute name="callerIsSelected" type="Boolean" access="public" description="indicates caller is selected" default="false" />
+	<aura:attribute name="callerSearchText" type="String" access="public" description="text to search for name and also to save back into Caller_Name__c field" />
+	<aura:attribute name="contactRecordTypeList" type="List" Description="Used to store Contact RecordType List" />
+	<aura:attribute name="dateTimeSetByNow" type="Boolean" default="false" description="if true, datetime on page set by Now button, not component datepicker/timepicker" />
+	<aura:attribute name="disabled" type="Boolean" default="false" access="public" />
+	<aura:attribute name="formFactor" type="String" access="public" />
+	<aura:attribute name="hasCheckedForRelationship" type="Boolean" default="false" />
+	<aura:attribute name="hasRelationship" type="Boolean" default="false" />
+	<aura:attribute name="isAutosaveComplete" type="Boolean" default="false" access="public" description="true to show autosave complete" />
+	<aura:attribute name="isAutosaving" type="Boolean" default="false" access="public" description="true to show autosaving spinner" />
+	<aura:attribute name="isComponentLoaded" type="Boolean" default="false" access="public" />
+	<aura:attribute name="isFromCallSearch" type="Boolean" default="false" description="true if opened by clicking" />
+	<aura:attribute name="isNoteLoaded" type="Boolean" default="false" access="public" />
+	<aura:attribute name="isSaveDisabled" type="Boolean" default="true" access="public" />
+	<aura:attribute name="isSaving" type="Boolean" default="false" access="public" description="true to show autosaving spinner" />
+	<aura:attribute name="isShowMsg" type="boolean" default="false" description="Holds a is Show Message" />
+	<aura:attribute name="lastNowValue" type="String" default="" description="stores value from most recent NOW click" />
+	<aura:attribute name="lastSuccessfulSaveTime" type="Datetime" description="timestamp of last server response on save" />
+	<aura:attribute name="loading" type="Boolean" default="true" access="public" />
+	<aura:attribute name="modalFromCallSearchId" type="String" default="" description="Holds is show Start New Call Modal " />
+	<aura:attribute name="newActivity" type="Map" default="{'sobjectType': 'Basic_Note__c','Subject__c': ''}" access="public" description="Holds the Basic Note Record" />
+	<aura:attribute name="noReloadOnSave" type="Boolean" default="false" access="public" />
+	<aura:attribute name="noteId" type="String" />
+	<aura:attribute name="noteRecordtypeName" type="String" default="Admissions Notes" />
+	<aura:attribute name="patientAdditionalOptions" type="List" default="[]" />
+	<aura:attribute name="patientFilter" type="List" default="[]" access="public" description="The filter applied to all searches for patient record selection" />
+	<aura:attribute name="patientId" type="String" />
+	<aura:attribute name="patientIsSelected" type="Boolean" access="public" description="indicates patient is selected in lookup for validation" />
+	<aura:attribute name="patientNote" type="Map" default="{'sobjectType': 'Basic_Note__c'}" access="public" description="Holds a Patient Note Record" />
+	<aura:attribute name="patientSearchText" type="String" access="public" description="text to search for name and also to save back into Patient_Name__c field" />
+	<aura:attribute name="previousSaveLockoutLength" type="Integer" default="5" description="Number of seconds to wait after lastSuccessfulSaveTime (the last save attempt) to allow autosaving again" />
+	<aura:attribute name="professionalContactAdditionalOptions" type="List" default="[]" />
+	<aura:attribute name="professionalContactFilter" type="List" default="[]" />
+	<aura:attribute name="ptNoteRecordtypeName" type="String" default="Admissions Notes" />
+	<aura:attribute name="record" type="Object" default="{}" access="public" />
+	<aura:attribute name="recordId" type="String" description="If there is a value, it will be the Patient Account Id because we are embedded on the Patient File page" />
+	<aura:attribute name="relatedContact" type="Related_Contact__c" access="public" default="{'sobjectType':'Related_Contact__c'}" />
+	<aura:attribute name="relatedContactRecordTypeList" type="List" Description="Used to store Related Contact RecordType List" />
+	<aura:attribute name="requiredFields" type="Map" default="{}" description="fields to validate on page" />
+	<aura:attribute name="saveAttemptCount" type="Integer" default="0" description="Number of times save has been attempted since the last successful save" />
+	<aura:attribute name="selectedCallerRecord" type="Object" access="public" description="basic object with value=person spoken to contactId, label= person spoken to Name" />
+	<aura:attribute name="selectedPatientRecord" type="Object" access="public" description="basic object with value=patientAccountId, label=patientName" />
+	<aura:attribute name="selectedPatientServiceTpe" type="String" access="public" description="basic object with value=patientAccountId, label=patientName" />
+	<aura:attribute name="selectedRecordType" type="Map" />
+	<aura:attribute name="selectedSubject" type="Map" access="public" />
+	<aura:attribute name="serviceType" type="String" access="public" />
+	<aura:attribute name="serviceTypeSearchText" type="String" access="public" description="text to search for service type and also to save back into Service_Type__c field" />
+	<aura:attribute name="showCreateRelationshipModal" type="Boolean" default="false" />
+	<aura:attribute name="showRelationshipRequiredIcon" type="Boolean" default="true" />
+	<aura:attribute name="showStartNewCallModal" type="boolean" default="false" description="Holds is show Start New Call Modal " />
+	<aura:attribute name="subjectFilter" type="List" default="[]" access="public" />
+	<aura:attribute name="wasCompleted" type="Boolean" default="false" />
+	<aura:handler event="c:closeModal" name="closeModalView" action="{!c.handleCloseModal}" />
+	<aura:handler event="c:onPopulateLogACall" action="{!c.handlePopulateLogACall}" />
+	<aura:handler name="change" value="{!v.newActivity}" action="{!c.handleChangeNote}" />
+	<aura:handler name="change" value="{!v.selectedCallerRecord}" action="{!c.callerRecordChange}" />
+	<aura:handler name="change" value="{!v.selectedPatientRecord}" action="{!c.patientRecordChange}" />
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+	<aura:registerEvent name="updatedPatient" type="c:refreshPatient" />
+	<ltng:require scripts="{!join(',', $Resource.momentjs, $Resource.momentTz)}" afterScriptsLoaded="{!c.doneScriptsLoading}" />
+
+	<div style="border: 1px solid rgb(217, 219, 221); position:static;">
+
+		<lightning:notificationsLibrary aura:id="notifLib" />
+
+		<aura:if isTrue="{!v.loading}">
+			<div class="" style="position:static;">
+				<lightning:spinner class="logCallSpinner" variant="brand" alternativeText="Loading" size="medium" />
+			</div>
+		</aura:if>
+
+		<force:recordData aura:id="forceRecordCmp" layoutType="FULL" recordId="{!v.recordId}" mode="VIEW" fields="Name" targetFields="{!v.record}" />
+
+		<!-- Error Message -->
+		<aura:if isTrue="{!v.isShowMsg}">
+			<div style="color:red;">{!v.Errormsg}</div>
+		</aura:if>
+
+		<!-- Screen Size -->
+		<lightning:flexipageRegionInfo width="{!v.formFactor}" />
+
+		<lightning:layout>
+			<lightning:layoutItem size="6" padding="around-small">
+				<div class="slds-text-align_right slds-var-p-around_small">
+					<aura:if isTrue="{!v.isAutosaving}">
+						Autosaving...
+					</aura:if>
+					<aura:if isTrue="{!v.isSaving}">
+						Saving...
+					</aura:if>
+
+					<aura:if isTrue="{!and(v.isAutosaveComplete, v.isSaveDisabled)}">
+						Saved!
+					</aura:if>
+					<lightning:button aura:id="savebutton" disabled="{!v.isSaveDisabled}" label="{!(v.newActivity.Id ?'Update': 'Create')}" variant="brand" onclick="{!c.saveActionLogCall}" />
+				</div>
+			</lightning:layoutItem>
+			<lightning:layoutItem size="6" padding="around-small">
+				<aura:if isTrue="{!v.recordId}">
+					<div class="slds-text-align_left slds-var-p-around_small">
+						<lightning:button aura:id="startNewCall" label="Start New Call" variant="brand" onclick="{!c.onStartNewCall}" />
+					</div>
+				</aura:if>
+			</lightning:layoutItem>
+		</lightning:layout>
+
+		<aura:if isTrue="{!v.showStartNewCallModal}">
+			<c:sldsModal aura:id="sldsModal" modalSize='small'>
+				<aura:set attribute="header">
+					You have unsaved changes in the call
+				</aura:set>
+				<aura:set attribute="content">
+					<div class="slds-text-align_center">
+						<lightning:layout multipleRows="true">
+							<lightning:layoutItem size="12" padding="around-small">
+								<lightning:button aura:id="savechanges" class="btnClass" label="{!v.modalFromCallSearchId != '' ? 'Save Changes and Open selected call' :'Save Changes and start new call'}" variant="brand" onclick="{!c.onStartNewActionClick}" />
+							</lightning:layoutItem>
+							<lightning:layoutItem size="12" padding="around-small">
+								<lightning:button aura:id="throwawaychanges" class="btnClass" label="{!v.modalFromCallSearchId != '' ? 'Throw away Changes and Open selected call'  : 'Throw away Changes and start new call' }" variant="brand" onclick="{!c.onStartNewActionClick}" />
+							</lightning:layoutItem>
+							<lightning:layoutItem size="12" padding="around-small">
+								<lightning:button aura:id="cancel" class="btnClass" label="Cancel" variant="brand" onclick="{!c.onStartNewActionClick}" />
+							</lightning:layoutItem>
+						</lightning:layout>
+					</div>
+				</aura:set>
+			</c:sldsModal>
+		</aura:if>
+
+		<div class="{!v.formFactor == 'LARGE' ? '' : 'scrolledContent'}">
+			<!-- Main Section -->
+			<lightning:layout multipleRows="true">
+				<lightning:layoutItem size="{!v.formFactor == 'SMALL' ? 12 : 6}" padding="around-small">
+					<span class="slds-grid customRequired">
+						<span class="{!v.formFactor == 'SMALL' ? 'slds-col slds-size_2-of-5' : 'slds-col slds-size_1-of-5'}">
+							<label class="customRequired"> <span class="slds-form-element__label">
+									Call Date/Time</span> </label> <br></br>
+							<lightning:button label="Now" variant="brand" onclick="{!c.onNowClick}" />
+						</span>
+						<span class="{!v.formFactor == 'SMALL' ? 'slds-col slds-size_3-of-5' : 'slds-col slds-size_4-of-5'}">
+							<force:inputField value="{!v.newActivity.Call_Date_Time__c}" />
+						</span>
+					</span>
+				</lightning:layoutItem>
+
+				<lightning:layoutItem size="{!v.formFactor == 'SMALL' ? 12 : 6}" class="{!v.formFactor == 'SMALL' ? 'hideOnPatientFile':''}" padding="around-small">
+					<span>
+						<label><span class="slds-form-element__label">Calling Number</span></label>
+						<force:inputField value="{!v.newActivity.Calling_Number__c}" />
+					</span>
+				</lightning:layoutItem>
+
+				<lightning:layoutItem size="6" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6" padding="around-small">
+					<span class="customRequired">
+						<label class="customRequired"><span class="slds-form-element__label">Call Method</span></label>
+						<force:inputField value="{!v.newActivity.Call_Method__c}" />
+					</span>
+				</lightning:layoutItem>
+
+				<lightning:layoutItem size="6" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6" padding="around-small">
+					<span class="{!v.requiredFields.Call_Type__c.required ? 'customRequired' : ''}" onblur="{!c.handleChangeType}">
+						<label><span class="slds-form-element__label ">Call Type</span></label>
+						<force:inputField value="{!v.newActivity.Call_Type__c}" />
+					</span>
+				</lightning:layoutItem>
+
+				<lightning:layoutItem size="6" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6" padding="around-small">
+					<span>
+						<label><span class="slds-form-element__label">Call Status</span></label>
+						<force:inputField value="{!v.newActivity.Call_Status__c}" class="slds-input" />
+					</span>
+				</lightning:layoutItem>
+
+				<lightning:layoutItem size="6" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6" padding="around-small">
+					<span class="{!v.requiredFields.Non_starter_Reason__c.required ? 'customRequired' : ''}">
+						<c:dependentPicklist fieldValue="{!v.newActivity.Non_starter_Reason__c}" fieldLabel="Non-starter Reason" controllingField="Call_Type__c" fieldName="Non_starter_Reason__c" objectApiName="Basic_Note__c" controllingFieldValue="{!v.newActivity.Call_Type__c}" />
+					</span>
+				</lightning:layoutItem>
+
+				<lightning:layoutItem size="6" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6" padding="around-small">
+					<aura:if isTrue="{!v.isNoteLoaded}">
+						<aura:if isTrue="{!empty(v.recordId)}">
+							<span>
+								<c:LookupComponent aura:id="patientLookup" label="Patient Name" objectName="Legal_Name__c" fieldsToSearch="Searchable_Name__c" selectedRecord="{!v.selectedPatientRecord}" displayField="Searchable_Name__c" displayFieldValue="Patient__c" lookupFieldName="{!v.newActivity.Account__c}" filters="{!v.patientFilter}" additionalOptions="{!v.patientAdditionalOptions}" splitSearchTextBySeperator="true" allowFreeText="true" required="true" />
+							</span>
+							<aura:set attribute="else">
+								<span class="customRequired">
+									<label class="customRequired">
+										<span class="slds-form-element__label">Patient Name</span>
+									</label>
+									<ui:inputText value="{!if(and(v.record != null, v.record.Name != null), v.record.Name, v.selectedPatientRecord.label)}" disabled="true" />
+								</span>
+							</aura:set>
+						</aura:if>
+					</aura:if>
+				</lightning:layoutItem>
+
+				<aura:if isTrue="{!v.isNoteLoaded}">
+					<aura:if isTrue="{!v.patientIsSelected}">
+						<lightning:layoutItem size="6" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6" padding="around-small" class="{!if(and(v.patientIsSelected, !v.callerIsSelected), 'highlighted', '')}">
+							<div class="slds-grid">
+								<div class="{!if(empty(v.recordId), 'caller-lookup-alternate slds-size_4-of-5', 'caller-lookup-alternate slds-size_5-of-5')}">
+									<aura:if isTrue="{!and(v.hasCheckedForRelationship, not(v.hasRelationship), and(v.patientIsSelected, v.callerIsSelected))}">
+										<lightning:icon iconName="utility:remove_link" size="small" alternativeText="There is no relationship in IRIS between Patient and Person Spoken To" title="There is no relationship in IRIS between Patient and Person Spoken To" />
+									</aura:if>
+									<c:LookupComponent aura:id="contactLookup" label="Person Spoken To" objectName="Related_Contact__c" fieldsToSearch="Contact_Name__c" selectedRecord="{!v.selectedCallerRecord}" displayField="Contact_Role_Name__c" displayFieldValue="Contact__c" lookupFieldName="{!v.newActivity.Contact__c}" filters="{!v.callerFilter}" additionalOptions="{!v.callerAdditionalOptions}" minimumSearchTextLength="0" maxQuickSearchRows="10" hideDropdownOnFocus="false" allowFreeText="true" required="true" splitSearchTextBySeperator="true" />
+								</div>
+								<aura:if isTrue="{!empty(v.recordId)}">
+									<div class="slds-size_1-of-5 slds-align_absolute-center">
+										<lightning:button label="Caller is Patient" variant="neutral" onclick="{!c.callerIsPatient}" />
+									</div>
+								</aura:if>
+							</div>
+						</lightning:layoutItem>
+
+						<aura:set attribute="else">
+							<lightning:layoutItem size="6" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6" padding="around-small" class="{!if(and(v.patientIsSelected, !v.callerIsSelected), 'highlighted', '')}">
+								<aura:if isTrue="{!and(v.hasCheckedForRelationship, not(v.hasRelationship), v.patientIsSelected, v.callerIsSelected)}">
+									<lightning:icon iconName="utility:remove_link" size="small" alternativeText="Create Relationship" />
+								</aura:if>
+								<span class="{!if(and(v.hasCheckedForRelationship, not(v.hasRelationship)), 'caller-lookup', '')}">
+									<c:LookupComponent required="true" aura:id="contactLookup" selectedRecord="{!v.selectedCallerRecord}" additionalOptions="{!v.professionalContactAdditionalOptions}" displayField="Distinguished_Name__c" allowFreeText="true" lookupFieldName="{!v.newActivity.Contact__c}" splitSearchTextBySeperator="true" filters="{!v.professionalContactFilter}" label="Person Spoken To" displayFieldValue="Id" objectName="Contact" fieldsToSearch="Distinguished_Name__c" minimumSearchTextLength="2" maxQuickSearchRows="5" hideDropdownOnFocus="true" />
+								</span>
+							</lightning:layoutItem>
+						</aura:set>
+					</aura:if>
+				</aura:if>
+
+				<aura:if isTrue="{!(not(empty(v.recordId)))}">
+					<lightning:layoutItem size="6" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6" padding="around-small">
+						<!--Empty layout-->
+					</lightning:layoutItem>
+
+					<lightning:layoutItem size="6" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6" padding="around-small">
+						<div>
+							<lightning:button label="Caller is Patient" variant="brand" onclick="{!c.callerIsPatient}" />
+						</div>
+					</lightning:layoutItem>
+				</aura:if>
+
+				<lightning:layoutItem class="{!v.formFactor == 'SMALL' ? 'hideOnPatientFile':''}" size="6" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6" padding="around-small">
+					<span>
+						<label><span class="slds-form-element__label"> Patient Gender</span></label>
+						<force:inputField value="{!v.newActivity.Patient_Gender__c}" />
+					</span>
+				</lightning:layoutItem>
+
+				<lightning:layoutItem class="{!v.formFactor == 'SMALL' ? 'hideOnPatientFile':''}" size="6" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6" padding="around-small">
+					<span>
+						<label><span class="slds-form-element__label"> Caller Gender</span></label>
+						<force:inputField value="{!v.newActivity.Caller_Gender__c}" />
+					</span>
+				</lightning:layoutItem>
+
+				<lightning:layoutItem class="{!v.formFactor == 'SMALL' ? 'hideOnPatientFile':''}" size="6" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6" padding="around-small">
+					<span>
+						<label><span class="slds-form-element__label">Patient City</span></label>
+						<force:inputField value="{!v.newActivity.Patient_City__c}" />
+					</span>
+				</lightning:layoutItem>
+
+				<lightning:layoutItem class="{!v.formFactor == 'SMALL' ? 'hideOnPatientFile':''}" size="6" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6" padding="around-small" />
+
+				<lightning:layoutItem class="{!v.formFactor == 'SMALL' ? 'hideOnPatientFile':''}" size="6" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6" padding="around-small">
+					<span>
+						<label><span class="slds-form-element__label"> Patient State</span></label>
+						<force:inputField value="{!v.newActivity.Patient_State__c}" />
+					</span>
+				</lightning:layoutItem>
+
+				<lightning:layoutItem class="{!v.formFactor == 'SMALL' ? 'hideOnPatientFile':''}" size="6" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6" padding="around-small" />
+
+				<lightning:layoutItem class="{!v.formFactor == 'SMALL' ? 'hideOnPatientFile':''}" size="6" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6" padding="around-small">
+					<span>
+						<label><span class="slds-form-element__label"> Patient Country</span></label>
+						<force:inputField value="{!v.newActivity.Patient_Country__c}" />
+					</span>
+				</lightning:layoutItem>
+
+				<lightning:layoutItem class="{!v.formFactor == 'SMALL' ? 'hideOnPatientFile':''}" size="6" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6" padding="around-small">
+					<span>
+						<label><span class="slds-form-element__label">Caller Country</span></label>
+						<force:inputField value="{!v.newActivity.Caller_Country__c}" />
+					</span>
+				</lightning:layoutItem>
+
+				<lightning:layoutItem size="6" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6" padding="around-small">
+					<span>
+						<label><span class="slds-form-element__label"> Length of Call (minutes)</span></label>
+						<force:inputField value="{!v.newActivity.Length_of_Call__c}" />
+					</span>
+				</lightning:layoutItem>
+
+				<aura:if isTrue="{!v.formFactor != 'SMALL'}">
+					<lightning:layoutItem size="6" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6" padding="around-small">
+						<span>
+							<label>
+								<span class="slds-form-element__label">Service Type</span>
+							</label>
+							<force:inputField value="{!v.newActivity.Service_Type__c}" />
+						</span>
+					</lightning:layoutItem>
+					<aura:set attribute="else">
+						<lightning:layoutItem size="6" smallDeviceSize="6" mediumDeviceSize="6" padding="around-small" />
+					</aura:set>
+				</aura:if>
+
+
+				<lightning:layoutItem size="6" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6" class="slds-var-p-around_x-small">
+					<aura:if isTrue="{!v.isNoteLoaded}">
+						<span>
+							<c:LookupComponent aura:id="subjectLookup" label="Subject" objectName="Custom_Picklist_Value__mdt" fieldsToSearch="Label__c" displayField="Label__c" displayFieldValue="Label__c" lookupFieldName="{!v.newActivity.Subject__c}" splitSearchTextBySeperator="true" allowFreeText="true" minimumSearchTextLength="0" maxQuickSearchRows="10" filters="{!v.subjectFilter}" selectedRecord="{!v.selectedSubject}" orderByClause="Order__c ASC NULLS FIRST" fillPillOnSelect="false" />
+						</span>
+					</aura:if>
+				</lightning:layoutItem>
+
+				<lightning:layoutItem size="6" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6" class="slds-var-p-around_x-small">
+					<span>
+						<label><span class="slds-form-element__label"> Caller Affect and Presentation</span></label>
+						<force:inputField value="{!v.newActivity.Caller_Affect_and_Presentation__c}" />
+					</span>
+				</lightning:layoutItem>
+
+				<lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="12" largeDeviceSize="12" padding="around-small">
+					<span>
+						<label><span class="slds-form-element__label"> Call Notes </span></label>
+						<span onkeyup="{!c.enableSaveButton}" onblur="{!c.enableSaveButton}" onchange="{!c.enableSaveButton}">
+							<lightning:inputRichText value="{!v.newActivity.Rich_Text_Notes__c}" disabledCategories="ALIGN_TEXT,INSERT_CONTENT,REMOVE_FORMATTING" />
+						</span>
+					</span>
+				</lightning:layoutItem>
+
+				<lightning:layoutItem size="12">
+					<div class="slds-var-p-around_small slds-text-align_center">
+						<aura:if isTrue="{!v.isAutosaving}">
+							Autosaving...
+						</aura:if>
+						<aura:if isTrue="{!v.isSaving}">
+							Saving...
+						</aura:if>
+						<aura:if isTrue="{!and(v.isAutosaveComplete, v.isSaveDisabled)}">
+							Saved!
+						</aura:if>
+						<lightning:button aura:id="savebutton" disabled="{!v.isSaveDisabled}" label="{!(v.newActivity.Id ?'Update': 'Create')}" variant="brand" onclick="{!c.saveActionLogCall}" />
+					</div>
+				</lightning:layoutItem>
+			</lightning:layout>
+			<aura:if isTrue="{!v.newActivity.LastModifiedDate}">
+				<div>
+					Last Modified
+					<lightning:formattedDateTime value="{!v.newActivity.LastModifiedDate}" year="numeric" month="numeric" day="numeric" hour="2-digit" minute="2-digit" timeZoneName="short" timeZone="America/New_York" />
+					by {!v.newActivity.LastModifiedBy.Name}
+					<aura:if isTrue="{!v.newActivity.Auto_Saved__c}">
+						(Autosaved)
+					</aura:if>
+				</div>
+			</aura:if>
+		</div>
+	</div>
+
+	<aura:if isTrue="{!and(v.showCreateRelationshipModal, v.isComponentLoaded)}">
+		<c:sldsModal>
+			<aura:set attribute="content">
+				<c:newRelatedContactRecord aura:id="relatedContact" recordId="{!v.patientId}" selectedCallerRecord="{!v.selectedCallerRecord}" relatedContact="{!v.relatedContact}" selectedRecordType="{!v.selectedRecordType}" showModal="{!v.showCreateRelationshipModal}" />
+			</aura:set>
+		</c:sldsModal>
+	</aura:if>
+</aura:component>

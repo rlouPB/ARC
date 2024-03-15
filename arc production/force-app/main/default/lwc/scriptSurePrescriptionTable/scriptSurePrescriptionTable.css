@@ -1,0 +1,24 @@
+.slds-button .slds-button_brand .save-btn{
+    display: none;
+}
+
+.tbl table tr td:first-child{
+    display:none !important;
+}
+.tbl table tr th:first-child{
+    display:none !important;
+}
+
+.tbl table{
+    font-size: x-large;
+}
+
+.item-date {
+    width: 15%;
+    min-width: 10rem;
+}
+
+.item-number {
+    width: 10%;
+    min-width: 10rem;
+}

@@ -1,0 +1,24 @@
+.THIS .slds-form-element_readonly {
+    margin-left: var(--lwc-spacingSmall,0.75rem);
+    margin-right: var(--lwc-spacingSmall,0.75rem);
+}
+.THIS .field {
+    display: flex;
+    width: 50%;
+}
+.THIS .pencil {
+    left: -30px;
+    top: 8px;
+    color: var(--lwc-colorTextButtonInverse,rgb(236, 235, 234));
+}
+.THIS .field:hover .pencil {
+    color: var(--lwc-colorTextIconDefault,rgb(112, 110, 107));
+}
+.THIS .customRequired {
+    font-weight: normal;
+}
+
+.THIS .customRequired a:not(.display),
+.THIS .customRequired input {
+    border: 1px solid red;
+}

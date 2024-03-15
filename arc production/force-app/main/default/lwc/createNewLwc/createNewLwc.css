@@ -1,0 +1,18 @@
+.slds-tree {
+    font-weight: bold;
+}
+[role='group'] {
+    font-weight: normal;
+}
+.slds-template__container {
+    overflow-y: hidden!important;
+    padding: .75rem;
+}
+.tree {
+    font-size: 14px;
+    max-height: 55vh;
+    overflow: auto;
+}
+.slds-tree__item{
+    width: 275%;
+}

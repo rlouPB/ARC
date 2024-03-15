@@ -1,0 +1,14 @@
+<template>
+	<div class="">
+		<lightning-card icon-name={iconName}>
+			<div slot="title">
+				<h3>{chartTitle}</h3>
+				<template if:true={showPatientName}>
+					<div class="slds-text-body_regular slds-text-title">{accountName}</div>
+				</template>
+			</div>
+			<div class="chart slds-var-m-around_medium" lwc:dom="manual"></div>
+			<lightning-spinner if:true={showSpinner}></lightning-spinner>
+		</lightning-card>
+	</div>
+</template>

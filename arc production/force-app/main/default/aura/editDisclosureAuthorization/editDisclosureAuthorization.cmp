@@ -1,0 +1,89 @@
+<aura:component implements="flexipage:availableForAllPageTypes,force:hasRecordId,lightning:actionOverride" access="global" 
+			extends="c:ApexService">
+	<aura:attribute name="admissionId" type="String" default="" description="prepopulate field"/>
+	<aura:attribute name="institutionId" type="String" default="" description="prepopulate field"/>
+	<aura:attribute name="providerId" type="String" default="" description="prepopulate field"/>
+	
+	<aura:attribute name="mode" type="String" default="view" description="edit, view, readonly"/>
+	
+	<aura:attribute name="isDirty" type="Boolean" default="false"/>
+	<aura:attribute name="showCancelModal" type="Boolean" default="false"/>
+
+	<aura:registerEvent name="closeModalView" type="c:closeModal"/>
+
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+	<aura:handler name="closeModalEvent" event="c:closeModal" action="{!c.handleCloseModalEvent}"/>
+	
+	<c:sldsModal instanceName="{!v.instanceName}">
+		<aura:set attribute="header">
+				Disclosure Authorization
+		</aura:set>
+
+		<aura:set attribute="content">
+			<div class="wrapper" onchange="{!c.handleIsDirty}">
+				<lightning:recordEditForm aura:id="theForm" onload="{!c.handleLoad}"
+					objectApiName="Disclosure_Authorization__c" recordId="{!v.recordId}" 
+					onsuccess="{!c.handleSuccess}">
+					<lightning:messages />
+					
+					<lightning:layout multipleRows="true">
+						<lightning:layoutItem size="6">
+							<lightning:outputField aura:id="nameField" fieldName="Name" />
+						</lightning:layoutItem>
+						<lightning:layoutItem size="6">
+							<lightning:inputField aura:id="admissionIdField" fieldName="Admission__c" />
+						</lightning:layoutItem>
+
+						<lightning:layoutItem size="6">
+							<lightning:inputField aura:id="institutionIdField"  fieldName="Institution__c" />
+						</lightning:layoutItem>
+						<lightning:layoutItem size="6">
+							<lightning:inputField fieldName="Signature_Date__c" />
+						</lightning:layoutItem>
+
+						<lightning:layoutItem size="6">
+							<lightning:inputField aura:id="providerIdField"  fieldName="Provider__c" />
+						</lightning:layoutItem>
+						<lightning:layoutItem size="6">
+							<lightning:inputField fieldName="Expiration_Date__c" />
+						</lightning:layoutItem>
+
+						<lightning:layoutItem size="12">
+							<lightning:inputField fieldName="Med_Record_Items_Covered__c" />
+						</lightning:layoutItem>
+						
+						<lightning:layoutItem size="12">
+							<lightning:inputField fieldName="Other_Covered_Items__c" />
+						</lightning:layoutItem>
+
+						<lightning:layoutItem size="12">
+							<lightning:inputField fieldName="Notes__c" />
+						</lightning:layoutItem>
+
+					</lightning:layout>
+				</lightning:recordEditForm>
+			</div>
+		</aura:set>
+		<aura:set attribute="footer">
+            <lightning:button variant="brand" label="Cancel" onclick="{!c.handleCancel}"/>
+            <lightning:button variant="brand" label="Save" onclick="{!c.save}" />
+        </aura:set>
+	</c:sldsModal>
+
+	<aura:if isTrue="{!v.showCancelModal}">
+		<c:sldsModal instanceName="cancelMeeting">
+			<aura:set attribute="header">
+            	 
+            </aura:set>
+            <aura:set attribute="content">
+                <div class="slds-p-horizontal--small">
+                	Are you sure  you want to cancel? Any unsaved changes will be lost.
+                </div>
+            </aura:set>
+            <aura:set attribute="footer">
+            	<lightning:button label="Discard Changes" variant="destructive" onclick="{!c.handleDiscardChanges}"/>
+            	<lightning:button label="Go back to my Disclosure Authorization" variant="neutral" onclick="{!c.handleBackToDisclosureAuthorization}"/>
+            </aura:set>
+		</c:sldsModal>
+	</aura:if>
+</aura:component>

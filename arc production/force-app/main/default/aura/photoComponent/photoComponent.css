@@ -1,0 +1,40 @@
+.THIS {
+    text-align: center;
+}
+.THIS .spinnerfix .slds-spinner_container{
+    background-color:rgba(0,0,0,0);
+}
+.THIS .imageFix{
+    background-position: 50% 50%;
+    background-repeat:   no-repeat;
+    background-size:     cover;
+}
+.THIS .dashedBorder {
+    position: relative;
+    border: 2px dashed #666;
+}
+
+.THIS .dashedBorder:after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    border: 2px dashed #666;
+}
+
+.THIS .dashedBorder .imageFix {
+    _display:none;
+}
+
+.THIS .dashedBorder .vhAlign {
+    _margin: auto 0;
+    _padding-top: 25%;
+    _z-index:1000;
+}
+.THIS .aligncenter{
+     display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+    
+}

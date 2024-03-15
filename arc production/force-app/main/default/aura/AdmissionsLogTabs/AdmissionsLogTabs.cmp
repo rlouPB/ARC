@@ -1,0 +1,50 @@
+<aura:component extends="c:ApexService" implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickActionwithoutheader,lightning:actionOverride">
+
+    <aura:attribute name="recordId" type="String" access="public" description="Parent Account Id" />
+    <aura:attribute name="noteRecordtypeName" type="String" default="Admissions Call" description="Determines which component to show" />
+    <aura:attribute name="isFromCallSearch" type="Boolean" default="false" description="True if initiated by click" />
+    <aura:attribute name="selectedTabId" type="String" default="logCall" description="tab currently open" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler event="c:onPopulateLogACall" action="{!c.handlePopulateLogACall}" />
+    <aura:handler name="change" value="{!v.simpleNote}" action="{!c.handleNoteLoaded}" />
+
+    <aura:attribute name="simplePatient" type="Object" access="public" description="patient account object" />
+    <aura:attribute name="patientError" type="String" />
+    <force:recordData aura:id="patientLoader" recordId="{!v.recordId}" targetFields="{!v.simplePatient}" targetError="{!v.patientError}" fields="Name, Patient_Contact__c, Current_Admission__c" />
+
+    <aura:attribute name="noteId" type="String" default="" access="public" description="noteId" />
+    <aura:attribute name="simpleNote" type="Object" default="{}" access="public" description="patient account object" />
+    <!-- <aura:attribute name="theNote" type="Object" default="{}" access="public" description="patient account object" /> -->
+    <aura:attribute name="noteError" type="String" />
+    <force:recordData aura:id="noteLoader" recordId="{!v.noteId}" targetFields="{!v.simpleNote}" layoutType="FULL" targetError="{!v.noteError}" fields="Id, Subject__c, RecordType.Name" recordUpdated="{!c.handleNoteLoaded}" />
+    <!-- targetRecord="{!v.theNote}"-->
+
+    <div class="slds-tabs_card">
+        <!-- {!simpleNote.Id} -->
+        <lightning:tabset aura:id="logTabs" selectedTabId="{!v.selectedTabId}" class="logTabs">
+            <lightning:tab label="Log a Call" id="logCall"></lightning:tab>
+            <lightning:tab label="Log a Note" id="logNote"></lightning:tab>
+            <lightning:tab label="Field History" id="fieldHistory"></lightning:tab>
+        </lightning:tabset>
+
+        <div class="slds-tabs_default__content">
+            <aura:renderIf isTrue="{!v.selectedTabId == 'logCall'}">
+                <c:LogCall recordId="{!v.recordId}" isFromCallSearch="{!v.isFromCallSearch}" />
+            </aura:renderIf>
+
+            <aura:renderIf isTrue="{!v.selectedTabId == 'logNote'}">
+                <c:LogNote recordId="{!v.recordId}" isFromCallSearch="{!v.isFromCallSearch}" />
+            </aura:renderIf>
+
+            <aura:renderIf isTrue="{!v.selectedTabId == 'fieldHistory'}">
+                <div class="slds-var-p-around_small">
+                    <c:LightningHistory recordId="{!v.recordId}" sObjectName="Account" />
+                    <c:LightningHistory recordId="{!v.simplePatient.Current_Admission__c}" sObjectName="Admission__c" />
+                    <c:LightningHistory recordId="{!v.simplePatient.Patient_Contact__c}" sObjectName="Contact" />
+                </div>
+            </aura:renderIf>
+        </div>
+    </div>
+
+</aura:component>

@@ -1,0 +1,6 @@
+<aura:event type="COMPONENT" description="Note Changed Event">
+    <aura:attribute name="theNote" type="Map"/>
+    <aura:attribute name="changedFields" type="List" 
+        description="List of field objects [{field: 'Test__c', value: 'TEST'}]"/>
+    <aura:attribute name="instanceName" type="String"/>
+</aura:event>

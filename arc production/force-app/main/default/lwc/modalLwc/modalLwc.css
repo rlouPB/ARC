@@ -1,0 +1,7 @@
+div.slds-modal__container {
+	display: block;
+}
+
+.slds-modal__header {
+	background-color: whitesmoke;
+}

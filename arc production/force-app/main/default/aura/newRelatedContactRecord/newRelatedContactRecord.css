@@ -1,0 +1,18 @@
+/*.THIS .customRequired:before{
+    content: "*";
+    margin: 0 0.125rem 0 0.125rem;
+    color: rgb(194, 57, 52);
+    float: left;
+}*/
+.THIS .customRequired a:not(.display),
+.THIS .customRequired input {
+  border: 1px solid red;
+}
+.THIS .recordtypeRadio .slds-form-element__label {
+  font-size: large !important;
+}
+.THIS .recordtypeRadio .slds-radio:hover {
+  font-weight: bold;
+  background-color: #d3d3d3;
+  cursor: pointer;
+}

@@ -1,0 +1,341 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId" access="global" controller="PatientDeDupeController" extends="c:ApexService">
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:attribute name="DuplicatePatients" type="List" default="[]" access="public" />
+    <aura:attribute name="numberNonDifferentPatients" type="Integer" access="private" />
+    <aura:attribute name="differentContactId" access="private" type="String" description="Id of the Patient Contact to be marked as Different" />
+    <aura:attribute name="newDifferentValue" type="Boolean" access="private" description="Updated value to populate Different_Person__c" />
+    
+    <aura:attribute name="isDuplicatePatientsExist" type="Boolean" default="false" access="public" />
+    <aura:attribute name="showCompareModal" type="Boolean" default="false" access="public" />
+    <aura:attribute name="selectedPatients" type="List" default="[]" access="public" />
+    <aura:attribute name="records" type="List" default="[]" access="public" />
+    <aura:attribute name="FieldSet" type="Map" default="{}" access="public" />
+    <aura:attribute name="mode" type="String" default="View" access="public" />
+    <aura:attribute name="showConfirmationModal" type="Boolean" default="false" access="public"/>
+    <aura:attribute name="confirmationModalMode" type="String" default="" access="public" />
+    <aura:attribute name="finalRec" type="Map" default="{'contactRec':{},'accountRec':{},'admissionRec':{}}" access="public" />
+    <aura:attribute name="loading" type="Boolean" default="false" access="public" />
+    <aura:attribute name="slectedMasterRecordIndex" type="Integer" default="0" access="private" />
+
+    <force:recordData aura:id="recordLoader"
+      recordId="{!v.recordId}"
+      targetFields="{!v.finalRec.accountRec}"
+      layoutType="FULL"                
+      recordUpdated="{!c.handleRecordUpdated}"
+      />
+    <force:recordData aura:id="contactRecordLoader"
+      recordId="{!v.finalRec.contactRec.Id}"
+      targetFields="{!v.contactRecord}"
+      layoutType="FULL"                
+      recordUpdated="{!c.handleRecordUpdated}"
+      />
+
+    
+    <div class="whiteBackground">
+        <aura:if isTrue="{!v.loading}">
+            <div class="" style="position:static;">
+                <lightning:spinner class="mergeSpinner" variant="brand" alternativeText="Loading" size="medium" />
+            </div>
+        </aura:if>
+        <lightning:notificationsLibrary aura:id="notifLib"/>
+        
+        <aura:if isTrue="{!v.isDuplicatePatientsExist}">
+            <div class="slds-box">
+                <div style="margin-left:10%;margin-right:10%">
+                    <lightning:layout>
+                        <lightning:layoutItem size="9">
+                            <span class="slds-icon_container slds-icon-utility-warning slds-m-right_small slds-no-flex slds-align-top">
+                                <lightning:icon iconName="utility:warning" size="small" alternativeText="Warning!" variant="warning"/>
+                            </span>
+                            <div style="display:inline-block;" class="slds-text-heading_small slds-text-align_center">
+                                <p>This patient may be a duplicate with another record</p>
+                                <p>Click here to compare and merge :</p>
+                            </div>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="3">
+                            <lightning:button label="Resolve Duplicates" title="Compare" onclick="{! c.comparePatient }"/>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                </div>
+            </div>
+        </aura:if>
+        
+        <aura:if isTrue="{! v.showCompareModal }">
+            <c:sldsModal>
+                <aura:set attribute="header">
+                    <aura:if isTrue="{!v.mode == 'View'}">
+                        Patient Compare
+                        
+                        <aura:set attribute="else">
+                            Patient Merge
+                        </aura:set>
+                    </aura:if>                    
+                </aura:set>
+                <aura:set attribute="content" >
+                    <div class="slds-scrollable_none">
+                        <aura:if isTrue="{!(not(empty(v.DuplicatePatients)))}">
+                            <table class="slds-table  slds-table--bordered slds-table--fixed-layout slds-max-medium-table--stacked-horizontal slds-table_col-bordered">
+                                <thead>
+                                    <tr class="slds-text-title_caps">
+                                        <th class="slds-truncate slds-text-align_center" style="width:8%;">Compare</th>
+                                        <th class="slds-truncate slds-text-align_center" style="width:5%;">#</th>
+                                        <th class="slds-truncate" style="width:10%;">Different?</th>
+                                        <th class="slds-truncate" style="width:20%;">Name</th>
+                                        <th class="slds-truncate">Phone</th>
+                                        <th class="slds-truncate">City</th>
+                                        <th class="slds-truncate">State</th>
+                                        <!-- <th class="slds-truncate" style="width:10%;">Gender</th>	 -->
+                                        <th class="slds-truncate" style="width:10%;">Sex Assigned at Birth</th>	
+                                        <th class="slds-truncate" style="width:20%;">Current Admission Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <aura:iteration items="{!v.DuplicatePatients}" var="patient" >
+                                        <tr>
+                                            <td class="slds-truncate slds-text-align_center">
+                                                <aura:if isTrue="{!!patient.isDifferent}" >
+                                                    <lightning:input type="checkbox" disabled="{!v.mode == 'Edit'}" value="{!patient}" checked="{!patient.isSelected}" onchange="{!c.onSelectForCompare}"/>
+                                                </aura:if>
+                                            </td>
+                                            <td class="slds-text-align_center">{!patient.rowNumber}</td>
+                                            <td class="slds-text-align_center">
+                                                <lightning:button name="{!patient.contactRec.Id}" 
+                                                        variant="{!patient.isDifferent ? 'destructive': 'neutral'}" 
+                                                        onclick="{!c.onDifferentPeopleButtonClick}" 
+                                                        label="{!patient.isDifferent ? 'Different': 'Mark Different'}"
+                                                        iconName="{!patient.isDifferent ? 'utility:check': ''}"/>
+                                            </td>
+                                            <td class="slds-truncate">{!patient.contactRec.Distinguished_Name__c}</td>
+                                            <td class="slds-truncate">{!patient.contactRec.Phone}</td>
+                                            <td class="slds-truncate">{!patient.contactRec.MailingCity}</td>
+                                            <td class="slds-truncate">{!patient.contactRec.MailingState}</td>
+                                            <td class="slds-truncate">{!patient.contactRec.Gender__c}</td>
+                                            <td class="slds-truncate">{!patient.accountRec.Current_Admission_Stage__c}</td>
+                                        </tr> 
+                                    </aura:iteration>
+                                </tbody>
+                            </table>
+                        </aura:if>
+
+
+                        <aura:if isTrue="true" ><!-- isTrue="{!(not(empty(v.selectedPatients)))}"> -->
+                            <div class="slds-text-align_center  slds-p-top_small slds-p-bottom_small">
+                                <aura:if isTrue="{!and(v.mode == 'View', v.selectedPatients.length > 1 ) }">
+                                    <lightning:button label="Start merging selected records into one" onclick="{!c.onSamePersonButtonClick}" />
+                                </aura:if>
+
+                                <aura:if isTrue="{!and(v.mode == 'Edit')}">
+                                    <lightning:button label="Save and Merge Patients" onclick="{!c.onMergePatientsClick}" />
+                                    <lightning:button label="Cancel" onclick="{!c.onCancelMergeClick}" />
+                                </aura:if>
+                                <lightning:button label="{!if(v.mode == 'View', 'Go Back to Patient', 'Cancel and Go Back to Patient')}" onclick="{!c.onCloseButtonClick}"/>
+                            </div>
+
+                            <table class="slds-table slds-table_bordered slds-table_fixed-layout slds-max-medium-table_stacked-horizontal slds-table_col-bordered">
+                                <thead>
+                                    <tr class="slds-text-title_caps">
+                                        <th class="slds-truncate">Field</th>
+                                        <th class="slds-truncate" colspan="{!v.selectedPatients.length}">
+                                            <aura:if isTrue="{!v.mode == 'Edit'}"> 
+                                                <lightning:layout>
+                                                    <lightning:layoutItem  class="" size="4">
+                                                        <div style="text-align: center;">
+                                                            <lightning:input aura:id="masterRecRadio" type="radio" tabindex="0" label="" name="Id" onchange="{!c.onMasterRadioButtonChange}" value="Contact"/>
+                                                        </div>
+                                                    </lightning:layoutItem>
+                                                    
+                                                    <lightning:layoutItem  class="" size="4">
+                                                        <aura:if isTrue="{!v.mode == 'Edit'}">
+                                                            <div style="text-align: center;" class="slds-truncate" >Master Record</div>
+                                                        </aura:if>
+                                                    </lightning:layoutItem>
+                                                    
+                                                    <lightning:layoutItem  class="" size="4">
+                                                        <div style="text-align: center;">
+                                                            <lightning:input aura:id="masterRecRadio" type="radio" tabindex="1" label="" name="Id" onchange="{!c.onMasterRadioButtonChange}" value="Contact"/>
+                                                        </div>
+                                                    </lightning:layoutItem>
+                                                </lightning:layout>
+                                                <!-- <aura:set attribute="else">
+                                                    Master Record
+                                                </aura:set> -->
+                                            </aura:if>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <td class="slds-text-title_caps slds-text-align_center">
+                                                <strong>#</strong>
+                                        </td>
+                                        <aura:iteration items="{!v.selectedPatients}" indexVar="index" var="patient">
+                                            <td class="slds-text-title_caps slds-text-align_center">
+                                                <lightning:layout>
+                                                    <lightning:layoutItem size="10">
+                                                        <span style="display:inline-block;">
+                                                            {!patient.rowNumber}
+                                                        </span>
+                                                    </lightning:layoutItem>
+                                                </lightning:layout>
+                                            </td>
+                                        </aura:iteration>
+                                    </tr>
+                                </thead>
+                            </table>
+                            <div class="slds-scrollable" style="max-height: 40vh;">
+                                <table class="slds-table slds-table_bordered slds-table_fixed-layout slds-max-medium-table_stacked-horizontal slds-table_col-bordered">
+                                    <tbody>
+                                        <tr>
+                                            <td class="slds-text-title_caps" style="text-align:center;" colspan="{!add(v.selectedPatients.length, 1)}">
+                                                Contact Fields
+                                            </td>
+                                        </tr>
+
+                                        <aura:iteration items="{!v.FieldSet.contactFS}" var="conField">
+                                            <tr>
+                                                <td class="slds-text-title_caps">
+                                                    {!conField.label}
+                                                </td>
+                                                <aura:iteration items="{!v.selectedPatients}" indexVar="index" var="patient">
+                                                    <td>
+                                                        <lightning:layout>
+                                                            <aura:if isTrue="{!v.mode == 'Edit'}">
+                                                                <lightning:layoutItem  class="slds-p-left_small" size="2">
+                                                                    <lightning:input aura:id="conFieldRadio" type="radio" tabindex="{!index}" label="" onchange="{!c.onRadioButtonChange}"  name="{!'contact-'+conField.name}" value="Contact"/>
+                                                                </lightning:layoutItem>
+                                                            </aura:if>
+                                                            <lightning:layoutItem size="10">
+                                                                <span style="display:inline-block;">
+                                                                    <c:Field field="{!conField}" record="{!patient.contactRec}"/>
+                                                                </span>
+                                                            </lightning:layoutItem>
+                                                        </lightning:layout>
+                                                    </td>
+                                                </aura:iteration>
+                                            </tr>
+                                        </aura:iteration>
+                                        
+                                        <tr>
+                                            <td class="slds-text-title_caps" style="text-align:center;" colspan="{!add(v.selectedPatients.length, 1)}">
+                                                Account Fields
+                                            </td>
+                                        </tr>
+                                        
+                                        <aura:iteration items="{!v.FieldSet.accountFS}" var="accField">
+                                            <tr>
+                                                <td class="slds-text-title_caps">
+                                                    {!accField.label}
+                                                </td>
+                                                <aura:iteration items="{!v.selectedPatients}" indexVar="index" var="patient">
+                                                    <td>
+                                                        <lightning:layout>
+                                                            <aura:if isTrue="{!v.mode == 'Edit'}">
+                                                            <!-- <aura:if isTrue="{!and(v.mode == 'Edit', patient.accountRec.dontDisplay == true)}"> -->
+                                                                <lightning:layoutItem  class="slds-p-left_small" size="2">
+                                                                    <lightning:input aura:id="accFieldRadio" type="radio" tabindex="{!index}" label="" onchange="{!c.onRadioButtonChange}"  name="{!'account-'+accField.name}" value="Account"/>
+                                                                </lightning:layoutItem>
+                                                            </aura:if>
+                                                            <lightning:layoutItem size="10">
+                                                                <span style="display:inline-block;">
+                                                                    <c:Field field="{!accField}" record="{!patient.accountRec}"/>
+                                                                </span>
+                                                            </lightning:layoutItem>
+                                                        </lightning:layout>                                                    
+                                                    </td>
+                                                </aura:iteration>
+                                            </tr>
+                                        </aura:iteration>
+                                        
+                                    </tbody>
+                                </table>
+                            </div>
+                        </aura:if>
+                        
+                        <!-- Confirmation Modal -->
+                        <aura:if isTrue="{!v.showConfirmationModal}">
+                            <c:sldsModal>
+                                <aura:set attribute="header">
+                                    
+                                </aura:set>
+                                <aura:set attribute="content">
+                                    <div style="margin-left:10%;margin-right:10%">
+                                        <lightning:layout>
+                                            <lightning:layoutItem size="12">
+                                                <aura:if isTrue="{!v.confirmationModalMode == 'differentPeople'}">
+                                                    <div class="slds-text-heading_small slds-text-align_center">
+                                                        <aura:if isTrue="{!v.newDifferentValue}">
+                                                                <p>Are you sure this person is different from all others in the set?</p>
+                                                                <aura:if isTrue="{!v.numberNonDifferentPatients le 2}" >
+                                                                    <p>Note: This will resolve the set of duplicates, and stop the message from displaying on the Patient page.</p>
+                                                                </aura:if>
+                                                            <aura:set attribute="else">
+                                                                <p>Do you want to allow this person to be available for merge?</p>
+                                                                <aura:if isTrue="{!v.numberNonDifferentPatients eq 0}" >
+                                                                    <p>Note: This will open the duplicate set back up, and it will need to be resolved again.</p>
+                                                                </aura:if>
+                                                            </aura:set>
+                                                        </aura:if>
+                                                    </div>
+                                                </aura:if>
+                                                
+                                                <aura:if isTrue="{!v.confirmationModalMode == 'mergePatients'}">
+                                                    <div class="slds-text-heading_small slds-text-align_center">
+                                                        <p>These two patients are actually one person and will be merged.</p>
+                                                        <ul>
+                                                            <li>All related records will be copied to the Master patient.</li>
+                                                            <li>Only the selected field values will be kept on the Master patient.</li>
+                                                            <li>The non-master patient file will be deleted permanently.</li>
+                                                        </ul>
+                                                        <p>Please Confirm</p>
+                                                    </div>
+                                                </aura:if>
+                                                
+                                                <aura:if isTrue="{!v.confirmationModalMode == 'closeButton'}">
+                                                    <div class="slds-text-heading_small slds-text-align_center">
+                                                        <p>This will return you to the patient page, and any unsaved work will be lost. Are you sure?</p>
+                                                    </div>
+                                                </aura:if>
+                                                
+                                            </lightning:layoutItem>
+                                        </lightning:layout>
+                                    </div>
+                                </aura:set>
+                                <aura:set attribute="footer">
+                                    <aura:if isTrue="{!or(v.confirmationModalMode == 'differentPeople', v.confirmationModalMode == 'closeButton')}">
+                                        <div class="slds-text-align_center">
+                                            <lightning:button label="Yes" onclick="{!c.yes}" />
+                                            <lightning:button label="Cancel" onclick="{!c.no}" />
+                                        </div>
+                                    </aura:if>
+                                    
+                                    <aura:if isTrue="{!v.confirmationModalMode == 'mergePatients'}">
+                                        <div class="slds-text-align_center">
+                                            <lightning:button label="Confirm Merge" onclick="{!c.yes}" />
+                                            <lightning:button label="Cancel" onclick="{!c.no}" />
+                                        </div>
+                                    </aura:if>
+                                </aura:set>
+                            </c:sldsModal>
+                        </aura:if>
+                    </div>
+                </aura:set> 
+                
+                <aura:set attribute="footer">
+                    <div class="slds-text-align_center">
+                        
+                        <aura:if isTrue="{!and(v.mode == 'View', v.selectedPatients.length > 1) }">
+                            <lightning:button label="Start merging selected records into one" onclick="{!c.onSamePersonButtonClick}" />
+                        </aura:if>
+
+                        <aura:if isTrue="{!and(v.mode == 'Edit')}">
+                            <lightning:button label="Save and Merge Patients" onclick="{!c.onMergePatientsClick}" />
+                            <lightning:button label="Cancel" onclick="{!c.onCancelMergeClick}" />
+                        </aura:if>
+                        <lightning:button label="{!if(v.mode == 'View', 'Go Back to Patient', 'Cancel and Go Back to Patient')}" onclick="{!c.onCloseButtonClick}"/>
+                        
+                    </div>
+                </aura:set>
+                
+            </c:sldsModal>
+            
+        </aura:if>
+    </div>
+</aura:component>

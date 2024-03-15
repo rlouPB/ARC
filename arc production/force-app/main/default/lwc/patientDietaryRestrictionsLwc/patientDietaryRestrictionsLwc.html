@@ -1,0 +1,33 @@
+<!-- sldsValidatorIgnore -->
+<template>
+    <lightning-spinner if:true={loading}></lightning-spinner>
+    <lightning-record-edit-form object-api-name={objectApiName} record-id={recordId} onsubmit={handleSubmit} onsuccess={handleSuccess}>
+        <div class=" slds-grid slds-wrap slds-gutters_medium slds-var-m-around_small slds-grid_align-center">
+
+            <div class="slds-col slds-size_12-of-12">
+                <lightning-messages> </lightning-messages>
+            </div>
+
+            <div class="slds-col slds-size_12-of-12 slds-hide">
+                <lightning-output-field field-name="Name"></lightning-output-field>
+            </div>
+
+            <div class="slds-col slds-size_6-of-12 slds-var-m-top_x-small">
+                <lightning-input-field field-name="Dietary_Restrictions__c" variant="label-hidden">
+                </lightning-input-field>
+            </div>
+
+            <div class="slds-col slds-size_6-of-12 slds-var-m-top_x-small">
+                <lightning-input-field field-name="Dietary_Allergy_Comments__c">
+                </lightning-input-field>
+            </div>
+
+            <div class="slds-col slds-size_3-of-12 slds-var-m-top_large"></div>
+            <div class="slds-col slds-size_6-of-12 slds-align_absolute-center slds-var-m-top_large">
+                <button type="button" class="slds-button slds-button_neutral" onclick={handleCancel}>Cancel</button>
+                <button type="submit" class="slds-button slds-button_brand">Save</button>
+            </div>
+            <div class="slds-col slds-size_3-of-12 slds-var-m-top_large"></div>
+        </div>
+    </lightning-record-edit-form>
+</template>

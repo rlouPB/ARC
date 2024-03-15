@@ -1,0 +1,9 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId" access="global" >
+    <aura:attribute name="showMergeComponent" type="Boolean" default="false"/>
+    <aura:if isTrue="{!v.showMergeComponent}">
+        <c:RelatedContactMerger showModal="{!v.showMergeComponent}" recordId="{!v.recordId}"/>
+    </aura:if>
+    <div class="slds-align--absolute-center">
+        <lightning:button label="Merge Related Contacts" class="buttonFullWidth" variant="brand" onclick="{!c.onLaunchMerge}"/>
+    </div>
+</aura:component>

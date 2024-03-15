@@ -1,0 +1,62 @@
+<aura:component controller="CreateMessageController" implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickActionwithoutheader,lightning:actionOverride">
+
+    <aura:handler name="init" value="{! this }" action="{! c.init }" />
+
+    <aura:attribute name="badgeMessage" type="String" />
+
+    <aura:attribute name="recordId" type="String" />
+
+    <aura:attribute name="activeUser" type="String" />
+    <aura:attribute name="alertSearching" type="Boolean" default="false" />
+    <aura:attribute name="alertFilter" type="String" default="All" />
+    <aura:attribute name="alertsUnread" type="Integer" default="0" />
+
+    <aura:handler event="c:MessageEvent" action="{!c.handleMessageEvent}"></aura:handler>
+    <aura:registerevent name="messageEvent" type="c:MessageEvent"></aura:registerevent>
+
+    <lightning:card class="slds-card_boundary" title="{! 'Alerts (' + v.alertsUnread + ')'}">
+        <aura:set attribute="actions">
+            <div class="c-container">
+                <lightning:layout horizontalAlign="spread">
+                    <lightning:layoutItem padding="around-small" size="5">
+
+                        <div id="alert">
+                            <lightning:input
+                                             aura:id="alert-search"
+                                             name="alert-search"
+                                             isLoading="{! v.alertSearching }"
+                                             type="search"
+                                             variant="label-hidden"
+                                             placeholder="Search"
+                                             onchange="{!c.onChangeSearchText}" />
+                        </div>
+
+                    </lightning:layoutItem>
+                    <lightning:layoutItem padding="around-small" size="7">
+
+                        <lightning:buttonGroup>
+                            <lightning:button disabled="{! v.alertFilter == 'Unread' }" value="Unread" label="Show Unread" onclick="{!c.updateAlertFilter}" />
+                            <lightning:button disabled="{! v.alertFilter == 'All' }" value="All" label="Show All" onclick="{!c.updateAlertFilter}" />
+                        </lightning:buttonGroup>
+
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </div>
+
+        </aura:set>
+        <div class="slds-table--header-fixed_container" style="height:450px;">
+
+            <div class="slds-scrollable_y">
+
+                <c:UserMessages type="Clinical Alert" clientId="{!v.recordId}" alertFilter="{!v.alertFilter}" aura:id="alert" />
+
+            </div>
+
+        </div>
+    </lightning:card>
+
+    <lightning:empApi aura:id="empApi" />
+    <lightning:overlayLibrary aura:id="overlayLib" />
+    <lightning:notificationsLibrary aura:id="notifLib" />
+
+</aura:component>

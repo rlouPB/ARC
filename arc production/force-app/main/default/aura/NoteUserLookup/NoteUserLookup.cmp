@@ -1,0 +1,88 @@
+<aura:component extends="c:NoteItemPlugin">
+	
+	<aura:attribute name="patientNoteField" type="String" description="API name on the Patient Note record to be populated from this selector. e.g. 'OwnerId'" />
+	<aura:attribute name="sObject" type="String" default="User" description="sObject to query. currently supported: 'User' and 'PermissionSetAssignment'" />
+	
+	<aura:attribute name="label" type="String" default="" description="Label for lookup." />
+	<aura:attribute name="labelHidden" type="Boolean" default="false" access="public" />
+    <aura:attribute name="displayHoverText" type="Boolean" access="public" default="true" 
+			description="Display the targeted record.label as a title attribute, making it a hover text" />
+    
+			<aura:attribute name="displayField" type="String" default="" access="public" description="Field to use as label for lookupComponent pill"/>
+	<aura:attribute name="userDisplayField" type="String" default="Professional_Name__c" access="public" description="Default displayField for User query"/>
+	<aura:attribute name="permSetAssignDisplayField" type="String" default="Assignee.Professional_Name__c" access="public" description="Default displayField for PermissionSetAssignment query"/>
+	
+	<aura:attribute name="displayFieldValue" type="String" default="" access="public" description="Field to use as value for lookupComponent pill"/>
+    <aura:attribute name="userDisplayFieldValue" type="String" default="Id" access="public" description="Default displayFieldValue for User query"/>
+    <aura:attribute name="permSetAssignDisplayFieldValue" type="String" default="Assignee.Id" access="public" description="Default displayFieldValue for PermissionSetAssignment query"/>
+    
+	<aura:attribute name="required" type="Boolean" default="false" access="public" />
+	<aura:attribute name="selectedRecord" type="Map" description="simple label + value object selected in lookupComponent, also used to fill the pill display" /> 
+	<aura:attribute name="minimumSearchTextLength" type="Integer" default="2" access="public" 
+			description="How many characters must be in search text before doing a query"/>
+	<aura:attribute name="maxQuickSearchRows" type="Integer" default="5" access="public" description="Rows to return on quick search"/>
+	<aura:attribute name="orderByClause" type="String" default="" access="public" description="Literal text that follows 'ORDER BY' in query. E.g. 'CreatedDate DESC' Default is unsorted"/>
+	
+	<aura:attribute name="filters" type="List" description="User filter list to pass to lookupComponent. Assembled in this component based on parameters" />
+	<aura:attribute name="psetAssignmentFilters" type="List" description="PermissionSetAssignment filter list to pass to lookupComponent. Assembled in this component based on parameters" />
+	
+	<aura:attribute name="profileNames" type="String" default="" 
+			description="Single-quoted comma-separated User Profile names to include in query. If empty, include all Profiles. e.g. 'System Administrator', 'RiggsClinical' " />
+	<aura:attribute name="userTypes" type="String" default="'Standard'" 
+			description="Single-quoted comma-separated User Types to include in query. Default selects Standard users, excludes Community users." />
+	<aura:attribute name="permissionSetNames" type="String" default="'Clinical'" 
+			description="Single-quoted comma-separated Permission Set Names to include in query. Only applies to PermissionSetAssignment queries. Default selects RiggsClinical." />
+	
+	<aura:attribute name="recordLoaded" type="Boolean" default="false" description="if true, selectedRecord has been loaded from patient note" /> 
+
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+	<aura:handler name="change" value="{!v.selectedRecord}" action="{!c.handleChangeSelected}" />
+
+	<div >
+		<!-- lookup Component -->
+		<aura:if isTrue="{!v.recordLoaded}" >
+
+			<aura:if isTrue="{!v.sObject == 'User'}">
+				<c:LookupComponent aura:id="theLookup" 
+					instanceName="{!v.instanceName + '_lookup'}"
+					objectName="{!v.sObject}" 
+					fieldsToSearch="Name" 
+					allowFreeText="false" 
+					filters="{!v.filters}" 
+					selectedRecord="{!v.selectedRecord}" 
+					label="{!v.label}" 
+					labelHidden="{!v.labelHidden}"
+					displayHoverText="{!displayHoverText}"
+					displayField="{!v.displayField}" 
+					displayFieldValue="{!v.displayFieldValue}"
+					required="{!v.required}"
+					minimumSearchTextLength="{!v.minimumSearchTextLength}"
+					maxQuickSearchRows="{!v.maxQuickSearchRows}"
+					orderByClause="{!v.orderByClause}"
+					/>
+			</aura:if>
+			
+			<aura:if isTrue="{!v.sObject == 'PermissionSetAssignment'}">
+				<c:LookupComponent aura:id="theLookup" 
+					instanceName="{!v.instanceName + '_lookup'}"
+					objectName="{!v.sObject}" 
+					fieldsToSearch="Assignee.Name" 
+					allowFreeText="false" 
+					filters="{!v.psetAssignmentFilters}" 
+					selectedRecord="{!v.selectedRecord}" 
+					label="{!v.label}" 
+					labelHidden="{!v.labelHidden}"
+					displayHoverText="{!displayHoverText}"
+					displayField="{!v.displayField}" 
+					displayFieldValue="{!v.displayFieldValue}"
+					required="{!v.required}"
+					minimumSearchTextLength="{!v.minimumSearchTextLength}"
+					maxQuickSearchRows="{!v.maxQuickSearchRows}"
+					orderByClause="{!v.orderByClause}"
+					
+					/>
+			</aura:if>
+				<!-- lookupFieldName="{!v.patientNoteField}"  -->
+		</aura:if>
+	</div>
+</aura:component>

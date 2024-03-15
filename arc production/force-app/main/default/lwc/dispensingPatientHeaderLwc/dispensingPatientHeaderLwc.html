@@ -1,0 +1,64 @@
+<template>
+    <lightning-card>    
+        <lightning-layout>
+            <lightning-layout-item size="1" if:true={photo}>
+                <lightning-card>
+                    <div class="slds-p-left_medium">
+                        <lightning-formatted-rich-text value={photo}></lightning-formatted-rich-text>
+                    </div>
+                </lightning-card>
+            </lightning-layout-item>
+            <lightning-layout-item size={firstColumnSize}>
+                <lightning-card>
+                    <div class="slds-p-left_medium">
+                        <lightning-record-view-form
+                            record-id={recordId}
+                            object-api-name="Account"
+                        >
+                            <div class="slds-grid slds-wrap">
+                                <div class="slds-col slds-size_1-of-3">
+                                    <label class="slds-form-element__label" for="form-element-01">Name</label> 
+                                    <lightning-output-field field-name="Name" variant="label-hidden"> </lightning-output-field>
+                                </div>
+                                <div class="slds-col slds-size_1-of-3">
+                                    <lightning-output-field field-name="Birthdate__c"></lightning-output-field>
+                                </div>
+                                <div class="slds-col slds-size_1-of-3">
+                                    <lightning-output-field field-name="Dispensing_Status__c"></lightning-output-field>
+                                </div>
+                                <div class="slds-col slds-size_1-of-3">
+                                    <lightning-output-field field-name="Weight__c">
+                                    </lightning-output-field>
+                                </div>
+                                <div class="slds-col slds-size_1-of-3">
+                                    <lightning-output-field field-name="Mother_s_Maiden_Name__c">
+                                    </lightning-output-field>
+                                </div>
+                                <div class="slds-col slds-size_1-of-3">
+                                    <lightning-output-field field-name="MSA_Schedule__c">
+                                    </lightning-output-field>
+                                </div>
+                                <div class="slds-col slds-size_1-of-2">
+                                    <lightning-output-field field-name="Principal_Diagnosis__c">
+                                    </lightning-output-field>
+                                </div>
+                                <div class="slds-col slds-size_1-of-2">
+                                    <lightning-output-field field-name="MSA_Pickup_Location__c">
+                                    </lightning-output-field>
+                                </div>
+                            </div>
+                        </lightning-record-view-form>
+                    </div>
+                </lightning-card>
+                <c-admission-change-status-lwc record-id={recordId}></c-admission-change-status-lwc>
+            </lightning-layout-item>
+
+            <lightning-layout-item size="6">
+                <template if:true={hasAccount}>
+                    <c-patient-allergies-table accountid={recordId} externalpatientid={externalPatientId} ></c-patient-allergies-table> 
+                </template>
+            </lightning-layout-item>
+
+        </lightning-layout>
+    </lightning-card>
+</template>

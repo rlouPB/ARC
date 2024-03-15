@@ -1,0 +1,43 @@
+.THIS .custom-box {
+    text-align: center;
+    background-color: #f4f6f9;
+    padding: 1rem;
+    border: 1px solid #d8dde6;
+}
+.THIS .horizontalRadioCls .slds-radio{
+    display : inline-block;
+}
+.THIS.c-fill-blue-stripes{
+    background: repeating-linear-gradient(45deg,
+            rgb(84,105,141),
+            rgb(84,105,141) 20px,
+            rgba(84,105,141,.97) 20px,
+            rgba(84,105,141,.97) 40px)
+}
+.THIS.c-domain-container {
+    margin: 10px 0 20px 0;
+    padding: 1rem;
+}
+.THIS .c-text-white{
+    color: white;
+}
+.THIS .c-fill-white{
+    background: white;
+}
+.THIS .c-header{
+    width: 100%;
+    height: 5rem;
+    position: sticky;
+    top: -1rem;
+    z-index: 1;
+}
+.THIS .c-header-gradient{
+    width: 100%;
+    height: 3rem;
+    background: linear-gradient(to bottom, white, transparent);
+    top: -1rem;
+}
+.THIS .domain-comments
+{
+    padding: 2.5px;
+}

@@ -1,0 +1,14 @@
+.THIS .objectiveError{
+    color:red;
+}
+.THIS .objective .slds-textarea
+{
+    border: 1px solid red !important;
+}
+.THIS .cancel-icon-middle
+{
+    text-align: center;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+}

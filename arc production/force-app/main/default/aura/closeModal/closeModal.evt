@@ -1,0 +1,3 @@
+<aura:event type="COMPONENT" access="global" description="Event fired to destroy the modal">
+    <aura:attribute name="data" type="Object" />
+</aura:event>

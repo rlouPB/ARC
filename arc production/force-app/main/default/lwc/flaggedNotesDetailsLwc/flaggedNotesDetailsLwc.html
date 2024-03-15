@@ -1,0 +1,40 @@
+<template>
+	<template if:true={isAlert}>
+		<div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-hint-parent">
+			<span class="slds-form-element__label">From</span>
+			<div class="slds-form-element__control">
+				<div class="slds-form-element__static">{createdBy}</div>
+			</div>
+		</div>
+
+		<div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-hint-parent">
+			<span class="slds-form-element__label">Sent</span>
+			<div class="slds-form-element__control">
+				<div class="slds-form-element__static">
+					<lightning-formatted-date-time value={dateOrder} year="numeric" month="numeric" day="numeric" hour="2-digit" minute="2-digit" hour12="true"></lightning-formatted-date-time>
+				</div>
+			</div>
+		</div>
+
+		<div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-hint-parent">
+			<span class="slds-form-element__label">Subject</span>
+			<div class="slds-form-element__control">
+				<div class="slds-form-element__static">{subject}</div>
+			</div>
+		</div>
+
+		<div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-hint-parent">
+			<span class="slds-form-element__label">Message</span>
+			<div class="slds-form-element__control">
+				<lightning-formatted-rich-text value={body}></lightning-formatted-rich-text>
+			</div>
+		</div>
+
+		<br />
+		<br />
+		<br />
+	</template>
+	<h1 style="font-weight: bold" class="slds-text-heading_large title">{documentType}</h1>
+	<br />
+	<lightning-formatted-rich-text label="Snapshot" value={snapshot}></lightning-formatted-rich-text>
+</template>

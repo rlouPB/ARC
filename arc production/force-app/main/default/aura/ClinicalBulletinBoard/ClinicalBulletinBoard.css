@@ -1,0 +1,59 @@
+.THIS li:nth-child(2) {
+	display: none;
+}
+
+.THIS .arcSchedulingTip {
+	border: 1px solid lightgray !important;
+	margin-bottom: 1rem;
+}
+
+.THIS .outer-card {
+	background-color: inherit;
+}
+
+.THIS .scrollable-section {
+	height: 65vh;
+	grid-column-gap: 10px;
+}
+
+.THIS .slds-card {
+	background-color: rgb(243, 243, 243);
+}
+
+.THIS .slds-card__header {
+	padding: 0.1rem 0.1rem 0;
+	padding-left: 0.5rem;
+	margin-bottom: 0.25rem;
+}
+
+.THIS div.slds-card__body {
+	margin-bottom: 0.25rem;
+}
+
+.THIS .forceListViewSettingsMenu {
+	display: none;
+}
+
+.THIS .forceListViewManagerHeader {
+	align-items: flex-start;
+	display: flex;
+}
+
+.THIS .forceListViewManagerHeader > div:first-of-type {
+	flex: 1;
+	align-self: center;
+	justify-content: center;
+}
+
+.THIS .section {
+	margin-bottom: 10px;
+}
+
+.THIS .rich-text,
+.THIS .section-item {
+	background-color: white;
+}
+
+.THIS .bulletin-board-label {
+	font-size: 0.9rem;
+}

@@ -1,0 +1,92 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId" access="global" controller="SingleRelatedListController">
+    <aura:attribute name="sobjectApiName" type="String" required="true" />    
+    <aura:attribute name="relatedFieldApiName" type="String" required="true"/>    
+    <aura:attribute name="numberOfRecords" type="Integer" default="6"/>    
+    <aura:attribute name="sortedBy" type="String" required="true"/>
+    <aura:attribute name="sortedDirection" type="String" default="ASC"/>    
+    <aura:attribute name="onRowActionHandler" type="Aura.Action"/>    
+    <aura:attribute name="customActions" type="List"/>    
+    <aura:attribute name="columns" type="List" required="true"/>
+    <aura:attribute name="columnsWithActions" type="List" access="private"/>
+    <aura:attribute name="fields" type="String" required="true"/>
+    <aura:attribute name="records" type="Object" access="private"/>
+    <aura:attribute name="parentRelationshipApiName" type="String" access="private"/>    
+    <aura:attribute name="sobjectLabel" type="String" access="private"/>    
+    <aura:attribute name="sobjectLabelPlural" type="String" access="private"/>    
+    <aura:attribute name="numberOfRecordsForTitle" type="String" access="private"/>    
+    <aura:attribute name="iconName" type="String" access="private"/>    
+    <aura:attribute name="useHasCreateAccess" type="Boolean"/>    
+    <aura:attribute name="canCustomizeColumns" type="Boolean" default="false"/>    
+    <aura:attribute name="showColumnsSelection" type="Boolean" default="false"/>    
+    <aura:attribute name="containerRecordId" type="String"/>    
+    <aura:attribute name="containerApiFieldName" type="String"/>
+    <aura:attribute name="columnLinkApiName" type="String"/>
+    <aura:attribute name="createNew" type="Boolean" default="true"/>    
+
+
+    <aura:handler name="init" value="{!this}" action="{!c.init}"/>
+    <aura:handler name="change" value="{!v.columns}" action="{! c.handleColumnsChange }"/>
+	<aura:handler event="force:showToast" action="{!c.handleToastEvent}"/>
+    <!-- <aura:handler event="force:refreshView" action="{!c.forceRefreshViewHandler}"/> -->
+    <lightning:overlayLibrary aura:id="overlayLib"/>
+
+    <aura:attribute name="options" type="List" default="[
+    {'label': 'Ross', 'value': 'option1'},
+    {'label': 'Rachel', 'value': 'option2'}
+    ]"/>
+    <aura:attribute name="value" type="List" default="option1"/>
+    <aura:attribute name="selectedColumns" type="List" default="[]"/>
+    <aura:attribute name="fieldColumns" type="List" default="[]"/>
+    
+    <div class="c-container">
+        <lightning:card class="slds-card_boundary" iconName="{!v.iconName}">            
+            <aura:set attribute="actions">
+                <aura:if isTrue="{!v.createNew}">
+                    <aura:if isTrue="{!v.useHasCreateAccess}">
+                        <lightning:button label="New" onclick="{!c.handleCreateRecord}"/>
+                    </aura:if>
+                </aura:if>                                
+            </aura:set>     
+            <aura:set attribute="title">
+                <b><a class="slds-card__header-link" onclick="{!c.handleGotoRelatedList}">{!(v.sobjectLabelPlural) + ' (' + (v.numberOfRecordsForTitle) + ')'}</a></b>
+            </aura:set>             
+            <aura:set attribute="footer">
+                <aura:if isTrue="{!not(empty(v.records))}">  
+                	<a onclick="{!c.handleGotoRelatedList}">View All</a>
+                </aura:if>
+            </aura:set>                
+            <aura:if isTrue="{!not(empty(v.records))}">
+                <aura:if isTrue="{!v.canCustomizeColumns}">
+                    <!-- <aura:if isTrue="{!v.displayCustomColumns}"> -->
+                        <lightning:buttonIcon iconName="utility:settings" variant="container" alternativeText="Settings" title="Settings" onclick="{! c.showHideColumns }" />
+                        <aura:if isTrue="{!v.showColumnsSelection}">
+                            <div class="custom-columns" style="margin-bottom: 40px;">
+                                <lightning:checkboxGroup name="Checkbox Group"
+                                    label="Columns selection"
+                                    options="{! v.options }"
+                                    value="{! v.value }"
+                                    onchange="{! c.handleColumnSelectionChange }"
+                                    variant="label-inline"/>
+                                <lightning:button label="Save Columns" variant="brand" onclick="{!c.setCustomColumns}"/>
+                            </div>
+                        </aura:if>
+                        
+                    <!-- </aura:if> -->
+                    
+                </aura:if>
+                
+                <p class="slds-p-horizontal_small">                  
+                    <lightning:datatable class="related-list"
+                                         columns="{! v.columnsWithActions }"
+                                         data="{! v.records }"
+                                         keyField="id"
+                                         onrowaction="{! c.handleRowAction }"
+                                         hideCheckboxColumn="true"
+                                         resizeColumnDisabled="true"/>                     
+                </p>               
+			</aura:if>
+            
+        </lightning:card>
+    </div>
+
+</aura:component>

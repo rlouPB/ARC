@@ -1,0 +1,60 @@
+<template>
+  <div style="width: 50%; margin: auto;">
+    <lightning-card  title="">
+        
+      <template if:true='{showSSNModal}'>
+        <c-add-ssn-contact-form onmodalclosed={modalclosed} onrefresh={loadPatientData}></c-add-ssn-contact-form>
+      </template>
+      
+      
+      <div>
+              <table class="tg" style="width: 100%">
+              <colgroup>
+              <col style="width: 249px">
+              <col style="width: 281px">
+              </colgroup>
+              <tbody>
+                <tr>
+                  <td class="tg-lqy6">Name:</td>
+                  <td class="tg-0lax">{patientData.Name}</td>
+                </tr>
+                <tr>
+                  <td class="tg-lqy6">Date of birth:</td>
+                  <td class="tg-0lax">
+                    <lightning-formatted-date-time
+                      value={patientData.Birthdate}
+                      year="numeric"
+                      month="numeric"
+                      day="numeric"
+                      time-zone="UTC">
+                    </lightning-formatted-date-time>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="tg-lqy6">Social Security Number:</td>
+                  <td class="tg-0lax">
+                    {patientData.SSN}
+                    <template if:false={hasSSN}>
+                      <div>
+                         <button title="Non-primary action" onclick={openSSNModal} class="slds-button slds-button_neutral" style="margin-left: 113px; color: black;">Add SSN</button>
+                     </div>
+                  </template>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="tg-lqy6">Email:</td>
+                  <td class="tg-0lax">{patientData.Email}</td>
+                </tr>
+              </tbody>
+              </table>
+
+              <br>
+
+              <div class="slds-text-body_regular" style="text-align: center;font-weight: 600;">If information shown here should be changed, please notify Nursing at extension 5320.</div>
+
+              <br>
+      </div>
+  </lightning-card>
+  </div>
+    
+</template>

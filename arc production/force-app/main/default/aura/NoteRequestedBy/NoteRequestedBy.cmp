@@ -1,0 +1,34 @@
+<aura:component extends="c:NoteItemPlugin">
+	<aura:attribute name="options" type="List" default="[
+		{'label': 'Patient', 'value': 'Patient'},
+		{'label': 'Clinician', 'value': 'Clinician'}
+		]"/>
+	<aura:attribute name="selectedOption" type="String" default="Patient"/>
+	<aura:attribute name="selectedRecord" type="Map"/>
+
+    <aura:handler name="change" value="{!v.selectedOption}" action="{!c.handleRequestedByChange}"/>
+    <aura:handler name="change" value="{!v.selectedRecord}" action="{!c.handleRequestedByClincianChange}"/>
+    
+	<lightning:layout>
+		<lightning:layoutItem size="2">
+			<lightning:radioGroup label="" options="{!v.options}" value="{!v.selectedOption}" type="radio"/>
+		</lightning:layoutItem>
+		<lightning:layoutItem size="4">
+			<aura:if isTrue="{!v.selectedOption == 'Patient'}">
+				<div class="slds-m-top_xx-small">
+					{!v.theNote.patientNote.Account__r.Name}
+				</div>
+				<aura:set attribute="else">
+					<div class="slds-m-top_medium">
+						<c:LookupComponent selectedRecord="{!v.selectedRecord}"
+							displayField="Name"
+							displayFieldValue="Id"
+							lookupFieldName="{!v.theNote.patientNote.Consultation_Requested_By_User__c}"
+							objectName="User"
+							fieldsToSearch="Name"/>
+					</div>
+				</aura:set>
+			</aura:if>
+		</lightning:layoutItem>
+	</lightning:layout>
+</aura:component>

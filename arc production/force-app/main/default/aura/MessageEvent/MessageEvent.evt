@@ -1,0 +1,8 @@
+<aura:event
+	type="APPLICATION"
+	description="Save Message Event">
+	<aura:attribute
+		name="type"
+		type="String"
+		default="Send"></aura:attribute>
+</aura:event>

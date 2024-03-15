@@ -1,0 +1,276 @@
+<aura:component implements="force:appHostable,flexipage:availableForRecordHome,force:hasRecordId" access="global" controller="RelatedContactMergeController" extends="c:ApexService" >
+    
+    <aura:attribute name="recordsWrapList" type="Map" access="public"/>
+    <aura:attribute name="recordId" type="Id" access="public"/>
+    <aura:attribute name="selectedList" type="List" access="public"/>
+    <aura:attribute name="selectedContactList" type="List" access="public"/>
+    <aura:attribute name="showModal" type="Boolean" access="public" default="true"/>
+    <aura:attribute name="showConfirmationModal" type="Boolean" access="public" default="false"/>
+    <aura:attribute name="showCancelConfirmationModal" type="Boolean" default="false"/>
+
+    <aura:attribute name="finalRec" type="Map" default="{'contactRec':{'sobjectType':'Contact'},'relatedContactRec':{'sobjectType':'Related_Contact__c'}}" access="public" />
+    <aura:attribute name="nonMasterRecId" type="Id" default="" access="public"/>
+    <aura:attribute name="isDifferentContactIds" type="Boolean" default="false" access="public"/>
+    
+    <aura:attribute name="loading" type="Boolean" default="false" access="public"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler name="closeModalEvent" event="c:closeModal" action="{!c.handleCloseModalEvent}" />
+    
+    <aura:registerEvent name="refreshRelatedListEvent" type="c:refreshRelatedList" />
+    
+    <div>
+        <lightning:notificationsLibrary aura:id="notifLib"/>
+        
+        <aura:if isTrue="{!v.loading}">
+            <div class="" style="position:static;">
+                <lightning:spinner class="mergeSpinner" variant="brand" alternativeText="Loading" size="medium" />
+            </div>
+        </aura:if>
+        
+        <aura:if isTrue="{!v.showModal}">
+            <c:sldsModal instanceName="rcMerge">
+                <aura:set attribute="header">
+                    Related Contact Merge
+                </aura:set>
+                <aura:set attribute="content">
+                    <!-- <lightning:card variant="Narrow"> -->
+                    <div>
+                        <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                            <thead>
+                                <tr class="slds-text-title_caps">
+                                    <lightning:layout>
+                                        <lightning:layoutItem  class="" size="4">
+                                            <div class="slds-truncate" title="">Select 2 for Merge</div>
+                                        </lightning:layoutItem>
+                                        <lightning:layoutItem  class="" size="4">
+                                            <div class="slds-truncate" title="">Name</div>
+                                        </lightning:layoutItem>
+                                        <lightning:layoutItem  class="" size="4">
+                                            <div class="slds-truncate" title="">Role</div>
+                                        </lightning:layoutItem>
+                                    </lightning:layout>
+                                </tr>
+                            </thead>
+                        </table>
+                        <div class="slds-scrollable"  style="max-height: 25vh;">
+                            <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                                <tbody>
+                                    <aura:if isTrue="{! not(empty(v.recordsWrapList))}">
+                                        <aura:iteration items="{!v.recordsWrapList.records}" var="recWrap">
+                                            <tr>
+                                                <td>
+                                                    <div class="slds-truncate" title="Select for Merge">
+                                                        <lightning:input aura:id="isMerge" type="checkbox" name="{!recWrap.relatedContactRec.Id}" value="{!recWrap.relatedContactRec}" checked="{!recWrap.isSelected}" onchange="{!c.onSelectionChange}"/>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="slds-truncate" >{!recWrap.relatedContactRec.Contact_Name__c}</div>
+                                                </td>
+                                                <td>
+                                                    <div class="slds-truncate" >{!recWrap.relatedContactRec.Role__c}</div>
+                                                </td>
+                                            </tr>
+                                        </aura:iteration>
+                                    </aura:if>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_col-bordered slds-p-top_medium">
+                        <thead>
+                            <tr class="slds-text-title_caps">
+                                <th scope="col">
+                                    <div class="slds-truncate" title="Field">Field</div>
+                                </th>
+                                <th colspan="{!v.selectedList.length}">
+                                    <aura:if isTrue="{!v.selectedList.length >= 2}">
+                                        <lightning:layout>
+                                            <lightning:layoutItem  class="" size="4">
+                                                <div style="text-align: center;">
+                                                    <lightning:input aura:id="masterRelContactRecRadio" type="radio" tabindex="0" label="" name="relCon-Id" onchange="{!c.onRadioButtonChange}" value="RelatedContact"/>
+                                                </div>
+                                            </lightning:layoutItem>
+                                            <lightning:layoutItem  class="" size="4">
+                                                <div style="text-align: center;" class="slds-truncate" >Master Record</div>
+                                            </lightning:layoutItem>
+                                            <lightning:layoutItem  class="" size="4">
+                                                <div style="text-align: center;">
+                                                    <lightning:input aura:id="masterRelContactRecRadio" type="radio" tabindex="1" label="" name="relCon-Id" onchange="{!c.onRadioButtonChange}" value="RelatedContact"/>
+                                                </div>
+                                            </lightning:layoutItem>
+                                        </lightning:layout>
+                                    </aura:if>
+                                </th>
+                            </tr>
+                            <tr>
+                                <td class="slds-text-title_caps slds-text-align_center">
+                                        <strong>Contact Name</strong>
+                                </td>
+                                <aura:iteration items="{!v.selectedList}" indexVar="index" var="relContact">
+                                    <td class="slds-text-title_caps slds-text-align_center">
+                                        <lightning:layout>
+                                            <lightning:layoutItem size="10">
+                                                <span style="display:inline-block;">
+                                                    {!relContact.Contact_Name__c}
+                                                </span>
+                                            </lightning:layoutItem>
+                                        </lightning:layout>
+                                    </td>
+                                </aura:iteration>
+                            </tr>
+                        </thead>
+                    </table>
+                    <div class="slds-scrollable slds-p-top_medium" style="height: 40vh;">
+                        <aura:if isTrue="true" > <!-- {! equals(v.selectedList.length,2)}"> -->
+                            <!-- <lightning:card title="Role Details" variant="Narrow"> -->
+                                 <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_col-bordered">
+                                    <tbody>
+                                        <tr>
+                                            <td class="slds-text-title_caps" style="text-align:center;" colspan="{!add(v.selectedList.length, 1)}">
+                                                Role Details
+                                            </td>
+                                        </tr>
+                                        <aura:iteration items="{!v.recordsWrapList.allFieldSet.relatedContactFS}" var="fieldMember">
+                                            <tr>
+                                                <td>
+                                                    {!fieldMember.label}
+                                                </td>
+                                                <aura:iteration items="{!v.selectedList}" var="relContact" indexVar="index">
+                                                    <td>
+                                                        <lightning:layout>
+                                                            <lightning:layoutItem  class="slds-p-left_small" size="2">
+                                                                <lightning:input aura:id="relConRadio" type="radio" 
+                                                                        tabindex="{!index}" label="" onchange="{!c.onRadioButtonChange}"  
+                                                                        name="{!'relCon-'+fieldMember.name}" value="RelatedContact"/>
+                                                            </lightning:layoutItem>
+                                                            <lightning:layoutItem size="10">
+                                                                <span style="display:inline-block;">
+                                                                    <c:Field field="{!fieldMember}" record="{!relContact}"/>
+                                                                </span>
+                                                            </lightning:layoutItem>
+                                                        </lightning:layout>
+                                                    </td>
+                                                </aura:iteration>
+                                            </tr>
+                                        </aura:iteration>
+                                   
+                                        <aura:if isTrue="{!v.isDifferentContactIds}">
+                                            <tr>
+                                                <td class="slds-text-title_caps" style="text-align:center;" colspan="{!add(v.selectedList.length, 1)}">
+                                                    Contact Details
+                                                </td>
+                                            </tr>
+                                            
+                                            <tr class="slds-text-title_caps">
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Field">Field</div>
+                                                </th>
+                                                <th colspan="{!v.selectedContactList.length}">
+                                                    <aura:if isTrue="{!v.selectedList.length >= 2}">
+                                                        <lightning:layout>
+                                                            <lightning:layoutItem  class="" size="4">
+                                                                <div style="text-align: center;">
+                                                                    <lightning:input aura:id="masterContactRecRadio" type="radio" tabindex="0" label="" name="con-Id" onchange="{!c.onRadioButtonChange}" value="Contact"/>
+                                                                </div>
+                                                            </lightning:layoutItem>
+                                                            <lightning:layoutItem  class="" size="4">
+                                                                <div style="text-align: center;">
+                                                                    <div class="slds-truncate" >Master Record</div>
+                                                                </div>
+                                                            </lightning:layoutItem>
+                                                            <lightning:layoutItem  class="" size="4">
+                                                                <div style="text-align: center;">
+                                                                    <lightning:input aura:id="masterContactRecRadio" type="radio" tabindex="1" label="" name="con-Id" onchange="{!c.onRadioButtonChange}" value="Contact"/>
+                                                                </div>
+                                                            </lightning:layoutItem>
+                                                        </lightning:layout>
+                                                    </aura:if>
+                                                </th>
+                                            </tr>
+                                        
+                                            <aura:iteration items="{!v.recordsWrapList.allFieldSet.contactFS}" var="fieldMember">
+                                                <tr>
+                                                    <td>
+                                                        {!fieldMember.label}
+                                                    </td>
+                                                    <aura:iteration items="{!v.selectedContactList}" var="contact" indexVar="index">
+                                                        <td>
+                                                            <lightning:layout>
+                                                                <lightning:layoutItem  class="slds-p-left_small" size="2">
+                                                                    <lightning:input aura:id="conRadio" type="radio" tabindex="{!index}" label="" onchange="{!c.onRadioButtonChange}"  name="{!'con-'+fieldMember.name}" value="Contact"/>
+                                                                </lightning:layoutItem>
+                                                                <lightning:layoutItem size="10">
+                                                                    <span style="display:inline-block;">
+                                                                        <c:Field field="{!fieldMember}" record="{!contact}"/>
+                                                                    </span>
+                                                                </lightning:layoutItem>
+                                                            </lightning:layout>
+                                                        </td>
+                                                    </aura:iteration>
+                                                </tr>
+                                            </aura:iteration>
+                                        </aura:if>
+                                    </tbody>
+                                </table>
+                            <!-- </lightning:card> -->
+                        </aura:if>
+                    </div>
+                    <aura:if isTrue="{!v.showConfirmationModal}">
+                        <c:sldsModal instanceName="mergeConfirmation" > <!-- closeModalEvent="{!c.handleCloseModalEvent}" -->
+                            <aura:set attribute="header">
+                                Merge Related Contacts
+                            </aura:set>
+                            <aura:set attribute="content">
+                                <div style="margin-left:10%;margin-right:10%">
+                                    <lightning:layout>
+                                        <lightning:layoutItem size="12">
+                                            <div class="slds-text-heading_small slds-text-align_center">
+                                                <p>This Operation cannot be undone. Are you sure?</p>
+                                            </div>
+                                        </lightning:layoutItem>
+                                    </lightning:layout>
+                                </div>
+                            </aura:set>
+                            <aura:set attribute="footer">
+                                <lightning:button variant="brand" label="Yes" onclick="{!c.onConfirmMerge}"/>
+                                <lightning:button label="Cancel" onclick="{!c.closeConfirmationModal}"/>
+                            </aura:set>
+                        </c:sldsModal>
+                    </aura:if>
+
+                    <aura:if isTrue="{!v.showCancelConfirmationModal}">
+                        <c:sldsModal instanceName="cancelConfirmation" > <!-- closeModalEvent="{!c.handleCloseModalEvent}" -->
+                            <aura:set attribute="header">
+                                
+                            </aura:set>
+                            <aura:set attribute="content">
+                                <div style="margin-left:10%;margin-right:10%">
+                                    <lightning:layout>
+                                        <lightning:layoutItem size="12">
+                                            <div class="slds-text-heading_small slds-text-align_center">
+                                                <p>Merge operation will be canceled. Are you sure?</p>
+                                            </div>
+                                        </lightning:layoutItem>
+                                    </lightning:layout>
+                                </div>
+                            </aura:set>
+                            <aura:set attribute="footer">
+                                <lightning:button variant="brand" label="Yes, cancel merge and go back to patient" onclick="{!c.onConfirmCancel}"/>
+                                <lightning:button label="No, continue merging" onclick="{!c.closeCancelConfirmationModal}"/>
+                            </aura:set>
+                        </c:sldsModal>
+                    </aura:if>
+
+                </aura:set>
+                <aura:set attribute="footer">
+                    <lightning:button label="Back to Patient File" onclick="{!c.closeModal}"/>
+                    <aura:if isTrue="{! equals(v.selectedList.length, 2)}">
+                        <lightning:button variant="brand" label="Merge Related Contacts" onclick="{!c.onMerge}"/>
+                    </aura:if>
+                </aura:set>
+            </c:sldsModal>
+        </aura:if>
+    </div>
+</aura:component>

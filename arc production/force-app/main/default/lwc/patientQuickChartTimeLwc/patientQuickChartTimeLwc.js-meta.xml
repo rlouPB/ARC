@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+	<masterLabel>Patient Chart: A field's value over time</masterLabel>
+	<description>Track the value of a patient-related field over time.</description>
+	<apiVersion>55.0</apiVersion>
+	<isExposed>true</isExposed>
+	<targets>
+		<target>lightning__AppPage</target>
+		<target>lightning__HomePage</target>
+		<target>lightning__RecordPage</target>
+	</targets>
+	<targetConfigs>
+		<targetConfig targets="lightning__AppPage,lightning__HomePage,lightning__RecordPage">
+			<property
+				default="Physical_Monitor__c"
+				description="This is the Sobject that the chart data is based upon, i.e. the Sobject source of the data. Use API names (e.g. standard object Account, custom object Physical_Monitor__c, etc.)"
+				label="Object Name"
+				name="objectName"
+				type="String"/>
+			<property
+				default="BMI__c"
+				description="This is the field on the Sobject specified above that the chart data is based upon, i.e. the field source of the data. Use API names (e.g. BMI__c, Number_of_Times_Something_Happened__c, etc.)"
+				label="Field Name"
+				name="fieldName"
+				type="String"/>
+			<property
+				default="Account__c"
+				description="The patient ID field can be known by different names depending on the object (AccountId, Patient_Id__c, Account__c, etc). Please specify the field name within the SObject specified above that holds the patient ID."
+				label="Patient ID Field"
+				name="patientField"
+				type="String"/>
+			<property
+				default="false"
+				description="Check to display the patient's name under the chart title."
+				label="Show Patient Name"
+				name="showPatientName"
+				type="Boolean"/>
+			<property
+				default="Reporting_Date__c"
+				description="The date field from the SObject that will be used as the chart's milestone (i.e. Reporting_Date__c on Physical_Monitor__c SObject."
+				label="Date Field"
+				name="dateField"
+				type="String"/>
+			<property
+				default="Patient Specific Chart"
+				description="The chart title. Defaults to 'Patient Specific Chart'."
+				label="Chart Title"
+				name="chartTitle"
+				type="String"/>
+			<property
+				default="standard:chart"
+				description="SLDS Icon to use for the chart. See https://www.lightningdesignsystem.com/icons/ for more info. Format should be icon_type:icon_name. For example, for the Person Account icon, the value should be standard:person_account."
+				label="Title Icon"
+				name="iconName"
+				type="String"/>
+		</targetConfig>
+	</targetConfigs>
+</LightningComponentBundle>

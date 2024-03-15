@@ -1,0 +1,26 @@
+<template>
+    <lightning-record-edit-form object-api-name="Prescription__c" record-id={recordId} onsubmit={onSubmitHandler} onload={onloadHandler}>
+        <lightning-output-field field-name="Drug_Name__c"> </lightning-output-field>
+        <lightning-output-field field-name="Drug_Format__c"> </lightning-output-field>
+        <lightning-output-field field-name="Use_Substitution__c"> </lightning-output-field>
+        <lightning-output-field field-name="Pharmacy_Note__c"> </lightning-output-field>
+        <lightning-output-field class="Written_Date__c" field-name="Written_Date__c"> </lightning-output-field>
+        <lightning-input-field class="slds-has-error" field-name="Medication_Filled_with__c" required></lightning-input-field>
+        <lightning-input-field class="slds-has-error" field-name="Medication_Format__c" required></lightning-input-field>
+        <lightning-input-field class="Dispensing_Comment__c" field-name="Dispensing_Comment__c"> </lightning-input-field>
+        <lightning-input-field class="Control_Group__c" field-name="Control_Group__c"> </lightning-input-field>
+        <lightning-input-field class="Duration__c" field-name="Duration__c"> </lightning-input-field>
+        <lightning-input-field class="Antibiotic__c" field-name="Antibiotic__c"> </lightning-input-field>
+        <lightning-input-field field-name="Sleep_Medication__c"> </lightning-input-field>
+        <lightning-input-field class="For_Pain__c" field-name="For_Pain__c"> </lightning-input-field>
+        <lightning-input-field class="As_Needed__c" field-name="As_Needed__c"> </lightning-input-field>
+        <lightning-input-field class="Location__c" field-name="Location__c"> </lightning-input-field>
+        <lightning-input-field class="Exclude_from_Regular_Package__c" field-name="Exclude_from_Regular_Package__c"> </lightning-input-field>
+        <lightning-input-field class="Start_Date__c" field-name="Start_Date__c" value={defaultStartDateStr}> </lightning-input-field>
+        <lightning-input-field class="End_Date__c" field-name="End_Date__c"> </lightning-input-field>
+        <lightning-input-field class="Times_Of_Day__c" field-name="Times_Of_Day__c"> </lightning-input-field>
+        <lightning-input-field class="Dosage_Quantity__c" field-name="Dosage_Quantity__c"> </lightning-input-field>
+        <lightning-input-field class="Daily_Dosage_Quantity__c" field-name="Daily_Dosage_Quantity__c"> </lightning-input-field>
+        <lightning-input-field class="On_Going_Quantity__c" field-name="On_Going_Quantity__c"> </lightning-input-field>
+    </lightning-record-edit-form>
+</template>

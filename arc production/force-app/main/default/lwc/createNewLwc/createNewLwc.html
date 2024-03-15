@@ -1,0 +1,31 @@
+<template>
+    <div class="slds-card">
+        <div class="slds-grid">
+            <div class="slds-col slds-size_1-of-4">
+                <div class="slds-var-p-around_large">
+                    <div class="slds-box">
+                        <lightning-input label="Search" class="field" onchange={onChangeHandler}></lightning-input>
+                        <!-- onkeyup={onKeyUpHandler} -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="slds-col slds-size_3-of-4">
+                <div class="slds-var-p-around_large">
+                    <div class="slds-var-p-bottom_small">
+                        <lightning-button-group>
+                            <lightning-button label="Expand All" onclick={onExpandAll}></lightning-button>
+                            <lightning-button label="Collapse All" onclick={onColapseAll}></lightning-button>
+                        </lightning-button-group>
+                    </div>
+
+                    <div class="slds-box">
+                        <div class="tree">
+                            <lightning-tree items={categories} selected-item={selected} onselect={onSelectHandler}></lightning-tree>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>

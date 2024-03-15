@@ -1,0 +1,20 @@
+<template>
+    <div class="slds-button-group" role="group">
+        <lightning-button 
+            variant={styleVariantA} 
+            label={buttonLabelA} 
+            title={buttonLabelA} 
+            onclick={fireButtonA} 
+            class="slds-m-left_x-small"
+            style="display: block;"
+            if:false={buttonAHide}></lightning-button>
+        <lightning-button 
+            variant={styleVariantB} 
+            label={buttonLabelB} 
+            title={buttonLabelB} 
+            onclick={fireButtonB} 
+            class="slds-m-left_x-small"
+            style="display: block;"
+            if:false={buttonHideB}></lightning-button>        
+    </div>
+</template>

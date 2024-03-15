@@ -1,0 +1,15 @@
+<aura:component>
+    <aura:attribute name="body" type="Aura.Component[]" ></aura:attribute>
+    <aura:attribute name="label" type="String" ></aura:attribute>
+    <aura:attribute name="labelClass" type="String" ></aura:attribute>
+    <aura:attribute name="class" type="String" ></aura:attribute>
+
+    <div class="{!'slds-form-element'+v.class}">
+        <label class="slds-form-element__label">
+            <span class="{!v.labelClass}">{!v.label}</span>
+        </label>
+        <div class="slds-form-element__control" >
+            {!v.body}
+        </div>
+    </div>
+</aura:component>

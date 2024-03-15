@@ -1,0 +1,21 @@
+<aura:component controller="FieldDescribeUtil" extends="c:ApexService">
+    
+    <!--Attribute Sections -->
+    <aura:attribute name="controllingField" type="String" access="public" description="Used to store a Controlling Field"/>
+    <aura:attribute name="fieldName" type="String" access="public" description="Used to store a dependent Name Field"/>
+    <aura:attribute name="fieldLabel" type="String" access="public" description="Used to store a dependent Name Label"/>
+    <aura:attribute name="fieldValue" type="String" default="" access="public" description="Used to store a dependent Field Value"/>
+    <aura:attribute name="objectApiName" type="String" access="public" description="Used to store a object Api Name"/>
+    <aura:attribute name="controllingFieldValue" type="String" access="public" description="Used to store a Controlling Field Value"/>
+    <aura:attribute name="options" type="list" access="public"  description="Used to store a options of Picklist"/>
+    <aura:attribute name="dependentOptionsMap" type="Map" access="public"  description="Used to store a dependent Options Map"/>
+
+    <!--handler Section -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler name="change" value="{!v.controllingFieldValue}" action="{!c.onControllingFieldChange}" />
+    
+    <!--Combo box-->
+    <lightning:combobox name="{!v.fieldLabel}" label="{!v.fieldLabel}" placeholder="Select an Option" value="{!v.fieldValue}"  options="{!v.options}" />
+
+    
+</aura:component>

@@ -1,0 +1,53 @@
+<aura:component controller="ViewOptionsCtl">
+    <aura:attribute name="context" type="String" description="The Application/Component where this View Option Set is used." required="true" />
+    <aura:attribute name="viewOptionSetList" type="List" description="List of View Option Sets available for this Context." />
+    <aura:attribute name="currentViewOptionSet" type="Map" description="The currently selected View Option Set." />
+    <aura:attribute name="selectedTopLevelOptionSet" type="Map" />
+    <aura:attribute name="allSelected" type="Boolean" description="Whether or not all items are selected."/>
+    <aura:attribute name="selectedOptionSetButton" type="String" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <lightning:card class="slds-card_boundary">
+        <lightning:layout multipleRows="true">
+            <lightning:layoutItem size="12" padding="horizontal-medium">
+
+                <aura:if isTrue="{!v.selectedTopLevelOptionSet.optionSetObj.Role__c == 'Group'}">
+                    <!-- <lightning:radioGroup name="selectOptionSet" 
+                        options="{!selectedTopLevelOptionSet.selectOptionSetRbGroupItem.rbOptions}" 
+                        value="{!selectedTopLevelOptionSet.selectOptionSetRbGroupItem.rbGroupValue}" 
+                        type="button" 
+                        onchange="{!c.handleChange}" /> -->
+                    <lightning:radioGroup name="selectOptionSet" 
+                        options="{!v.selectedTopLevelOptionSet.selectOptionSetRbGroupItem.rbOptions}" 
+                        value="{!v.selectedOptionSetButton}" 
+                        type="button" 
+                        onchange="{!c.handleChange}" />
+                </aura:if>
+                
+                <lightning:layoutItem size="12" padding="horizontal-medium">
+                    <lightning:button variant="base" label="{!v.allSelected ? 'Select none' : 'Select all'}" onclick="{!c.selectAllClicked}"/>
+                </lightning:layoutItem>
+                
+                <aura:iteration items="{!v.currentViewOptionSet.checkboxItems}" var="checkboxItem">
+                    <aura:if isTrue="{!checkboxItem.optionItemObj.Show_Label__c}">
+                        <lightning:input type="checkbox" label="{!checkboxItem.optionItemObj.Label__c}" name="{!checkboxItem.optionItemObj.Id}" checked="{!checkboxItem.checkboxValue}" onchange="{!c.handleChange}" />
+                        <aura:set attribute="else">
+                            <lightning:input type="checkbox" name="{!checkboxItem.optionItemObj.Id}" onchange="{!c.handleChange}" />
+                        </aura:set>
+                    </aura:if>
+                </aura:iteration>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12" padding="horizontal-medium">
+                <aura:iteration items="{!v.currentViewOptionSet.rbGroupItems}" var="rbGroupItem">
+                    <aura:if isTrue="{!rbGroupItem.optionItemObj.Show_Label__c}">
+                        <lightning:radioGroup name="{!rbGroupItem.optionItemObj.Id}" label="{!rbGroupItem.optionItemObj.Label__c}" options="{!rbGroupItem.rbOptions}" value="{!rbGroupItem.rbGroupValue}" type="button" />
+                        <aura:set attribute="else">
+                            <lightning:radioGroup name="{!rbGroupItem.optionItemObj.Id}" options="{!rbGroupItem.rbOptions}" value="{!rbGroupItem.rbGroupValue}" type="button" onchange="{!c.handleChange}" />
+                        </aura:set>
+                    </aura:if>
+                </aura:iteration>
+            </lightning:layoutItem>
+        </lightning:layout>
+    </lightning:card>
+</aura:component>

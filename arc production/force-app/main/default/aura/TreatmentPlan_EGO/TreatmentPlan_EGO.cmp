@@ -1,0 +1,73 @@
+<aura:component controller="TreatmentPlanEGOCtl" extends="c:ApexService" implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:hasSObjectName,force:lightningQuickActionwithoutheader,lightning:actionOverride" access="global">
+    <aura:attribute name="loading" type="Boolean" default="true" access="public" />
+    <aura:attribute name="parentRecordId" type="String" />
+    <aura:attribute name="sObjectName" type="String" />
+    <aura:attribute name="treatmentPlan" type="Object" description="Treatment Plan contains case, domains, goals and objectives."/>
+    <aura:attribute name="isDirty" type="Boolean" default="false"/>
+    <aura:attribute name="showCancelModal" type="Boolean" default="false"/>
+    <aura:attribute name="showFinalizeModal" type="Boolean" default="false"/>
+    <aura:attribute name="conductEGO" type="Boolean" default="false"/>
+    <aura:attribute name="egoRecord" type="Object"/>
+    <!-- Moved to sidebar
+    <aura:registerEvent name="closeModalEvent" type="c:closeModal" />
+    <aura:registerEvent name="saveEGOEvent" type="c:SaveEGOEvent" />
+    -->
+    <aura:handler name="init" value="{!this}" action="{! c.doInit}"/>
+    <aura:handler event="c:SaveEGOEvent" action="{!c.handleSaveEGO}"/>
+    <aura:handler event="c:EGOActionEvent" action="{!c.handleEGOAction}"/>
+
+    <c:customRecordData recordId="{!v.recordId}" selectFields="Snapshot__r.Html__c" target="{!v.egoRecord}"></c:customRecordData>
+    
+    <aura:if isTrue="{!v.loading}">
+        <div class="" style="position:static;">
+            <lightning:spinner class="logCallSpinner" variant="brand" alternativeText="Loading" size="medium" />
+        </div>
+        <aura:set attribute="else">
+            <lightning:layout class="slds-theme_shade">
+                <lightning:layoutItem size="9" padding="around-small">
+                    <div class="wrapper" onchange="{!c.handleIsDirty}">
+                        <lightning:card>
+                            <aura:if isTrue="{!!v.egoRecord.Snapshot__r.Html__c}">
+                                <lightning:layout>
+                                    <lightning:layoutItem size="12" padding="around-small">
+                                        <div class="slds-text-heading_large slds-p-top_large"><b>Overall Goal for Treatment</b></div>
+                                        <aura:if isTrue="{!v.conductEGO}">
+                                            <lightning:textarea name="OverallGoalForTreatment" class="c-label-hidden" value="{!v.treatmentPlan.ego.Overall_Goal__c}" 
+                                                maxlength="5000" />
+                                            <aura:set attribute="else">
+                                                <div>{!v.treatmentPlan.ego.Overall_Goal__c}</div>
+                                            </aura:set>
+                                        </aura:if>
+                                    </lightning:layoutItem>
+                                </lightning:layout>
+                                <div><br/><br/></div>
+                                <div class="slds-scrollable_y">
+                                    <p class="slds-p-horizontal_small">
+                                        <div class="slds-text-heading_large">Treatment Domains</div>
+                                        <c:TreatmentPlan_EGO_Domains aura:id="domains" 
+                                                                     isFirstDraftTreatmentPlan="{v.treatmentPlan.isFirstDraftTreatmentPlan}" 
+                                                                     domains="{!v.treatmentPlan.domains}" 
+                                                                     newTargetDate="{!v.treatmentPlan.newTargetDate}"
+                                                                     conductEGO="{!v.conductEGO}"
+                                                                     egoStatus="{!v.treatmentPlan.ego.Status__c}"
+                                                                     isEGOR="{!v.treatmentPlan.isEGOR}"
+                                                                     />
+                                    </p>
+                                </div>
+                                <aura:set attribute="else">
+                                    <aura:unescapedHtml value="{!v.egoRecord.Snapshot__r.Html__c}"></aura:unescapedHtml>
+                                </aura:set>
+                            </aura:if>
+                        </lightning:card>
+                    </div>
+                </lightning:layoutItem>
+                <lightning:layoutItem size="3" padding="around-small">
+                    <c:TreatmentPlan_EGO_Header treatmentPlan="{!v.treatmentPlan}"
+                                                loading="{!v.loading}"
+                                                isDirty="{!v.isDirty}"
+                                                conductEGO="{!v.conductEGO}" />
+                </lightning:layoutItem>
+            </lightning:layout>
+        </aura:set>
+    </aura:if>
+</aura:component>

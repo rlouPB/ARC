@@ -1,0 +1,86 @@
+<template>
+    <lightning-card>
+        <lightning-button-icon icon-name="utility:refresh" slot="actions" title="reload" onclick={load}></lightning-button-icon>
+
+        <lightning-spinner if:true={loading}></lightning-spinner>
+
+        <table class="slds-table slds-table_bordered slds-table_fixed-layout" role="grid">
+            <thead>
+                <tr class="slds-line-height_reset">
+                    <template for:each={columns} for:item="col">                    
+                        <th key={col.name}>
+                            <div onclick={onClickHandler} data-fieldname={col.name} class="slds-th__action slds-text-link_reset slds-is-sorted slds-is-sorted_asc">
+                                {col.label}
+                                <template if:true={col.sorted}>
+                                    <template if:false={col.isDESC}>
+                                        <lightning-icon data-fieldname={col.name} icon-name="utility:arrowup" size="xx-small"></lightning-icon>
+                                    </template>
+                                    <template if:true={col.isDESC}>
+                                        <lightning-icon data-fieldname={col.name} icon-name="utility:arrowdown" size="xx-small"></lightning-icon>
+                                    </template>
+                                </template>
+                            </div>
+                        </th>                        
+                    </template>                    
+                </tr>
+            </thead>
+            <tbody>
+                <template for:each={pagedData} for:item="nurse">
+                    <tr key={nurse.Id}>
+                        <td>
+                            <c-record-link record-id={nurse.Id} record-name={nurse.Name}></c-record-link>
+                        </td>
+                        <td>{nurse.Nurse}</td>                        
+                        <td>{nurse.Status}</td>
+                        <td>
+                            <lightning-formatted-date-time 
+                                value={nurse.signInDateTime} 
+                                year="numeric" 
+                                month="2-digit" 
+                                day="2-digit" 
+                                hour="2-digit" 
+                                minute="2-digit" 
+                                hour12
+                            ></lightning-formatted-date-time>
+                        </td>
+                        <td>
+                            <template if:true={nurse.showButtons}> 
+                                <lightning-button 
+                                    data-id={nurse.Id} 
+                                    label="Sign Out" 
+                                    onclick={onSignOutClick}
+                                ></lightning-button>
+
+                                <lightning-button 
+                                    data-id={nurse.Id} 
+                                    label="Remove" 
+                                    onclick={onRemoveClick}
+                                ></lightning-button>
+                            </template>
+
+                            <lightning-formatted-date-time 
+                                if:false={nurse.showButtons}
+                                value={nurse.signOutDateTime} 
+                                year="numeric" 
+                                month="2-digit" 
+                                day="2-digit" 
+                                hour="2-digit" 
+                                minute="2-digit" 
+                                hour12
+                            ></lightning-formatted-date-time>
+                        </td>
+                        
+                    </tr>
+                </template>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="4">
+                        <c-paginator-lwc class="paginator" values={data} onpagechanged={pageChangedHandler}></c-paginator-lwc>
+                    </th>
+                </tr>
+            </tfoot>
+        </table>
+        <c-modal-popup-lwc></c-modal-popup-lwc>
+    </lightning-card>
+</template>

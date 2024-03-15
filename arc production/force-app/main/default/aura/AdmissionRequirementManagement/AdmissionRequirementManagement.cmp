@@ -1,0 +1,418 @@
+<aura:component controller="AdmissionRequirementManagementController" extends="c:ApexService" implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId" access="global">
+    
+    <!--Attributes Section -->
+    <aura:attribute name="recordId" type="String" description="Holds a Account Record Id"/>
+    <aura:attribute name="currentAdmissionId" type="String" description="Current Admission Record Id"/>
+    <aura:attribute name="applicablePhase" type="String" default="Inquiry" description="Type of Requirements to display in component"/>
+
+    <aura:attribute name="selectedRow" type="String" access="public"/>
+    <aura:attribute name="selectedRequirement" type="Admissions_Requirement__c" access="public" description="sobject record of selected row"/>
+    <aura:attribute name="buttonState" type="String" default="showAllRequests" access="public"/>
+    <aura:attribute name="bottomBtnState" type="String" default="showAll" access="public"/>
+    <aura:attribute name="title" type="String" default="Request Items for Medical Requirement" access="public"/>
+    <aura:attribute name="requestItemModal" type="boolean" default="false" access="public"/>
+    <aura:attribute name="rowIdx" type="Integer" access="public"/>
+    <aura:attribute name="showUploadModal" type="boolean" default="false" access="public"/>
+    <aura:attribute name="requestTitle" type="String" default="" access="public"/>
+    
+    <aura:attribute name="newRI" type="Request_Item__c" access="public" default="{'sobjectType':'Request_Item__c'}"/>
+	
+    <aura:attribute name="admissionsRequirement" type="List" default="[]" access="public"/>
+    <aura:attribute name="admissionsRequirementMap" type="Map" default="{}" access="public"/>
+    <aura:attribute name="requestItems" type="List" default="[]" access="public"/>
+    <aura:attribute name="oldRequest" type="Request_Item__c" default="" access="public"/>
+    <aura:attribute name="uploadRequest" type="Request_Item__c" default="" access="public"/>
+    <aura:attribute name="showRequest" type="boolean" default="true" access="public"/>
+    <aura:attribute name="selectedRequestId" type="String" access="public"/>    
+    <aura:attribute name="fileRelatedIds" type="List" default="[]" access="public" description="Record Ids to attach upload files to in addition to the selected request item"/>    
+    
+    <!-- JN removed 210610, not used
+    <aura:attribute name="callerAdditionalOptions" type="List" default="[{'label': 'Advanced Search', 'value': 'advanceSearch', 'isRecord': false, 'componentName': ''},
+                                                                        {'label': 'Create New Contact', 'value': 'newContact', 'isRecord': false, 'componentName': 'c:NewContactView',}]" access="public" />
+    <aura:attribute name="callerFilter" type="List" default="[]" access="public" /> 
+    -->
+    
+    <aura:registerEvent name="updatedPatient" type="c:refreshPatient" />
+    
+	<!--handler-->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler name="closeModalView" event="c:closeModal" action="{!c.doInit}" />
+    
+    <!-- Spinner Begins -->
+    <lightning:spinner aura:id="spinner" variant="brand" class="slds-hide"/>
+    <lightning:notificationsLibrary aura:id="notifLib"/>
+    <ltng:require scripts="{!$Resource.momentjs}"/>
+    
+    <!-- Header Begin -->
+    <div class="slds-var-p-around_small" style="background:white;">
+        <lightning:layout>
+            <lightning:layoutItem padding="around-small" size="7">
+            	<div class="slds-scrollable">
+                    <table class="customCss admissionTable slds-table slds-table--bordered slds-table--fixed-layout box slds-max-medium-table--stacked-horizontal slds-table_col-bordered" aura:id="tableContent">
+                        <thead>
+                            <tr class="slds-text-title_caps">
+                                <th scope="col"  style="width: 25%;" class="slds-cell-buffer_left slds-cell-buffer_right">
+                                    <div class="slds-truncate" title="Completed"> 
+                                        Completed
+                                    </div>
+                                </th>
+                                <th scope="col" style="width: 50%;"  class="slds-cell-buffer_left slds-cell-buffer_right">
+                                    <div class="slds-truncate" title="Requirement"> 
+                                        Requirement
+                                    </div>
+                                </th>
+                                <th scope="col" style="width: 25%;"  class="slds-cell-buffer_left slds-cell-buffer_right">
+                                    <div class="slds-truncate" title="Outstanding Items"> 
+                                        Outstanding <br/> Items
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <!-- Table Body Begin -->
+                        <tbody>
+                            <aura:iteration items="{!v.admissionsRequirement}" var="adReqs" indexVar="index">
+                                <tr aura:id="rowIds" class="{!if(and(v.selectedRow == adReqs.Id, v.buttonState == 'showRequirements' ), 'rowHighLight', '')}" data-row-index="{!index}" onclick="{!c.getRequestItems}">
+                                    <td style="text-align:center;height:33px;" class="slds-hyphenate  slds-cell-buffer_left">
+                                        <aura:if isTrue="{!!adReqs.Do_Not_Show_Checkbox_on_Component__c}">
+                                            <lightning:input type="checkbox" label=" " name="{!adReqs.Id}" checked="{!adReqs.Completed__c}" onchange="{!c.handleAdmissionReqs}" onclick="{!c.stopPropagating}"/>
+                                        </aura:if>
+                                    </td>
+                                    <td style="text-align:center;height:33px;" class="slds-hyphenate  slds-cell-buffer_left">
+                                        {!adReqs.Name}
+                                    </td>
+                                    <td style="text-align:center;height:33px;" class="slds-hyphenate  slds-cell-buffer_left">
+                                        <aura:if isTrue="{!and(adReqs.Total_Open_Request_Items__c != null,adReqs.Total_Request_Items__c != null)}">
+                                            {!adReqs.Total_Open_Request_Items__c}/{!adReqs.Total_Request_Items__c}    
+                                        </aura:if>
+                                    </td>
+                                </tr>
+                            </aura:iteration>
+                            
+                            <!--Display if Empty Admission Requirement Records -->
+                            <aura:if isTrue="{!empty(v.admissionsRequirement)}">
+                                <tr>
+                                    <td colspan="{!v.admissionsRequirement.length + 3}" class=" slds-cell-buffer_right slds-text-align_center" style="border-right: 1px solid rgb(221, 219, 218);border-left: 1px solid rgb(221, 219, 218);">
+                                        No records found
+                                    </td>
+                                </tr>
+                            </aura:if>
+                        </tbody>
+                    </table>
+                </div>    
+            </lightning:layoutItem>
+
+            
+            
+            <lightning:layoutItem padding="around-small" size="5">
+
+                <lightning:buttonGroup class="slds-float_right">
+                    <lightning:button aura:id="showReqBtn" class="{!v.buttonState == 'showRequirements'? 'slds-button_brand': ''}" title="showRequirements" label="Show by Requirement" onclick="{!c.onButtonGroupClick}"/>
+                    <lightning:button aura:id="showAllReqBtn" class="{!v.buttonState == 'showAllRequests'? 'slds-button_brand': ''}" title="showAllRequests" label="Show All Request Items" onclick="{!c.onButtonGroupClick}"/>
+                </lightning:buttonGroup>
+                <br/>
+                <lightning:buttonGroup class="slds-float_right slds-var-m-top_x-small">
+                    <lightning:button aura:id="showAllBtn" class="{!v.bottomBtnState == 'showAll'? 'slds-button_brand': ''}" title="showAll" label="Show All" onclick="{!c.onButtonGroupClick}"/>
+                    <lightning:button aura:id="showOpenBtn" class="{!v.bottomBtnState == 'showOpen'? 'slds-button_brand': ''}" title="showOpen" label="Show Open" onclick="{!c.onButtonGroupClick}"/>
+                </lightning:buttonGroup>
+                <!-- <div class="slds-is-relative" style="height: 90%;">
+                    <div  style="position:absolute; bottom: 0;">
+                        <lightning:buttonIcon iconName="utility:refresh" onclick="{!c.handleRefreshButtonClick}" alternativeText="Refresh" />
+                    </div>
+                </div> -->
+			</lightning:layoutItem>
+        </lightning:layout>
+        
+        <!-- Datatable Begin-->
+        <lightning:layout>
+        	<lightning:layoutItem padding="around-small" size="12">
+            	<div class="slds-scrollable">
+                    <aura:if isTrue="{!v.requestItems}">
+                        <lightning:card>
+                            <aura:set attribute="title">
+                                <lightning:icon iconName="utility:adduser" size="small"/>
+                                {!v.title}
+                            </aura:set>
+                            <aura:set attribute="actions">
+                                <!-- <aura:if isTrue="{!and(v.selectedRow, v.buttonState == 'showRequirements')}"> -->
+                                	<lightning:button variant="brand" label="New Request Item" onclick="{!c.toggleModal}"/>
+                            	<!-- </aura:if> -->
+                            </aura:set>
+                            <!-- <table class="requestItems customCss slds-table fixed_header slds-table_bordered slds-table_fixed-layout box slds-max-medium-table_stacked-horizontal slds-table_col-bordered" aura:id="requestTable"> -->
+                            <!-- <table class="requestItems slds-table slds-table_bordered slds-table_col-bordered slds-table_fixed-layout" >
+                                <thead>
+                                    <tr class="s lds-text-title_caps slds-grid " style="font-size: .60rem;">
+                                        <th style="width:30px;" scope="col"  class="">
+                                        </th> 
+                                        <th scope="col"  class="slds-text-align_center slds-size_1-of-12">
+                                            <div style="white-space:normal;" class="slds-truncate" title="Requirement"> 
+                                                Requirement
+                                            </div>
+                                        </th>
+                                        <th scope="col"  class="slds-text-align_center slds-size_2-of-12">
+                                            <div style="white-space:normal;" class="slds-truncate" title="Responsible"> 
+                                                Responsible
+                                            </div>
+                                        </th>
+                                        <th scope="col"  class="slds-text-align_center slds-cell-buffer_right slds-size_2-of-12">
+                                            <div style="white-space:normal;" class="slds-truncate" title="Action"> 
+                                                Action
+                                            </div>
+                                        </th>
+                                        <th scope="col"  class="slds-text-align_center slds-cell-buffer_right slds-size_2-of-12">
+                                            <div style="white-space:normal;" class="slds-truncate" title="Item Requested"> 
+                                                Item Requested
+                                            </div>
+                                        </th>
+                                        <th scope="col"  class="slds-text-align_center slds-cell-buffer_right slds-size_2-of-12">
+                                            <div style="white-space:normal;" class="slds-truncate" title="Date Requested"> 
+                                                Date Requested
+                                            </div>
+                                        </th>
+                                        <th scope="col"  class="slds-text-align_center slds-cell-buffer_right slds-size_1-of-12">
+                                            <div style="white-space:normal;" class="slds-truncate" title="Status"> 
+                                                Status
+                                            </div>
+                                        </th>
+                                        <th scope="col" class="slds-text-align_center slds-cell-buffer_right slds-size_2-of-12">
+                                            <div style="white-space:normal;" class="slds-truncate" title="Notes"> 
+                                                Notes
+                                            </div>
+                                        </th> -->
+
+                                        <!-- <th scope="col"  class="slds-grid slds-size_5-of-12">
+                                            <div style="white-space:normal;" class="slds-border_left slds-text-align_center slds-truncate slds-size_4-of-12" title="Requirement"> 
+                                                Requirement
+                                            </div>
+                                            <div style="white-space:normal;" class="slds-border_left slds-text-align_center slds-truncate slds-size_4-of-12" title="Responsible"> 
+                                                Responsible
+                                            </div>
+                                            <div style="white-space:normal;" class="slds-border_left slds-text-align_center slds-truncate slds-size_4-of-12" title="Action"> 
+                                                Action
+                                            </div>
+                                        </th>
+                                        <th scope="col"  class="slds-grid slds-size_7-of-12">
+                                            <div style="white-space:normal;" class="slds-truncate slds-size_3-of-12" title="Item Requested"> 
+                                                Item Requested
+                                            </div>
+                                            <div style="white-space:normal;" class="slds-border_left slds-text-align_center slds-truncate slds-size_3-of-12" title="Date Requested"> 
+                                                Date Requested
+                                            </div>
+                                            <div style="white-space:normal;" class="slds-border_left slds-text-align_center slds-truncate slds-size_3-of-12" title="Status"> 
+                                                Status
+                                            </div>
+                                            <div style="white-space:normal;" class="slds-border_left slds-text-align_center slds-border_right slds-truncate slds-size_3-of-12" title="Notes"> 
+                                                Notes
+                                            </div>
+                                        </th>
+                                       
+                                    </tr>
+                                </thead>
+                                <tbody> -->
+                            <div class="requestItems">
+                                <div class="slds-text-title_caps slds-grid" style="font-size: .60rem;">
+                                    <div scope="col"  class="slds-grid slds-size_5-of-12 ">
+                                        <div class="requestItemHeader slds-text-align_center slds-truncate slds-size_3-of-12" title="Requirement"> 
+                                            Requirement
+                                        </div>
+                                        <div class="requestItemHeader slds-text-align_center slds-truncate slds-size_4-of-12" title="Responsible"> 
+                                            Responsible
+                                        </div>
+                                        <div class="requestItemHeader slds-text-align_center slds-truncate slds-size_5-of-12" title="Action"> 
+                                            Action
+                                        </div>
+                                    </div>
+                                    <div scope="col"  class="slds-grid slds-size_7-of-12">
+                                        <div class="requestItemHeader slds-truncate slds-size_3-of-12" title="Item Requested"> 
+                                            Item Requested
+                                        </div>
+                                        <div class="requestItemHeader slds-text-align_center slds-truncate slds-size_3-of-12" title="Date Requested"> 
+                                            Date Requested
+                                        </div>
+                                        <div class="requestItemHeader slds-text-align_center slds-truncate slds-size_2-of-12" title="Status"> 
+                                            Status
+                                        </div>
+                                        <div class="requestItemHeader slds-text-align_center slds-border_right slds-truncate slds-size_4-of-12" title="Notes"> 
+                                            Notes
+                                        </div>
+                                    </div>
+                                </div>
+                                <aura:iteration items="{!v.requestItems}" var="reqItems" indexVar="index">
+                                    <div class="slds-grid requestItemRow">
+                                        <div class="slds-col slds-grid slds-size_5-of-12">
+                                            <div class="slds-hyphenate slds-size_3-of-12">
+                                                    {!reqItems.Req__c}
+                                            </div>
+                                            <div aura:id="reqRowIds" data-row-index="{!index}" onclick="{!c.handleEditRequests}" class="slds-hyphenate  slds-size_4-of-12">
+                                                <a sytle="cursor:pointer;">{!reqItems.Responsible__c}</a>       
+                                            </div>
+                                            <div class="slds-hyphenate slds-border_left slds-text-align_center slds-size_5-of-12">
+                                                {!reqItems.Action__c}       
+                                            </div>
+                                        </div>
+                                        <div class="slds-col slds-grid slds-size_7-of-12">
+                                            <div class="slds-hyphenate slds-size_3-of-12">
+                                                {!reqItems.Item_Requested__c}       
+                                            </div>
+                                            <div class="slds-hyphenate slds-text-align_right  slds-size_3-of-12" style="text-align: right;">
+                                                <ui:outputDate value="{!reqItems.Date_Requested__c}" format="M/d/yyyy"/>
+                                            </div>
+                                            <div class="slds-hyphenate   slds-size_2-of-12">
+                                                {!reqItems.Status__c}       
+                                            </div>
+                                            <div class="slds-hyphenate slds-var-p-left_small slds-size_4-of-12">
+                                                {!reqItems.Notes__c}        
+                                            </div>
+                                        </div>
+                                    </div>
+                                </aura:iteration>
+
+                                        <!-- <tr class="slds-grid"> -->
+                                            <!-- <td style="width:30px;" data-row-index="{!index}" onclick="{!c.shownUploadSection}" class="">
+												<lightning:icon iconName="utility:upload" size="small"/>
+                                            </td> -->
+                                            <!-- <td  class="slds-hyphenate  slds-size_1-of-12 ">
+                                                {!reqItems.Req__c}
+                                            </td>
+                                            <td aura:id="reqRowIds" data-row-index="{!index}" onclick="{!c.handleEditRequests}" class="slds-hyphenate  slds-size_2-of-12 ">
+                                                <a sytle="cursor:pointer;">{!reqItems.Responsible__c}</a>       
+                                            </td>
+                                            <td class="slds-hyphenate   slds-size_2-of-12">
+                                                {!reqItems.Action__c}	    
+                                            </td>
+                                            <td class="slds-hyphenate  slds-size_2-of-12 ">
+                                                {!reqItems.Item_Requested__c}	    
+                                            </td>
+                                            <td class="slds-hyphenate   slds-size_2-of-12">
+                                                <ui:outputDate value="{!reqItems.Date_Requested__c}" format="M/d/yyyy"/>
+                                            </td>
+                                            <td class="slds-hyphenate  slds-size_1-of-12 ">
+                                                {!reqItems.Status__c}	    
+                                            </td>
+                                            <td style="padding-left:0.5rem;" class="slds-hyphenate  slds-size_2-of-12 ">
+                                                {!reqItems.Notes__c}	    
+                                            </td> -->
+
+                                            <!-- <td  class=" slds-size_5-of-12 ">
+                                                <div class="slds-grid">
+                                                    <div class="slds-hyphenate slds-border_left slds-text-align_center  slds-size_4-of-12">
+                                                        {!reqItems.Req__c}
+                                                    </div>
+                                                    <div aura:id="reqRowIds" data-row-index="{!index}" onclick="{!c.handleEditRequests}" class="slds-hyphenate slds-border_left slds-text-align_center  slds-size_4-of-12">
+                                                        <a sytle="cursor:pointer;">{!reqItems.Responsible__c}</a>       
+                                                    </div>
+                                                    <div class="slds-hyphenate slds-border_left slds-text-align_center slds-size_4-of-12">
+                                                        {!reqItems.Action__c}       
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="  slds-size_7-of-12 ">
+                                                <div class="slds-grid">
+                                                    <div class="slds-hyphenate slds-size_3-of-12">
+                                                    {!reqItems.Item_Requested__c}       
+                                                    </div>
+                                                    <div class="slds-hyphenate slds-border_left slds-text-align_center  slds-size_3-of-12">
+                                                        <ui:outputDate value="{!reqItems.Date_Requested__c}" format="M/d/yyyy"/>
+                                                    </div>
+                                                    <div class="slds-hyphenate slds-border_left slds-text-align_center  slds-size_3-of-12">
+                                                        {!reqItems.Status__c}       
+                                                    </div>
+                                                    <div class="slds-hyphenate slds-p-left_small slds-border_left slds-text-align_center slds-border_right  slds-size_3-of-12">
+                                                        {!reqItems.Notes__c}        
+                                                    </div>
+                                                </div>
+                                            </td> -->
+
+                                            
+                                 <!--        </tr>
+                                    </aura:iteration> -->
+                                    
+                                    <!--Display if Empty Admission Requirement Records -->
+                                    <aura:if isTrue="{!empty(v.requestItems)}">
+                                        <div>
+                                            <div colspan="{!v.requestItems.length + 7}" class=" slds-cell-buffer_right slds-text-align_center" style="border-right: 1px solid rgb(221, 219, 218);border-left: 1px solid rgb(221, 219, 218);">
+                                                No records found
+                                            </div>
+                                        </div>
+                                    </aura:if>
+                               <!--  </tbody>
+                            </table> -->
+                            </div>
+                        </lightning:card>
+					</aura:if>
+                </div>
+            </lightning:layoutItem>
+        </lightning:layout>
+        
+        <!--Modal Content-->
+        <aura:if isTrue="{!v.requestItemModal}">
+            <c:requestItemModal accountId="{!v.recordId}" currentAdmissionId="{!v.currentAdmissionId}" 
+                    showRequest="{!v.showRequest}" newRI="{!v.newRI}" requestTitle="{!v.requestTitle}" 
+                    requestItemModal="{!v.requestItemModal}"
+                    selectedRequestId="{!v.selectedRequestId}" 
+                    fileRelatedIds="{!v.fileRelatedIds}"
+                    selectedRequirement="{!v.selectedRequirement}"
+                    requestItems="{!v.requestItems}" rowIdx="{!v.rowIdx}" selectedRow="{!v.selectedRow}"/>
+        </aura:if>
+		
+		<!--File Uploading Content-->        
+        <aura:if isTrue="{!v.showUploadModal}">
+            <c:sldsModal aura:id="sldsModal" modalSize='small'>
+                <aura:set attribute="header">
+                	Upload to Request Item
+                </aura:set>
+                <aura:set attribute="content">
+                    <div class="slds-is-relative">
+                        <!--Spinner-->
+                    	<lightning:spinner aura:id="modalSpinner" variant="brand" class="slds-hide"/>
+                    
+                    	<lightning:layout>
+                            <lightning:layoutItem padding="around-small" size="1">
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="3">
+                                <label>
+                                    <div style="font-weight:bold;font-size:14px;">
+                                        Responsible
+                                    </div>
+                                </label>
+                                <lightning:formattedText style="cursor:pointer;" type="text" name="responsible" label="Responsible" value="{!v.uploadRequest.Responsible__c }" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="3">
+                                <label>
+                                    <div style="font-weight:bold;font-size:14px;">
+                                        Action
+                                    </div>
+                                </label>
+                                <lightning:formattedText style="cursor:pointer;" type="text" name="action" label="Action" value="{!v.uploadRequest.Action__c}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="3">
+                                <label>
+                                    <div style="font-weight:bold;font-size:14px;">
+                                        Item Requested
+                                    </div>
+                                </label>
+                                <lightning:formattedText style="cursor:pointer;" type="text" name="itemRequested" label="Item Requested" value="{!v.uploadRequest.Item_Requested__c}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="1">
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                        <lightning:layout>
+                            <!-- <lightning:layoutItem padding="around-small" size="1">
+                            </lightning:layoutItem> -->
+                            <lightning:layoutItem padding="around-small" size="12">
+                                <!-- <c:contentUploader aura:id="contentUploader" parentId="{!v.selectedRequestId}"/> -->
+                                <c:UploadContent recordId="{!v.selectedRequestId}" 
+                                                additionalRelatedIds="{!v.fileRelatedIds}"
+                                                uploadFinished="{!c.hideUploadModal}"
+                                                />
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </div>
+                </aura:set>
+                <aura:set attribute="footer">
+                    <lightning:button variant="Neutral" label="Cancel" onclick="{!c.hideUploadModal}" />
+                    <!-- <lightning:button variant="brand" label="Save File" onclick="{!c.doSave}" /> -->
+                </aura:set>
+            </c:sldsModal>
+        </aura:if>
+    </div>
+</aura:component>

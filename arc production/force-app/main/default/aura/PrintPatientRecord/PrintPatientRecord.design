@@ -1,0 +1,26 @@
+<design:component>
+	<design:attribute
+		name="patientId"
+		label="Patient Id"
+		description="Salesforce Id for patient"/>
+	<design:attribute
+		name="requestId"
+		label="Request Id"
+		description="Salesforce Id for Request"/>
+	<design:attribute
+		name="startDate"
+		label="Start Date"
+		description="Start Date for Printed Medical Request"/>
+	<design:attribute
+		name="endDate"
+		label="End Date"
+		description="End Date for Printed Medical Request"/>
+	<design:attribute
+		name="status"
+		label="Status"
+		description="Status"/>
+	<design:attribute
+		name="patientName"
+		label="Patient Name"
+		description="Patient Name"/>
+</design:component>

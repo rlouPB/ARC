@@ -1,0 +1,36 @@
+<aura:component
+  implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickActionwithoutheader,lightning:actionOverride"
+>
+  <aura:handler
+    event="c:MessageEvent"
+    action="{!c.handleMessageEvent}"
+  ></aura:handler>
+  <aura:registerevent
+    name="messageEvent"
+    type="c:MessageEvent"
+  ></aura:registerevent>
+  <lightning:overlayLibrary aura:id="overlayLibMsgConfirm" />
+  <!-- <ltng:require styles="{!$Resource.arcPortalStyles}" /> -->
+
+  <lightning:layout verticalAlign="cente    r" multipleRows="true">
+    <lightning:layoutItem size="12" padding="around-small">
+      <p>Are you sure you want to cancel? Any unsaved changes will be lost</p>
+    </lightning:layoutItem>
+    <lightning:layoutItem size="6" padding="around-small">
+      <lightning:button
+        name="discard"
+        variant="destructive"
+        label="Discard Changes"
+        onclick="{!c.handleDiscard}"
+      />
+    </lightning:layoutItem>
+    <lightning:layoutItem size="6" padding="around-small">
+      <lightning:button
+        name="back"
+        variant="Neutral"
+        label="Go back to my message"
+        onclick="{!c.handleBack}"
+      />
+    </lightning:layoutItem>
+  </lightning:layout>
+</aura:component>

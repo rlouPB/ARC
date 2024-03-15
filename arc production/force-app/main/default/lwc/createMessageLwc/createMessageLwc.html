@@ -1,0 +1,57 @@
+<template>
+    <lightning-layout >
+        <lightning-layout-item size="6">
+            <lightning-layout >
+                <lightning-layout-item size="12"> 
+                    <c-custom-lookup-lwc 
+                        label="User"
+                        sobject-type="User"
+                        field-name="Name"
+                        placeholder="search..."                            
+                        selection-mode="eventonly"
+                        onrecordselected={onUserSelected}
+                        ></c-custom-lookup-lwc>
+
+                        <lightning-pill-container items={userItems} onitemremove={handleUserRemove}></lightning-pill-container>
+
+                </lightning-layout-item>
+                <!-- <lightning-layout-item size="6">
+                </lightning-layout-item> -->
+            </lightning-layout>
+        </lightning-layout-item>
+        <lightning-layout-item size="6">
+            <lightning-layout >
+                <lightning-layout-item size="12"> 
+                    <c-custom-lookup-lwc 
+                        label="Group"
+                        sobject-type="Group__c"
+                        field-name="Name"
+                        placeholder="search..."                             
+                        selection-mode="eventonly" 
+                        onrecordselected={onGroupSelected}
+                        ></c-custom-lookup-lwc>
+
+                        <lightning-pill-container items={groupItems} onitemremove={handleGroupRemove}></lightning-pill-container>
+
+                </lightning-layout-item>
+                <!-- <lightning-layout-item size="12">
+                </lightning-layout-item> -->
+            </lightning-layout>
+        </lightning-layout-item>
+    </lightning-layout>
+
+    <lightning-layout >
+        <lightning-layout-item size="12">
+            <lightning-input label="Subject" onchange={subjectChanged}></lightning-input>
+        </lightning-layout-item>
+    </lightning-layout>
+
+    <br/>
+
+    <lightning-layout >
+        <lightning-layout-item size="12">
+            <lightning-input-rich-text onchange={bodyChanged}></lightning-input-rich-text>
+        </lightning-layout-item>
+    </lightning-layout>
+
+</template>

@@ -1,0 +1,29 @@
+<aura:component implements="force:lightningQuickActionWithoutHeader,force:hasRecordId" controller="ManageAssignedClinicianController" >
+  <!--  <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:attribute name="caseTeamMembers" type="List"/>
+    <aura:attribute name="caseTeamMembersRoles" type="List"/>
+    <aura:attribute name="recordId" type="String"/>
+    
+    <aura:handler name="selectedItemEvent" event="c:selectedItemEvent" action="{!c.addMember}"/>
+    <aura:handler name="removedItemEvent" event="c:removedItemEvent" action="{!c.removeMember}"/>
+    <div class="list-of-clinicians" style="height: 700px;">
+        <table>
+            <thead>
+                <th>Member Name</th>
+                <th>Member Role</th>
+            </thead>
+            <tbody>
+               
+                <aura:iteration items="{!v.caseTeamMembers}" indexVar="index" var="item">
+                    <c:SubManageAssignedClinician caseTeamMember="{!item}" rowNumber="{!index}" caseTeamMembersRoles="{!v.caseTeamMembersRoles}"/>
+                </aura:iteration>
+          
+                
+            </tbody>
+        </table>
+  
+    </div>
+    
+    
+    <lightning:icon iconName="utility:add" alternativeText="New Member" size="small" onclick="{!c.addMember}"/>-->
+</aura:component>

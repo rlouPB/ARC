@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+	<masterLabel>Patient Chart: At a glance</masterLabel>
+	<description>Enter up to four numeric fields for an 'at a glance' representation of a patient-related record.</description>
+	<apiVersion>55.0</apiVersion>
+	<isExposed>true</isExposed>
+	<targets>
+		<target>lightning__AppPage</target>
+		<target>lightning__HomePage</target>
+		<target>lightning__RecordPage</target>
+	</targets>
+	<targetConfigs>
+		<targetConfig targets="lightning__AppPage,lightning__HomePage,lightning__RecordPage">
+			<property
+				name="objectName"
+				default="Physical_Monitor__c"
+				description="*** Required. The object containing the picklist to be aggregated on the chart. ***"
+				label="Object Name"
+				type="String"/>
+			<property
+				name="fieldName1"
+				default="BMI__c"
+				description="Required. The first field to be represented on the chart."
+				label="Field Name 1"
+				type="String"/>
+			<property
+				name="fieldName2"
+				description="Optional. The second field to be represented on the chart."
+				label="Field Name 2"
+				type="String"/>
+			<property
+				name="fieldName3"
+				description="Optional. The third field to be represented on the chart."
+				label="Field Name 3"
+				type="String"/>
+			<property
+				name="fieldName4"
+				description="Optional. The fourth field to be represented on the chart."
+				label="Field Name 4"
+				type="String"/>
+			<property
+				name="patientField"
+				default="Account__c"
+				description="*** Required. The object field containing the reference to the patient record. This field is usually named Account__c, Patient__c, AccountId, or a variation thereof. ***"
+				label="Patient ID Field"
+				type="String"/>
+			<property
+				name="showPatientName"
+				default="false"
+				description="Check to display the patient's name under the chart title."
+				label="Show Patient Name"
+				type="Boolean"/>
+			<property
+				name="dateField"
+				default="Reporting_Date__c"
+				description="Optional.  The date field from the SObject that will be used as the chart's milestone (i.e. Reporting_Date__c on Physical_Monitor__c SObject."
+				label="Date Field"
+				type="String"/>
+			<property
+				name="asOfDate"
+				description="Optional.  The date field from the SObject that will be used to determine the chart's milestone date. Leave blank for the latest metrics."
+				label="As of Date"
+				placeholder="xx/xx/xxxx"
+				type="String"/>
+			<property
+				name="chartTitle"
+				default="Patient Specific Chart"
+				description="*** Optional. Represents the chart's title. Default is 'Patient Specific Chart'. ***"
+				label="Chart Title"
+				type="String"/>
+			<property
+				name="iconName"
+				default="standard:chart"
+				description="*** SLDS icon to use alongside the Chart Title.  Default is standard:chart.  See https://www.lightningdesignsystem.com/icons/ for more info on SLDS icons. ***"
+				label="Title Icon"
+				type="String"/>
+		</targetConfig>
+	</targetConfigs>
+</LightningComponentBundle>

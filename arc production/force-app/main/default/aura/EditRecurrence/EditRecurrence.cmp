@@ -1,0 +1,217 @@
+<aura:component controller="EditMeetingCtl" implements="force:hasRecordId">
+	<aura:attribute name="instanceName" type="String" />
+	<aura:attribute name="oldRecurrenceRecord" type="Object"/>
+	<aura:attribute name="recurrence" type="Map"/>
+	<aura:attribute name="recurrenceRecord" type="Map"/>
+	<aura:attribute name="recordError" type="String" default=""/>
+	<aura:attribute name="recurrencePatternList" type="List"/>
+    <aura:attribute name="dailyOptionList" type="List"/>
+    <aura:attribute name="recurrencePatternSubList" type="List"/>
+    <aura:attribute name="selectedRecurrencePatternSub" type="String"/>
+	<aura:attribute name="recurrenceText" type="String" default=""/>
+	<aura:attribute name="weekdays" type="List"/>
+    <aura:attribute name="months" type="List"/>
+    <aura:attribute name="weekdayList" type="List"/>
+    <aura:attribute name="selectedMonth" type="String"/>
+    <aura:attribute name="selectedWeekday" type="String"/>
+	<aura:attribute name="endTypeList" type="List"/>
+	<aura:attribute name="isSaved" type="Boolean" default="false"/>
+    <aura:attribute name="isDirty" type="Boolean" default="false"/>
+
+	<aura:attribute name="monthDayTypeOptions" type="List" default="[
+		{'label': 'Specific Date', 'value': 'Day Number'},
+		{'label': 'Day of Week', 'value': 'Day of Week'}
+	]" />
+	
+	<!-- <aura:attribute name="monthlyDayType" type="String" default="dayNumber" description="Either dayNumber or dayOfWeek" />
+	<aura:attribute name="monthlyDayOfWeek" type="String" default="Monday" description="day of week for monthly recurrence" />
+	<aura:attribute name="monthlyDayOfWeekOrdinal" type="String" default="1st" description="Which weekday for monthly recurrence dayOfWeek e.g. 1st Tuesday" /> -->
+
+	<aura:method name="saveRecurrence" action="{!c.handleSave}"/>
+	<aura:method name="cancelRecurrence" action="{!c.handleCancel}"/>
+
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+	<aura:handler name="change" value="{!v.recurrenceRecord.Recurrence_Pattern__c}" action="{!c.handleRecurrencePatternChange}"/>
+	<aura:handler name="change" value="{!v.weekdays}" action="{!c.handleWeekdaysChange}"/>
+
+	<!-- <force:recordData aura:id="recordEditor"
+		mode="EDIT"
+		layoutType="FULL"
+		recordId="{!v.recordId}"
+		targetFields="{!v.recurrenceRecord}"
+		targetError="{!v.recordError}"
+		recordUpdated="{!c.handleRecordUpdated}"/> -->
+
+	<div class="wrapper" onchange="{!c.handleIsDirty}">
+		<aura:if isTrue="{!not(empty(v.recordError))}">
+	        <div class="record-error slds-text-heading_medium slds-text-align_center">
+	            {!v.recordError}
+	        </div>
+	    </aura:if>
+		<lightning:layout multipleRows="true">
+			<lightning:layoutItem size="12">
+				<lightning:layout multipleRows="true" class="slds-grid_align-center">
+					<lightning:layoutItem size="2" class="slds-p-top_small">
+						<lightning:radioGroup aura:id="recurrenceField" class="recurrence-pattern" name="recurrencePattern" label="How often does this meeting repeat" 
+							options="{!v.recurrencePatternList}" value="{!v.recurrenceRecord.Recurrence_Pattern__c}" type="radio"/>
+					</lightning:layoutItem>
+
+					<lightning:layoutItem size="8" class="left-padding">
+						<lightning:layout multipleRows="true" class="slds-grid_align-center">
+                            <aura:if isTrue="{!v.recurrenceRecord.Recurrence_Pattern__c == 'Daily'}">
+                                <lightning:layoutItem size="12" class="slds-p-top_small">
+                                	<lightning:radioGroup aura:id="recurrenceField" class="daily-options" name="dailyOptions" label="" 
+										options="{!v.dailyOptionList}" value="{!v.recurrenceRecord.Daily_Option__c}" type="radio"/>
+                                </lightning:layoutItem>
+                            </aura:if>
+							
+							<aura:if isTrue="{!v.recurrenceRecord.Recurrence_Pattern__c == 'Weekly'}">
+                                <lightning:layoutItem size="12">
+									<div>
+										Recur every 
+										<lightning:input aura:id="recurrenceField" class="inline-input customRequired" label="" type="number" name="recurEvery" 
+											value="{!v.recurrenceRecord.Recur_every__c}" required="true"/> 
+										
+										&nbsp;{!if(or(v.recurrenceRecord.Recur_every__c == 1, v.recurrenceRecord.Recur_every__c == '1'), ' week', ' weeks')} on
+									</div>
+                                </lightning:layoutItem>
+                                <lightning:layoutItem size="12">
+                                    <c:MultiSelectCheckbox class="weekdays-checkbox" name="weekdaysCheckbox" label="" objectName="Recurrence__c" fieldName="Weekdays__c" value="{!v.weekdays}"/>
+                                </lightning:layoutItem>
+                            </aura:if>
+							
+							<aura:if isTrue="{!v.recurrenceRecord.Recurrence_Pattern__c == 'Monthly'}">
+                            	<lightning:layoutItem size="12" class="slds-p-top_small" >
+									<lightning:layout >
+										<lightning:layoutItem size="3">
+											<lightning:radioGroup aura:id="recurrenceField" name="monthlyDayType" label="Which day each month" 
+													options="{!v.monthDayTypeOptions}" type="radio" value="{!v.recurrenceRecord.Monthly_Day_Type__c}">
+											</lightning:radioGroup>
+										</lightning:layoutItem>
+										
+										<aura:if isTrue="{!v.recurrenceRecord.Monthly_Day_Type__c == 'Day Number'}" >
+											<lightning:layoutItem size="6">
+												Day <lightning:input aura:id="recurrenceField" class="inline-input customRequired" label="" type="number" 
+												name="monthlyDayNumber" value="{!v.recurrenceRecord.Monthly_Day_Number__c}" required="true"/> 
+											
+												&nbsp;every&nbsp;
+												<lightning:input aura:id="recurrenceField" class="inline-input customRequired" label="" type="number" 
+													name="monthNumber" value="{!v.recurrenceRecord.Month_Number__c}" required="true"/> 
+													
+												&nbsp;{!if(or(v.recurrenceRecord.Month_Number__c == 1, v.recurrenceRecord.Month_Number__c == '1'), ' month', ' months')}
+											</lightning:layoutItem>
+										</aura:if>
+
+										<aura:if isTrue="{!v.recurrenceRecord.Monthly_Day_Type__c == 'Day of Week'}" >
+											
+											<lightning:layoutItem size="2" class="slds-p-horizontal_small">
+												<!-- The  -->
+												<lightning:select aura:id="recurrenceField" class="customRequired" label="" 
+														name="monthlyDayOfWeekOrdinal" value="{!v.recurrenceRecord.Monthly_Day_Of_Week_Ordinal__c}" required="true">
+													
+													<option value="1">The 1st</option>
+													<option value="2">The 2nd</option>
+													<option value="3">The 3rd</option>
+													<option value="4">The 4th</option>
+													<option value="5">The 5th</option>
+												</lightning:select>
+											</lightning:layoutItem>
+
+											<lightning:layoutItem size="2" class="slds-p-horizontal_small">
+												<lightning:select aura:id="recurrenceField" class="customRequired" label="" 
+														name="monthlyDayOfWeek"  value="{!v.recurrenceRecord.Monthly_Day_Of_Week__c}" required="true">
+														
+													<option value="Monday" label="Monday" />
+													<option value="Tuesday">Tuesday</option>
+													<option value="Wednesday">Wednesday</option>
+													<option value="Thursday">Thursday</option>
+													<option value="Friday">Friday</option>
+													<option value="Saturday">Saturday</option>
+													<option value="Sunday">Sunday</option>
+												</lightning:select>
+											</lightning:layoutItem>
+											
+											<lightning:layoutItem size="5" >
+												every&nbsp; 
+												<lightning:input aura:id="recurrenceField" class="inline-input customRequired" label="" type="number" 
+														name="monthNumber" value="{!v.recurrenceRecord.Month_Number__c}" required="true"/> 
+														
+													&nbsp;{!if(or(v.recurrenceRecord.Month_Number__c == 1, v.recurrenceRecord.Month_Number__c == '1'), ' month', ' months')}
+											</lightning:layoutItem>
+
+										</aura:if>
+											
+										
+									</lightning:layout>
+								</lightning:layoutItem>
+                            </aura:if>
+							
+							<aura:if isTrue="{!v.recurrenceRecord.Recurrence_Pattern__c == 'Yearly'}">
+                            	<lightning:layoutItem size="12" class="slds-p-top_small">
+                                    <lightning:layout class="hide-label">
+                                        <!-- <lightning:layoutItem size="3" class="on-text">
+                                            On 
+                                        </lightning:layoutItem> -->
+                                        <lightning:layoutItem size="2">
+											<div class="slds-p-right_small">
+												<lightning:select name="month" label="" value="{!v.recurrenceRecord.Yearly_Month__c}">
+													<aura:iteration items="{!v.months}" var="option">
+														<option text="{!option.label}" value="{!option.id}" selected="{!option.selected}"/>
+													</aura:iteration>
+												</lightning:select>
+											</div>
+                                        </lightning:layoutItem>
+                                        <lightning:layoutItem size="7">
+											<lightning:input aura:id="recurrenceField" style="margin-left: 3px;" class="inline-input customRequired" label="" type="number" 
+												name="yearlyDayNumber" value="{!v.recurrenceRecord.Yearly_Day_Number__c}" required="true"/> 
+												&nbsp;every year
+                                        </lightning:layoutItem>
+                                    </lightning:layout>
+                                </lightning:layoutItem>
+							</aura:if>
+							
+						</lightning:layout>
+					</lightning:layoutItem>
+				</lightning:layout>
+
+			</lightning:layoutItem>
+
+			<lightning:layoutItem size="12">
+				<lightning:layout multipleRows="true" class="slds-grid_align-center">
+					<lightning:layoutItem size="2"></lightning:layoutItem>
+					<lightning:layoutItem size="8">
+						<div class="label">Starting and Ending</div>
+					</lightning:layoutItem>
+					<lightning:layoutItem size="2"></lightning:layoutItem>
+					<lightning:layoutItem size="3" class="slds-p-left_large">
+						<lightning:input aura:id="recurrenceField" type="date" label="Start Date" value="{!v.recurrenceRecord.Start_Date__c}" readonly="true"/>
+					</lightning:layoutItem>
+					<lightning:layoutItem size="5" class="left-padding">
+                        <lightning:layout>
+                        	<lightning:layoutItem size="4">
+                            	<lightning:radioGroup aura:id="recurrenceField" name="endType"
+									options="{!v.endTypeList}" class="end-type" value="{!v.recurrenceRecord.End_Type__c}" type="radio"/>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="8">
+                                <aura:if isTrue="{!v.recurrenceRecord.End_Type__c == 'End By Date'}">
+                                    <lightning:input aura:id="recurrenceField" class="customRequired hide-label" type="date" label="" value="{!v.recurrenceRecord.End_By__c}" onchange="{!c.handleEndDateChange}" required="true" min="{!v.recurrenceRecord.Start_Date__c}"/>
+                                </aura:if>
+                                <aura:if isTrue="{!v.recurrenceRecord.End_Type__c == 'End After Occurrences'}">
+									<div>
+										<lightning:input aura:id="recurrenceField" class="inline-input customRequired" label="" type="number" name="numberOfOccurrences" 
+												value="{!v.recurrenceRecord.Number_of_Occurrences__c}" required="true"/> 
+										occurrences
+									</div>
+                                </aura:if>
+                            </lightning:layoutItem>
+                        </lightning:layout>
+						
+					</lightning:layoutItem>
+				</lightning:layout>
+			</lightning:layoutItem>
+		</lightning:layout>
+	</div>
+    
+	<lightning:notificationsLibrary aura:id="notifLib"/>
+
+</aura:component>

@@ -1,0 +1,244 @@
+<aura:component controller="AdmissionRequirementManagementController" extends="c:ApexService" implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId" access="global">
+    
+    <!--Attributes-->
+	<!--Lookup-->
+    <aura:attribute name="requirementSearchOptions" type="List" default="[]" access="public" />
+    <aura:attribute name="requirementSearchFilter" type="List" default="[]" access="public" />
+    <aura:attribute name="callerSearchOptions" type="List" default="[]" access="public" />
+    <aura:attribute name="callerSearchFilter" type="List" default="[]" access="public" />
+    <aura:attribute name="userSearchOptions" type="List" default="[]" access="public" />
+    <aura:attribute name="userSearchFilter" type="List" default="[]" access="public" />
+    
+    <!--SObject Instance-->
+    <aura:attribute name="newRI" type="Request_Item__c" access="public" default="{'sobjectType':'Request_Item__c','Responsible_Contact__c':'','Action__c':'','Item_Requested__c':'','Date_Requested__c':null,'Date_Confirmed__c':null,'Status__c':'Open','Notes__c':'','Admissions_Requirement__c':''}"/>
+	<aura:attribute name="selectedRequirement" type="Admissions_Requirement__c" access="public" description="sObject from selected row for new RI" />
+
+    <aura:attribute name="fileRelatedIds" type="List" default="[]" description="Ids of records to relate any uploaded file to" />
+    <aura:attribute name="requestItems" type="List" default="[]" access="public"/>
+    <aura:attribute name="contentVersions" type="List" default="[]" access="public"/>
+    <aura:attribute name="modalSize" type="String" default="" access="public"/>
+    <aura:attribute name="requestTitle" type="String" default="Edit Request Item" access="public"/>
+    <aura:attribute name="requestItemModal" type="boolean" default="false" access="public"/>
+    <aura:attribute name="selectedRow" type="String" access="public"/>
+    <aura:attribute name="rowIdx" type="Integer" access="public"/>
+    <aura:attribute name="showRequest" type="Boolean" default="false" access="public"/>
+    <aura:attribute name="recordId" type="String" description="Holds a Account Record Id"/>
+    <aura:attribute name="requestId" type="String" default="" access="public"/>
+    <aura:attribute name="selectedRequestId" type="String" access="public"/>
+    <aura:attribute name="accountId" type="String" access="public"/>
+    <aura:attribute name="currentAdmissionId" type="String" access="public"/>
+    
+    <aura:attribute name="attachFlag" type="boolean" default="false" access="public"/>
+    
+    <aura:attribute name="requiredFields" type="Object" default="{}" access="public" />
+    <aura:attribute name="errorMessage" type="String" default="" description="Error Message to show" />
+
+    <!--handler-->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <!-- <aura:handler name="refreshContentVersions" event="c:refreshRelatedList"
+                action="{!c.handleRefreshRelatedList}"/> -->
+
+    
+    <aura:registerEvent name="closeModalView" type="c:closeModal" />
+
+    <!--File Upload Attributes-->
+    <aura:attribute name="fileName" type="String" default="No File Selected.." />
+    <!--Notification Lib-->
+    <lightning:notificationsLibrary aura:id="notifLib"/>
+    
+    <!--Request Item modal-->
+    <aura:if isTrue="{!v.showRequest}">
+        <c:sldsModal aura:id="sldsModal" modalSize='small'>
+            <aura:set attribute="header">
+                {!v.requestTitle}
+            </aura:set>
+            <aura:set attribute="content">
+                <div class="slds-is-relative">
+                    <!--Spinner-->
+                    <lightning:spinner aura:id="modalSpinner" variant="brand" class="slds-hide"/>
+                    
+                    <lightning:recordEditForm objectApiName="Request_Item__c" aura:id="newRequestId" onload="{!c.handleDate}">
+                        <div class="slds-section slds-is-open">
+                            <h3 class="slds-section__title">
+                                <button aria-controls="expando-unique-id" aria-expanded="true" class="slds-button slds-section__title-action">
+                                    <span class="slds-truncate" title="Section Title">Request Item</span>
+                                </button>
+                            </h3>
+                            
+                            <div aria-hidden="false" class="slds-section__content" id="expando-unique-id">
+                                <lightning:layout multipleRows="true">
+                                    <lightning:layoutItem padding="around-small" size="6">
+                                        <!-- <lightning:inputField fieldName="Admissions_Requirement__c" value="{!v.newRI.Admissions_Requirement__c}" 
+                                                class="customRequired" onchange="{!c.onFieldChange}"/> -->
+                                        <!-- <c:LookupComponent additionalOptions="{!v.requirementSearchOptions}" 
+                                                label="Admissions Requirement" objectName="Admissions_Requirement__c" 
+                                                fieldsToSearch="Name" displayField="Name" displayFieldValue="Id"
+                                                lookupFieldName="{!v.newRI.Admissions_Requirement__c}" 
+                                                filters="{!v.requirementSearchFilter}"
+                                                maxQuickSearchRows="10"/> -->
+                                        <c:LookupComponent additionalOptions="{!v.requirementSearchOptions}" 
+                                            label="Admissions Requirement" 
+                                            objectName="Admissions_Requirement__c" 
+                                            fieldsToSearch="Name" 
+                                            displayField="Name" 
+                                            displayFieldValue="Id"
+                                            lookupFieldName="{!v.newRI.Admissions_Requirement__c}" 
+                                            filters="{!v.requirementSearchFilter}"
+                                            required="true"
+                                            minimumSearchTextLength="0"
+                                            maxQuickSearchRows="10"/>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem padding="around-small" size="6">
+                                    </lightning:layoutItem>
+
+                                    <lightning:layoutItem padding="around-small" size="6">
+                                        <lightning:inputField fieldName="Action__c" value="{!v.newRI.Action__c}" 
+                                                class="{!v.requiredFields.Action__c.required ? 'customRequired' : ''}" onchange="{!c.onFieldChange}"/>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem padding="around-small" size="6">
+                                        <lightning:inputField fieldName="Status__c" value="{!v.newRI.Status__c}" 
+                                                class="{!v.requiredFields.Status__c.required ? 'customRequired' : ''}" onchange="{!c.onFieldChange}"/>
+                                    </lightning:layoutItem>
+                                    
+                                    <lightning:layoutItem padding="around-small" size="6">
+                                        <lightning:inputField fieldName="Item_Requested__c" value="{!v.newRI.Item_Requested__c}" 
+                                                class="{!v.requiredFields.Item_Requested__c.required ? 'customRequired' : ''}" onchange="{!c.onFieldChange}"/>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem padding="around-small" size="6">
+                                        <lightning:inputField fieldName="Date_Requested__c" value="{!v.newRI.Date_Requested__c}" 
+                                                class="{!v.requiredFields.Date_Requested__c.required ? 'customRequired' : ''}" onchange="{!c.onFieldChange}"/>
+                                    </lightning:layoutItem>
+                                    
+                                    <lightning:layoutItem size="6"/>
+                                    <lightning:layoutItem padding="around-small" size="6">
+                                        <lightning:inputField aura:id="dateConfirmed" fieldName="Date_Confirmed__c" value="{!v.newRI.Date_Confirmed__c}" 
+                                                class="{!v.requiredFields.Date_Confirmed__c.required ? 'customRequired' : ''}" onchange="{!c.onFieldChange}"/>
+                                    </lightning:layoutItem>
+
+                                    
+                                    <lightning:layoutItem padding="around-small" size="6">
+                                        <!-- <lightning:inputField label="ARC User" fieldName="Responsible_User__c" value="{!v.newRI.Responsible_User__c}" onchange="{!c.onFieldChange}"/> -->
+                                        
+                                        <c:LookupComponent aura:id="userLookup" 
+                                                           additionalOptions="{!v.userSearchOptions}" 
+                                                           displayField="Name" 
+                                                           allowFreeText="false" 
+                                                           lookupFieldName="{!v.newRI.Responsible_User__c}" 
+                                                           filters="{!v.userSearchFilter}" 
+                                                           label="Responsible User" 
+                                                           displayFieldValue="Id" 
+                                                           objectName="User" 
+                                                           fieldsToSearch="Name"
+                                                           minimumSearchTextLength="0"
+                                                           splitSearchTextBySeperator="true"/> 
+                                    </lightning:layoutItem>
+
+                                    <lightning:layoutItem padding="around-small" size="6">
+                                        <c:LookupComponent aura:id="contactLookup" additionalOptions="{!v.callerSearchOptions}" 
+                                                           displayField="Contact_Name__c" allowFreeText="false" 
+                                                           lookupFieldName="{!v.newRI.Responsible_Contact__c}" 
+                                                           filters="{!v.callerSearchFilter}" label="Responsible Contact" displayFieldValue="Contact__c" objectName="Related_Contact__c" fieldsToSearch="Contact_Name__c"
+                                                           minimumSearchTextLength="0"
+                                                           splitSearchTextBySeperator="true"/> 
+                                    </lightning:layoutItem>
+                                    
+                                    <lightning:layoutItem padding="around-small" size="12">
+                                        <lightning:inputField fieldName="Notes__c" value="{!v.newRI.Notes__c}" onchange="{!c.onFieldChange}"/>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem padding="around-small" size="6">
+                                        <lightning:inputField fieldName="Institution_Type__c" value="{!v.newRI.Institution_Type__c}" onchange="{!c.onFieldChange}"/>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem padding="around-small" size="6">
+                                        <lightning:inputField fieldName="Institution_Type_Comment__c" value="{!v.newRI.Institution_Type_Comment__c}" onchange="{!c.onFieldChange}"/>
+                                    </lightning:layoutItem>
+                                </lightning:layout>
+                            </div>
+                        </div>
+                        <!--Attachments Section-->
+                        <div class="slds-section slds-is-open">
+                            <aura:if isTrue="{!v.attachFlag}">
+                                <h3 class="slds-section__title">
+                                    <button aria-controls="expando-unique-id" aria-expanded="true" class="slds-button slds-section__title-action">
+                                        <span class="slds-truncate" title="Section Title">Available Files</span>
+                                    </button>
+                                </h3>
+                                <div aria-hidden="false" class="slds-section__content" id="expando-unique-id">
+                                    <article class="slds-card">
+                                        <div class="slds-card__body slds-card__body_inner">
+                                            <ul class="slds-grid slds-wrap slds-grid_pull-padded">
+                                                <aura:iteration items="{!v.contentVersions}" var="conts">
+                                                    <li class="slds-p-horizontal_small slds-size_1-of-1 slds-medium-size_1-of-3">
+                                                        <article class="slds-tile slds-media slds-card__tile slds-hint-parent">
+                                                            <div class="slds-media__figure">
+                                                                <lightning:icon iconName="utility:attach" size="small"/>
+                                                            </div>
+                                                            <div class="slds-media__body">
+                                                                <div class="slds-grid slds-grid_align-spread slds-has-flexi-truncate">
+                                                                    <h3 class="slds-tile__title slds-truncate" title="{!conts.Title}">
+                                                                        <a data-id="{!conts.ContentDocumentId}" target="_top" href="" onclick="{!c.downloadFile}">{!conts.Title}</a>
+                                                                    </h3>
+                                                                </div>
+                                                                <div class="slds-tile__detail">
+                                                                    <dl class="slds-list_horizontal slds-wrap" style="font-size:11px;">
+                                                                        <dt class="slds-item_label slds-text-color_weak slds-truncate" title="Created Date">
+                                                                            <ui:outputDate value="{!conts.CreatedDate}"/>
+                                                                        </dt>
+                                                                        <dd class="slds-item_detail slds-truncate" title="File Type">{!conts.FileType}</dd>
+                                                                    </dl>
+                                                                </div>
+                                                            </div>
+                                                        </article>
+                                                    </li>
+                                                </aura:iteration>
+                                            </ul>
+                                        </div>
+                                        <footer class="slds-card__footer"/>
+                                    </article>
+                                </div>
+                            </aura:if>
+                        </div>
+                        <aura:if isTrue="{!v.newRI.Id}" >
+                            <div class="slds-section slds-is-open">
+                                <h3 class="slds-section__title">
+                                    <button aria-controls="expando-unique-id" aria-expanded="true" class="slds-button slds-section__title-action">
+                                        <span class="slds-truncate" title="Section Title">Upload File</span>
+                                    </button>
+                                </h3>
+                                <div aria-hidden="false" class="slds-section__content" id="expando-unique-id">
+                                    <lightning:layout>
+                                        <!-- <lightning:layoutItem padding="around-small" size="3">
+                                        </lightning:layoutItem> -->
+                                        <lightning:layoutItem padding="around-small" size="12">
+                                            <!-- <c:contentUploader aura:id="contentUploader" parentId="{!v.selectedRequestId}"/> -->
+                                            <c:UploadContent recordId="{!v.selectedRequestId}" 
+                                                            additionalRelatedIds="{!v.fileRelatedIds}"
+                                                            disabled="false" 
+                                                            uploadFinished="{!c.handleRefreshRelatedList}"
+                                                            />
+
+                                        </lightning:layoutItem>
+                                        <!-- <lightning:layoutItem padding="around-small" size="3"/> -->
+                                    </lightning:layout>
+                                </div>
+                            </div>
+                        </aura:if>
+                    </lightning:recordEditForm>
+                </div>
+
+                <aura:if isTrue="{!v.newRI.Id}" >
+                    <div>
+                        <c:LightningHistory sObjectName="Request_Item__c" recordId="{!v.newRI.Id}" />
+                    </div>
+                </aura:if>
+
+            </aura:set>
+            <aura:set attribute="footer">
+                <lightning:button variant="Neutral" label="Cancel" onclick="{!c.toggleModal}" />
+                <lightning:button variant="brand" label="Save and Close" onclick="{!c.saveAndClose}" />
+                <aura:if isTrue="{!!v.newRI.Id}">
+                    <lightning:button variant="brand" label="Save and Upload" onclick="{!c.saveAndUpload}" />
+                </aura:if>
+            </aura:set>
+        </c:sldsModal>
+    </aura:if>
+</aura:component>

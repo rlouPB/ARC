@@ -1,0 +1,96 @@
+.THIS .SearchText {
+    
+    font-size: 16px;
+    font-weight: normal;
+    color: black;
+}
+
+.THIS .slds-box {
+    padding-right: 0px;
+}
+
+.THIS .searchSetup {
+    padding-left: 2%;
+}
+
+.THIS.slds-spinner_container {  
+  z-index: 10000;
+  position: fixed;   
+}
+
+.THIS .tree {
+    
+    font-size: 14px;
+    max-height: 55vh;
+    overflow: auto;
+    
+
+}
+
+.THIS .slds-tree__item{
+    
+    width: 275%;
+    
+}
+
+.THIS .oneFlexipage {
+    padding-bottom: 0rem;
+    
+}
+
+.THIS .oneRecordHomeFlexipage {
+    margin-bottom: none; 
+    padding-bottom: 0rem;
+       
+}
+/*
+.THIS .slds-tree {
+    
+    font-weight: bold;
+}
+*/
+
+.THIS [role='group'] {
+    
+    font-weight: normal;
+}
+
+.THIS .slds-template__container {
+    overflow-y: hidden!important;
+    padding: .75rem;
+}
+
+.THIS .slds-card {
+    padding-top: 10px; 
+}
+
+.THIS .slds-lookup__menu {
+    width: 35%;
+}
+
+.THIS .select-admission-file .slds-form-element__label {
+    font-size : 16px;
+    font-weight: normal;
+    color: black;
+}
+
+.THIS .slds-form-element__control .form-element__label span {
+    font-size : 16px;
+    font-weight: normal;
+    color: black;
+}
+
+.THIS .tree {
+    height: 100%;
+    font-size: 14px;
+    max-height: 65vh;
+    overflow: auto;
+}
+
+.THIS .slds-scope .slds-p-around_large {
+    height: 100%;
+}
+
+.THIS .cPrintPatientRecord .slds-box {
+    height: 100%;
+}

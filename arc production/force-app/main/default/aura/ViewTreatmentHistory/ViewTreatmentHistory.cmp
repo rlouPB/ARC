@@ -1,0 +1,140 @@
+<aura:component controller="ViewTreatmentHistoryCtl" extends="c:ApexService" implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickActionwithoutheader,lightning:actionOverride">
+    <aura:attribute name="recordId" type="String" description="Patient Id" />
+    <aura:attribute name="loading" type="Boolean" default="true" access="public" />
+    <aura:attribute name="viewOptionSetList" type="List" description="List of View Option Sets available for this Context." />
+    <aura:attribute name="currentViewOptionSet" type="Map" description="The currently selected View Option Set." />
+    <aura:attribute name="currentViewOptionSetId" type="String" description="The currently selected View Option Set Id." />
+    <aura:attribute name="context" type="String" default="ViewTreatmentHistory" description="The context used to find View Option Sets." />
+    <aura:attribute name="selectedDateRange" type="String" description="Selected Date Range" default="6" />
+    <aura:attribute name="dateRangeOptions" type="List" description="List of date range options." default="[
+    {'label':'Last 6 weeks','value':'6'},
+    {'label':'Last 2 weeks','value':'2'},
+    {'label':'Custom','value':'Custom'},
+    {'label':'All Time','value':'9999'}
+    ]" />
+    <aura:attribute name="customStartDate" type="Date" description="Custom start date." />
+    <aura:attribute name="customEndDate" type="Date" description="Custom end date." />
+    <aura:attribute name="historyItemIdMap" type="Map" description="History Item Map(by Id) built by Treatment History Definition." />
+    <aura:attribute name="columns" type="List" description="Item columns." />
+    <aura:attribute name="data" type="Map" description="Datatable data." />
+    <aura:attribute name="treatmentHistory" type="Map" description="Treatment History." />
+    <aura:attribute name="selectedRecordId" type="String" description="Selected record Id." />
+    <aura:attribute name="selectedRecordObjectName" type="String" description="Selected record object name." />
+    <aura:attribute name="sidebarExpanded" type="Boolean" default="true" description="If true, full sidebar is expanded" />
+    <aura:attribute name="defaultSortDirection" type="String" default="asc"></aura:attribute>
+    <aura:attribute name="sortDirection" type="String" default="desc"></aura:attribute>
+    <aura:attribute name="sortedBy" type="String" default="itemDate"></aura:attribute>
+
+    <!-- Register Event -->
+    <aura:registerEvent name="TreatmentHistorySelectedEvent" type="c:TreatmentHistorySelectedEvent" />
+
+    <!-- Handlers -->
+    <aura:handler name="init" value="{!this}" action="{! c.doInit}" />
+    <aura:handler name="change" value="{!v.currentViewOptionSet}" action="{!c.handleSelectedOptionItem}" />
+
+    <aura:if isTrue="{!v.loading}">
+        <lightning:spinner alternativeText="Loading" size="large" />
+    </aura:if>
+    <div>
+        <div>
+            <div class="{!if(v.sidebarExpanded,'','collapse-sidebar')}">
+                <lightning:layout>
+                    <lightning:layoutItem size="6">
+                        <div class="slds-box slds-var-p-around_small">
+                            <lightning:card>
+                                <aura:set attribute="title">
+                                    <div class="slds-text-heading_medium">
+                                        <b>Choose Items to Display</b>
+                                    </div>
+                                </aura:set>
+                                <aura:set attribute="actions">
+                                    <lightning:buttonIcon iconName="utility:refresh" onclick="{!c.handleRefreshButtonClick}" alternativeText="Refresh" />
+                                </aura:set>
+                                <lightning:layout>
+                                    <lightning:layoutItem size="6">
+                                        <lightning:select aura:id="itemSelect" name="SelectItem" value="{!v.currentViewOptionSetId}" label="test" variant="label-hidden" class="label-hidden" onchange="{!c.handleSelectOptionSet}">
+                                            <aura:iteration items="{!v.viewOptionSetList}" var="opt">
+                                                <option text="{!opt.optionSetObj.Title__c}" value="{!opt.optionSetObj.Id}" />
+                                            </aura:iteration>
+                                        </lightning:select>
+
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem aura:id="viewOptions" size="6" class="{!if(v.loading,'slds-hide','slds-show')}">
+                                        <c:ViewOptions context="{!v.context}" viewOptionSetList="{!v.viewOptionSetList}" currentViewOptionSet="{!v.currentViewOptionSet}" />
+                                    </lightning:layoutItem>
+                                </lightning:layout>
+                            </lightning:card>
+                        </div>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="6">
+                        <div class="slds-box">
+                            <lightning:card>
+                                <aura:set attribute="title">
+                                    <div class="slds-text-heading_medium">
+                                        <b>Displayed Date Range</b>
+                                    </div>
+                                </aura:set>
+                                <lightning:layout>
+                                    <lightning:layoutItem size="6">
+                                        <div class="slds-align_absolute-center">
+                                            <lightning:radioGroup name="dateRangeRadio" label="" options="{!v.dateRangeOptions}" value="{!v.selectedDateRange}" onchange="{!c.handleDateRangeSelection}" type="radio" />
+                                        </div>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem size="6">
+                                        <aura:if isTrue="{!v.selectedDateRange != '9999'}" >
+                                            <div class="slds-grid">
+                                                <div class="slds-col">
+                                                    <lightning:input type="date" value="{!v.customStartDate}" dateStyle="short" label="Start" onchange="{!c.handleDateChange}" />
+                                                </div>
+                                            </div>
+                                            <div class="slds-grid">
+                                                <div class="slds-col">
+                                                    <lightning:input type="date" value="{!v.customEndDate}" dateStyle="short" label="End" onchange="{!c.handleDateChange}" />
+                                                </div>
+                                            </div>
+                                            <div class="slds-grid">
+                                                <div class="slds-col">
+                                                    <lightning:button class="custom-btn" label="Move Range Back 1 Month" title="Move Range Back 1 Month" onclick="{! c.handleMoveRangeBackMonth }" disabled="false" />
+                                                </div>
+                                            </div>
+                                            <div class="slds-grid">
+                                                <div class="slds-col">
+                                                    <lightning:button class="custom-btn" label="Move Range Forward 1 Month" title="Move Range Forward 1 Month" onclick="{! c.handleMoveRangeForwardMonth }" disabled="false" />
+                                                </div>
+                                            </div>
+                                        </aura:if>
+                                    </lightning:layoutItem>
+                                </lightning:layout>
+                            </lightning:card>
+                        </div>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </div>
+            
+            <br/>
+            <div class="slds-grid">
+                <div class="slds-col">
+                    <lightning:buttonIcon variant="brand" class="custom-btn" iconName="{!if(v.sidebarExpanded,'utility:up','utility:down')}" onclick="{!c.handleCollapseExpand }"></lightning:buttonIcon>
+                </div>
+            </div>
+            <br/>
+        </div>
+        
+        <div class="detail-list">
+            <lightning:layout multipleRows="false">
+                <lightning:layoutItem size="12" class="slds-p-around_xxx-small">
+                    <aura:if isTrue="{!empty(v.data)}">
+                        <div class="slds-box">
+                            <div class="slds-align_absolute-center">Please select items to display</div>
+                        </div>
+                        <aura:set attribute="else">
+                            <div id="Main">
+                                <lightning:datatable columns="{!v.columns}" data="{!v.data}" keyField="key" defaultSortDirection="{!v.defaultSortDirection}" sortedDirection="{!v.sortDirection}" sortedBy="{!v.sortedBy}" onsort="{!c.handleSort}" hideCheckboxColumn="true" />
+                            </div>
+                        </aura:set>
+                    </aura:if>
+                </lightning:layoutItem>
+            </lightning:layout>
+        </div>
+    </div>
+</aura:component>

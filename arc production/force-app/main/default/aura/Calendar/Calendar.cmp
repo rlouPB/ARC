@@ -1,0 +1,102 @@
+<aura:component  implements="flexipage:availableForAllPageTypes">
+    <!-- LIBRARIES -->
+    <ltng:require styles="{!join(',',
+			$Resource.fullcalendar3_10_1 + '/fullcalendar.min.css')}"
+		  scripts="{!join(',',
+			   $Resource.Jquery + '/jquery.min.js',
+			   $Resource.momentjs,
+			   $Resource.momentTz,
+			$Resource.fullcalendar3_10_1 + '/fullcalendar.min.js')}"
+		  afterScriptsLoaded="{!c.jsLoaded}"/>
+    <!-- ATTRIBUTES -->
+    <aura:attribute name="calendarId" type="String" description="HTML Id of calendar. Used by external components to reference the calendar." default="calendar"/>
+    <aura:attribute name="headerDate" type="String" />
+    <aura:attribute name="view" type="String" default="month"/>
+    <aura:attribute name="overrideView" type="String" default="listWeek" description="view to override the default with. must be specified or it errors"/>
+    <aura:attribute name="showWeekends" type="Boolean" default="false" description="whether or not to include weekends in the calendar"/>
+    <aura:attribute name="events" type="List" description="A list of events to display on the calendar"/>
+    <aura:attribute name="isLoaded" type="Boolean" default="false"/>
+    <aura:attribute name="showSpinner" type="Boolean" default="true"/>
+
+    <aura:attribute name="showUserSelect" type="Boolean" default="false"/>
+    <aura:attribute name="showNewMeetingButton" type="Boolean" default="true"/>
+    <aura:attribute name="user" type="Map" default="{}"/>
+    <aura:attribute name="selectedUser" type="Map" default="{}"/>
+    <aura:attribute name="userLookupFilter" type="List" default="[]"/>
+    <aura:attribute name="userSearchText" type="String" default=""/>
+	<aura:attribute name="lookupError" type="Map" default="{message: 'error', show: false}"/>
+
+	<aura:attribute name="showNavigateButtons" type="Boolean" default="true"
+		description="If true, show Previous, Next, and Today buttons"/>
+	<aura:attribute name="calendarStartDate" type="String" description="Start date of calendar. If not populated will default to today."/>
+
+    <!-- EVENTS -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler name="change" value="{!v.events}" action="{!c.loadEvents}"/>
+    <aura:handler name="change" value="{!v.overrideView}" action="{!c.overrideViewChange}"/>
+    <aura:registerEvent name="calendarDateChangedEvent" type="c:CalendarDateChangedEvent"/>
+    <aura:registerEvent name="calendarViewChangedEvent" type="c:CalendarViewChangedEvent"/>
+    <aura:registerEvent name="calendarEventClickedEvent" type="c:CalendarEventClickedEvent"/>
+    <aura:registerEvent name="calendarNewMeetingButtonClickedEvent" type="c:CalendarNewMeetingButtonClickedEvent"/>
+    <aura:registerEvent name="calendarEventMouseEnterEvent" type="c:CalendarEventMouseEnterEvent"/>
+    <aura:registerEvent name="calendarEventMouseExitEvent" type="c:CalendarEventMouseExitEvent"/>
+    <aura:registerEvent name="calendarEventRefreshButtonClickedEvent" type="c:CalendarEventRefreshButtonClickedEvent"/>
+
+    <!-- BODY -->
+    <div class="slds slds-box">
+	<aura:if isTrue="{!v.showSpinner}" >
+	    <lightning:spinner alternativeText="Loading"/>
+	</aura:if>
+	<div class="slds-grid slds-wrap">
+	    <div class="slds-col slds-order_2 slds-medium-order_2 slds-large-order_1 slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_4-of-12 slds-p-bottom_small slds-text-align_left">
+				<aura:if isTrue="{!v.showNavigateButtons}">
+					<lightning:buttonGroup class="">
+						<lightning:button iconName="utility:chevronleft" onclick="{!c.prev}"/>
+						<lightning:button iconName="utility:chevronright" onclick="{!c.next}"/>
+						<lightning:button label="Today" onclick="{!c.today}"/>
+					</lightning:buttonGroup>
+				</aura:if>
+		<!-- Commented out 220805 JN. Not currently implemented
+		<aura:if isTrue="{!v.showUserSelect}">
+		    <div class="user-lookup">
+			<c:LookupComponent aura:attribute="userLookup" label="User:" selectedRecord="{!v.selectedUser}" additionalOptions="" filters="{!v.userLookupFilter}" displayField="Name" allowFreeText="true" splitSearchTextBySeperator="true" validationError="{!v.lookupError}" objectName="User" displayFieldValue="Id" fieldsToSearch="Name" SearchKeyWord="{!v.userSearchText}"/>
+		    </div>
+		</aura:if> -->
+		<aura:if isTrue="{!v.showNewMeetingButton}">
+		    <lightning:button class="new-meeting-button" variant="brand" label="New Meeting" onclick="{!c.handleNewMeetingButtonClicked}"/>
+		</aura:if>
+		<span style="margin-left: 10px;">
+		    <lightning:buttonIcon iconName="utility:refresh" onclick="{!c.handleRefreshButtonClicked}" alternativeText="Refresh" />
+		</span>
+	    </div>
+	    <div class="header-date slds-col slds-order_1 slds-medium-order_1 slds-large-order_2 slds-size_1-of-1 slds-medium-size_12-of-12 slds-large-size_4-of-12 slds-p-bottom_small slds-text-heading_large">
+		<!-- <div class="slds-text-heading_large "> slds-align_absolute-center
+		    <lightning:layout multipleRows="true">
+			<lightning:layoutItem size="12"> -->
+			    <!-- <ui:outputText value="{!v.headerDate}" class="headerDate"/> -->
+			    <lightning:formattedText value="{!v.headerDate}" />
+
+			<!-- </lightning:layoutItem>
+
+		    </lightning:layout>
+		</div> -->
+	    </div>
+	    <div class="slds-col slds-order_3 slds-medium-order_3 slds-large-order_3 slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_4-of-12 slds-p-bottom_small slds-text-align_right">
+		<lightning:button label="{! v.showWeekends == false ? 'Show Weekends' : 'Hide Weekends'}" onclick="{!c.toggleWeekends}"/>
+		<lightning:buttonGroup class="slds-grid_align-end slds-wrap">
+		    <lightning:button label="Month" onclick="{!c.month}" class="{! v.view == 'month' ? 'slds-button_brand' : ''}"/>
+		    <lightning:button label="Week" onclick="{!c.basicWeek}" class="{! v.view == 'basicWeek' ? 'slds-button_brand' : ''}"/>
+		    <lightning:button label="List Week" onclick="{!c.listWeek}" class="{! v.view == 'listWeek' ? 'slds-button_brand' : ''}"/>
+		    <lightning:button label="List 6 Weeks" onclick="{!c.list6Weeks}" class="{! v.view == 'list6Weeks' ? 'slds-button_brand' : ''}"/>
+		    <!-- <lightning:button label="Day" onclick="{!c.basicDay}" class="{! v.view == 'basicDay' ? 'slds-button_brand' : ''}"/> -->
+		    <!-- <lightning:button label="List Day" onclick="{!c.listDay}" class="{! v.view == 'listDay' ? 'slds-button_brand' : ''}"/> -->
+		    <!-- <lightning:button label="Agenda Four Day" onclick="{!c.agendaFourDay}" class="{! v.view == 'agendaFourDay' ? 'slds-button_brand' : ''}"/> -->
+		</lightning:buttonGroup>
+	    </div>
+	</div>
+	<div class="calendar-container">
+	    <div id="{!v.calendarId}"/>
+	</div>
+    </div>
+    <!-- /BODY -->
+</aura:component>

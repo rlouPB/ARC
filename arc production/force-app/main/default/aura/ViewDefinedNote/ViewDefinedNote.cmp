@@ -1,0 +1,459 @@
+<aura:component
+  controller="PatientNoteCtl"
+  extends="c:ApexService"
+  implements="force:hasRecordId,flexipage:availableForAllPageTypes"
+>
+  <aura:attribute name="definedNote" type="Map" />
+  <aura:attribute name="showSpinner" type="Boolean" default="true" />
+  <aura:attribute name="parameters" type="Map" />
+  <aura:attribute name="requiresCoSign" type="Boolean" default="true" />
+  <aura:attribute name="readOnly" type="Boolean" default="false" />
+  <aura:attribute name="status" type="String" />
+  <aura:attribute
+    name="pictureSrc"
+    type="String"
+    default=""
+    Description="Picture source"
+  />
+  <aura:attribute name="showConfirmationModal" type="Boolean" default="false" />
+  <aura:attribute name="showErrorMessage" type="Boolean" default="false" />
+  <aura:attribute
+    name="ASMessage"
+    type="String"
+    default="Autosave ready."
+    description="binds to child Autosave component to display autosave status"
+  />
+  <aura:attribute
+    name="firstChange"
+    type="Boolean"
+    default="true"
+    description="PatientNoteItem fires note change right when loaded, need to ignore this."
+  />
+
+  <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+  <aura:handler
+    name="noteChanged"
+    event="c:NoteChangedEvent"
+    action="{!c.handleNoteChanged}"
+  />
+  <aura:handler
+    name="autosaveNowEvent"
+    event="c:autosaveNow"
+    action="{!c.handleSaveNote}"
+  />
+
+  <lightning:notificationsLibrary aura:id="notifLib" />
+
+  <c:Autosave
+    autosaveMessage="{!v.ASMessage}"
+    instanceName="DefinedNote"
+    aura:id="autosaveComp"
+  />
+
+  <div class="wrapper">
+    <aura:if isTrue="{!v.showSpinner}">
+      <lightning:spinner alternative-text="Loading" size="small" />
+      <aura:set attribute="else">
+        <lightning:layout multipleRows="true">
+          <aura:if isTrue="{!v.showErrorMessage}">
+            <lightning:layoutItem size="12">
+              <div
+                class="slds-text-heading_small slds-p-around_small slds-align_absolute-center error-message"
+              >
+                <b>
+                  This Note has been changed in a different session. To avoid
+                  overwriting changes, please edit the current version.
+                </b>
+              </div>
+            </lightning:layoutItem>
+          </aura:if>
+          <lightning:layoutItem class="slds-p-right_large" size="9">
+            <lightning:card class="slds-card_boundary">
+              <aura:set attribute="title">
+                <lightning:layout>
+                  <lightning:layoutItem size="3"> </lightning:layoutItem>
+                  <lightning:layoutItem size="6">
+                    <div class="slds-text-heading_large slds-text-align_center">
+                      <strong
+                        >{!v.definedNote.noteDefinition.Note_Label__c}</strong
+                      >
+                    </div>
+                  </lightning:layoutItem>
+                  <lightning:layoutItem size="3">
+                    <div class="slds-float_right header-status">
+                      <lightning:layout multipleRows="true">
+                        <lightning:layoutItem size="12">
+                          <div class="status">Status</div>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="12">
+                          <div>{!v.status}</div>
+                        </lightning:layoutItem>
+                      </lightning:layout>
+                    </div>
+                    <aura:if
+                      isTrue="{!not(empty(v.definedNote.noteDefinition.Parameters__c.header.fieldNames))}"
+                    >
+                      <div class="slds-float_right header-status">
+                        <lightning:layout multipleRows="true">
+                          <aura:iteration
+                            items="{!v.definedNote.noteDefinition.Parameters__c.header.fieldNames}"
+                            var="field"
+                          >
+                            <lightning:layoutItem class="slds-p-around_x-small"
+                              ><label class="status"
+                                >{!field.label}</label
+                              ></lightning:layoutItem
+                            >
+                            <lightning:layoutItem class="slds-p-around_x-small"
+                              ><div>{!field.value}</div></lightning:layoutItem
+                            >
+                            <!--<lightning:layoutItem flexibility="auto" padding="horizontal-small">
+                                                            <div>
+                                                                <label class="status">
+                                                                    {!field.label}
+                                                                </label>
+                                                                <div>
+                                                                    <div>{!field.value}</div>
+                                                                </div>
+                                                            </div>-->
+                          </aura:iteration>
+                        </lightning:layout>
+                      </div>
+                    </aura:if>
+                  </lightning:layoutItem>
+                </lightning:layout>
+              </aura:set>
+              <lightning:card class="header slds-card__body_inner">
+                <lightning:layout>
+                  <lightning:layoutItem size="12">
+                    <lightning:layout multipleRows="true"> </lightning:layout>
+                  </lightning:layoutItem>
+                </lightning:layout>
+              </lightning:card>
+              <div class="slds-scrollable_y">
+                <aura:iteration
+                  items="{!v.definedNote.noteItems}"
+                  var="noteItem"
+                  indexVar="idx"
+                >
+                  <lightning:card
+                    class="patient-note-item slds-card__body_inner"
+                  >
+                    <c:PatientNoteItem
+                      recordId="{!v.recordId}"
+                      noteItem="{!noteItem}"
+                      patientNote="{!v.definedNote}"
+                      readOnly="{!v.readOnly}"
+                      instanceName="{!idx}"
+                    />
+                  </lightning:card>
+                </aura:iteration>
+                <!-- <aura:if isTrue="{!or(
+                                    not(empty(v.definedNote.patientNote.Finalized_By__r.Professional_Name__c)),
+                                    not(empty(v.definedNote.patientNote.Completed_By__r.Professional_Name__c))
+                                )}"> -->
+                <aura:if
+                  isTrue="{!or(
+                                    not(empty(v.definedNote.patientNote.Finalized_By_Professional_Name__c)),
+                                    not(empty(v.definedNote.patientNote.Completed_By_Professional_Name__c))
+                                )}"
+                >
+                  <lightning:card class="footer slds-card__body_inner">
+                    <!--
+                                        <lightning:layout multipleRows="true">
+                                            <aura:if isTrue="{!not(empty(v.definedNote.noteDefinition.Parameters__c.footer.fieldNames))}">
+                                                <aura:iteration items="{!v.definedNote.noteDefinition.Parameters__c.footer.fieldNames}" var="field">
+                                                    <lightning:layoutItem flexibility="auto">
+                                                        <div class="slds-form-element slds-form-element_readonly">
+                                                            <label class="slds-form-element__label">
+                                                                {!field.label}
+                                                            </label>
+                                                            <div class="slds-form-element__control">
+                                                                <div class="slds-form-element__static">{!field.value}</div>
+                                                            </div>
+                                                        </div>
+                                                    </lightning:layoutItem>
+                                                </aura:iteration>
+                                            </aura:if>
+                                        </lightning:layout>-->
+                    <lightning:layout multipleRows="true">
+                      <lightning:layoutItem size="6">
+                        <lightning:layout multipleRows="true">
+                          <aura:if
+                            isTrue="{!not(empty(v.definedNote.patientNote.Completed_By__r.Professional_Name__c))}"
+                          >
+                            <lightning:layoutItem
+                              size="6"
+                              class="slds-text-align_right"
+                            >
+                              Completed By:
+                            </lightning:layoutItem>
+                            <lightning:layoutItem
+                              size="6"
+                              class="slds-text-align_left slds-p-left_medium"
+                            >
+                              <lightning:formattedText
+                                value="{!v.definedNote.patientNote.Completed_By__r.Professional_Name__c}"
+                              />
+                            </lightning:layoutItem>
+                          </aura:if>
+                          <aura:if
+                            isTrue="{!not(empty(v.definedNote.patientNote.Completed_Date_Time__c))}"
+                          >
+                            <lightning:layoutItem
+                              size="6"
+                              class="slds-text-align_right"
+                            >
+                              Completed Date/Time:
+                            </lightning:layoutItem>
+                            <lightning:layoutItem
+                              size="6"
+                              class="slds-text-align_left slds-p-left_medium"
+                            >
+                              <lightning:formattedDateTime
+                                value="{!v.definedNote.patientNote.Completed_Date_Time__c}"
+                                year="numeric"
+                                month="numeric"
+                                day="numeric"
+                                hour="2-digit"
+                                minute="2-digit"
+                                timeZoneName="short"
+                                timeZone="America/New_York"
+                              />
+                            </lightning:layoutItem>
+                          </aura:if>
+                        </lightning:layout>
+                      </lightning:layoutItem>
+                      <lightning:layoutItem size="6">
+                        <lightning:layout multipleRows="true">
+                          <!-- <aura:if isTrue="{!not(empty(v.definedNote.patientNote.Finalized_By__r.Professional_Name__c))}"> -->
+                          <aura:if
+                            isTrue="{!not(empty(v.definedNote.patientNote.Finalized_By_Professional_Name__c))}"
+                          >
+                            <lightning:layoutItem
+                              size="6"
+                              class="slds-text-align_right"
+                            >
+                              Finalized By:
+                            </lightning:layoutItem>
+                            <lightning:layoutItem
+                              size="6"
+                              class="slds-text-align_left slds-p-left_medium"
+                            >
+                              <!-- <lightning:formattedText value="{!v.definedNote.patientNote.Finalized_By__r.Professional_Name__c}"/> -->
+                              <lightning:formattedText
+                                value="{!v.definedNote.patientNote.Finalized_By_Professional_Name__c}"
+                              />
+                            </lightning:layoutItem>
+                          </aura:if>
+                          <aura:if
+                            isTrue="{!not(empty(v.definedNote.patientNote.Finalized_Date_Time__c))}"
+                          >
+                            <lightning:layoutItem
+                              size="6"
+                              class="slds-text-align_right"
+                            >
+                              Finalized Date/Time:
+                            </lightning:layoutItem>
+                            <lightning:layoutItem
+                              size="6"
+                              class="slds-text-align_left slds-p-left_medium"
+                            >
+                              <lightning:formattedDateTime
+                                value="{!v.definedNote.patientNote.Finalized_Date_Time__c}"
+                                year="numeric"
+                                month="numeric"
+                                day="numeric"
+                                hour="2-digit"
+                                minute="2-digit"
+                                timeZoneName="short"
+                                timeZone="America/New_York"
+                              />
+                            </lightning:layoutItem>
+                          </aura:if>
+                        </lightning:layout>
+                      </lightning:layoutItem>
+                    </lightning:layout>
+                    <!--
+                                        <lightning:layout class="slds-m-top_x-small">
+                                            <lightning:layoutItem size="12" padding="horizontal-large">
+                                                <aura:if isTrue="{!and(not(v.requiresCoSign), or(v.status == 'Draft', v.status == 'Completed'))}">
+                                                    <lightning:button class="slds-float_right" label="Finalize Note" onclick="{!c.finalizeNote}"/>
+                                                </aura:if>
+                                                <aura:if isTrue="{!and(v.requiresCoSign, v.status == 'Draft')}">
+                                                    <lightning:button class="slds-float_right" label="Complete Note" onclick="{!c.completeNote}"/>
+                                                </aura:if>
+                                                <aura:if isTrue="{!not(v.readOnly)}">
+                                                    <lightning:button class="slds-float_right slds-m-right_xx-small" label="Save" onclick="{!c.handleSaveNote}"/>
+                                                </aura:if>
+                                            </lightning:layoutItem>
+                                        </lightning:layout>-->
+                  </lightning:card>
+                </aura:if>
+              </div>
+            </lightning:card>
+          </lightning:layoutItem>
+          <lightning:layoutItem size="3">
+            <lightning:card class="slds-card_boundary">
+              <lightning:card
+                class="header slds-card__body_inner slds-scrollable_y"
+              >
+                <lightning:layout multipleRows="true">
+                  <lightning:layoutItem size="12">
+                    <aura:unescapedHtml
+                      value="{!v.definedNote.patientNote.Photo__c}"
+                    />
+                  </lightning:layoutItem>
+                  <lightning:layoutItem
+                    size="12"
+                    class="slds-var-p-around_xx-small"
+                  >
+                    <label for="Patient" class="slds-form-element__label"
+                      >Patient</label
+                    >
+                    <div id="Patient">
+                      <a
+                        href="{!'/'+v.definedNote.patientNote.Account__c}"
+                        target="_blank"
+                        >{!v.definedNote.patientNote.Account__r.Name}</a
+                      >
+                    </div>
+                  </lightning:layoutItem>
+                  <lightning:layoutItem size="12">
+                    <lightning:layout multipleRows="true">
+                      <aura:if
+                        isTrue="{!not(empty(v.definedNote.noteDefinition.Parameters__c.sidebar.fieldNames))}"
+                      >
+                        <aura:iteration
+                          items="{!v.definedNote.noteDefinition.Parameters__c.sidebar.fieldNames}"
+                          var="field"
+                        >
+                          <lightning:layoutItem size="12">
+                            <div
+                              class="slds-form-element slds-form-element_readonly"
+                            >
+                              <label class="slds-form-element__label">
+                                {!field.label}
+                              </label>
+                              <div class="slds-form-element__control">
+                                <aura:if isTrue="{!field.label=='Admit Date'}">
+                                  <lightning:formattedDateTime
+                                    value="{!field.value}"
+                                    month="2-digit"
+                                    day="2-digit"
+                                    year="numeric"
+                                    timeZone="UTC"
+                                  />
+                                  <aura:set attribute="else">
+                                    <div class="slds-form-element__static">
+                                      {!field.value}
+                                    </div>
+                                  </aura:set>
+                                </aura:if>
+                              </div>
+                            </div>
+                          </lightning:layoutItem>
+                        </aura:iteration>
+                      </aura:if>
+                      <lightning:layoutItem
+                        size="12"
+                        padding="horizontal-large"
+                      >
+                        <lightning:button
+                          class="slds-button_stretch slds-m-top_xx-small"
+                          variant="brand"
+                          label="Send as Message"
+                        />
+                      </lightning:layoutItem>
+                      <lightning:layoutItem
+                        size="12"
+                        padding="horizontal-large"
+                      >
+                        <lightning:button
+                          class="slds-button_stretch slds-m-top_xx-small"
+                          variant="brand"
+                          label="Send Alert"
+                        />
+                      </lightning:layoutItem>
+                      <lightning:layoutItem
+                        size="12"
+                        padding="horizontal-large"
+                      >
+                        <aura:if isTrue="{!not(v.readOnly)}">
+                          <lightning:button
+                            class="slds-button_stretch slds-m-top_xx-small"
+                            variant="brand"
+                            label="Save"
+                            onclick="{!c.handleSaveNote}"
+                          />
+                        </aura:if>
+                      </lightning:layoutItem>
+                      <lightning:layoutItem
+                        size="12"
+                        padding="horizontal-large"
+                      >
+                        <aura:if
+                          isTrue="{!and(v.requiresCoSign, v.status == 'Draft')}"
+                        >
+                          <lightning:button
+                            class="slds-button_stretch slds-m-top_xx-small"
+                            variant="brand"
+                            label="Complete Note"
+                            onclick="{!c.completeNote}"
+                          />
+                        </aura:if>
+                      </lightning:layoutItem>
+                      <lightning:layoutItem
+                        size="12"
+                        padding="horizontal-large"
+                      >
+                        <aura:if
+                          isTrue="{!and(not(v.requiresCoSign), or(v.status == 'Draft', v.status == 'Completed'))}"
+                        >
+                          <lightning:button
+                            class="slds-button_stretch slds-m-top_xx-small"
+                            variant="brand"
+                            label="Finalize Note"
+                            onclick="{!c.finalizeNote}"
+                          />
+                        </aura:if>
+                      </lightning:layoutItem>
+                    </lightning:layout>
+                  </lightning:layoutItem>
+                  <lightning:layoutItem>
+                    <br />
+                    {!v.ASMessage}
+                  </lightning:layoutItem>
+                </lightning:layout>
+              </lightning:card>
+            </lightning:card>
+          </lightning:layoutItem>
+        </lightning:layout>
+      </aura:set>
+    </aura:if>
+  </div>
+
+  <aura:if isTrue="{!v.showConfirmationModal}">
+    <c:sldsModal instanceName="editCurrentVersion">
+      <aura:set attribute="header"></aura:set>
+      <aura:set attribute="content">
+        <div class="slds-p-horizontal--small">
+          This Note has been changed in a different session. To avoid
+          overwriting changes, please edit the current version.
+        </div>
+      </aura:set>
+      <aura:set attribute="footer">
+        <lightning:button
+          label="Open Current Version in New Tab"
+          variant="neutral"
+          onclick="{!c.handleOpenNewTab}"
+        />
+        <lightning:button
+          label="Close"
+          variant="neutral"
+          onclick="{!c.handleCloseConfirmationModal}"
+        />
+      </aura:set>
+    </c:sldsModal>
+  </aura:if>
+</aura:component>

@@ -1,0 +1,5 @@
+<aura:event type="COMPONENT" description="Calendar Event Mouse Exit Event">
+  <aura:attribute name="calendarId" type="String" />
+  <aura:attribute name="calendarEvent" type="Map" />
+  <aura:attribute name="jsEvent" type="Map" />
+</aura:event>

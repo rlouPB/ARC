@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ApexTestSuite xmlns="http://soap.sforce.com/2006/04/metadata">
+    <testClassName>AddGroupMemberControllerTest</testClassName>
+    <testClassName>AdminControlCenterCtlTest</testClassName>
+    <testClassName>AdmissionRequirementMgtCtrlTest</testClassName>
+    <testClassName>Admission_TriggerHandlerTest</testClassName>
+    <testClassName>AssignedCliniciansTest</testClassName>
+    <testClassName>AuthorizedSignersTest</testClassName>
+    <testClassName>AutoGroupMembershipsTest</testClassName>
+    <testClassName>CaseTriggerHandlerTest</testClassName>
+    <testClassName>ClinicalTeamsTest</testClassName>
+    <testClassName>Contact_TriggerHelperTest</testClassName>
+    <testClassName>CustomRecordDataController_Test</testClassName>
+    <testClassName>DefinedFiltersTest</testClassName>
+    <testClassName>EGO_RatingTriggerHandlerTest</testClassName>
+    <testClassName>GoalTriggerHandlerTest</testClassName>
+    <testClassName>InterventionTriggerHandlerTest</testClassName>
+    <testClassName>ListAssignedCliniciansTest</testClassName>
+    <testClassName>ListGroupMemberControllerTest</testClassName>
+    <testClassName>LookupComponentControllerTest</testClassName>
+    <testClassName>LookupSearchResultTests</testClassName>
+    <testClassName>ManageInterventionsCtlTest</testClassName>
+    <testClassName>ObjectiveTriggerHandlerTest</testClassName>
+    <testClassName>OutstandingItemsTest</testClassName>
+    <testClassName>ProcessLoggingTest</testClassName>
+    <testClassName>QueryUtilsTests</testClassName>
+    <testClassName>SharingRecord_UtilsTest</testClassName>
+    <testClassName>SIP_PublicGroupAssignmentTest</testClassName>
+    <testClassName>SnapshotHelperTest</testClassName>
+    <testClassName>Test_WaitlistReorder</testClassName>
+    <testClassName>TreatmentPlanEGOCtlTest</testClassName>
+    <testClassName>TreatmentPlanSnapshotTest</testClassName>
+    <testClassName>ViewOptionsCtlTest</testClassName>
+    <testClassName>ViewOutstandingItemsApexControllerTest</testClassName>
+    <testClassName>ViewTreatmentHistoryCtlTest</testClassName>
+    <testClassName>ViewTreatmentPlanCtlTest</testClassName>
+</ApexTestSuite>

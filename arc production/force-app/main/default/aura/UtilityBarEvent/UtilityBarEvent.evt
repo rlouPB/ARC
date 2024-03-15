@@ -1,0 +1,8 @@
+<aura:event type="APPLICATION">
+	<aura:attribute
+		name="unreadAlerts"
+		type="Integer"/>
+	<aura:attribute
+		name="unreadMessages"
+		type="Integer"/>
+</aura:event>

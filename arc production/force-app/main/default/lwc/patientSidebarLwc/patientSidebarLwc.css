@@ -1,0 +1,12 @@
+.header {
+    border-bottom: 1px solid rgb(221, 219, 218);
+}
+.sidebarButton {
+	width: 100%;
+}
+.sidebarButton .slds-button_brand {
+	justify-content: center;
+    width: 100%;
+}
+
+/* <aura:attribute name="recordFieldsStyle" type="String" default="height:fit-content;" access="public" /> */

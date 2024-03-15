@@ -1,0 +1,25 @@
+<aura:component access="public">
+    <!--Attribute Section -->
+    <aura:attribute name="pageProperties" type="map" default="{hasIcon:false,hasCount:true,min:1}" description="Pageination Properties"/>
+    <aura:attribute name="currentPage" type="Integer" default="1" description="Store current Page Properties"/>
+    <aura:attribute name="max" type="Integer" default="1"  description="Store Max Value page"/>
+    
+    <!--Pagination Section -->
+    <div class="slds-text-align--center">
+        <aura:if isTrue="{!v.pageProperties.hasIcon}">
+            <lightning:buttonIcon iconName="utility:chevronleft" alternativeText="Settings"
+                                  class="{!(v.currentPage == v.pageProperties.min) ? 'not-active slds-p-around--xx-small' : 'slds-p-around--xx-small'}" onclick="{!c.Previous}"/>
+            <lightning:buttonIcon iconName="utility:chevronright" alternativeText="Settings"
+                                  class="{!(v.currentPage == v.max) ? 'not-active slds-p-around--xx-small' : 'slds-p-around--xx-small'}" onclick="{!c.Next}"/>
+            <aura:set attribute="else">
+                <lightning:button variant="brand" label="Previous" class="{!(v.currentPage == v.pageProperties.min) ? 'not-active' : ''}" onclick = "{!c.Previous}">
+                </lightning:button>
+                <span class="{!(v.pageProperties.hasCount == true)?'slds-p-around--xx-small':'slds-hide'}"> {!v.currentPage} / {!v.max} </span>
+                <lightning:button label="Next" variant="brand"  class="{!(v.currentPage == v.max) ? 'not-active' : ''}" onclick = "{!c.Next}">
+                    
+                </lightning:button>
+            </aura:set>
+        </aura:if>
+    </div>
+    
+</aura:component>

@@ -1,0 +1,3 @@
+<aura:event type="COMPONENT" description="Calendar Event Clicked Event">
+  <aura:attribute name="calendarId" type="String" />
+</aura:event>

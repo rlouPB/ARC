@@ -1,0 +1,6 @@
+<design:component label="Requirements and Request Items">
+	<design:attribute
+		name="applicablePhase"
+		label="Applicable Phase"
+		description="Type of Requirements to show (default = 'Inquiry' for Admissions app, 'Patient' for Clinical or Med Records apps')"/>
+</design:component>

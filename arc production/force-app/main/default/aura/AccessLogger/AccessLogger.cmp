@@ -1,0 +1,5 @@
+<aura:component implements="force:hasRecordId,force:hasSObjectName,flexipage:availableForAllPageTypes" controller="PageAccess">
+    <aura:attribute name="context" type="String" default="Unknown" description="passed to Access Log record" access="global"/>
+
+    <aura:handler name="init" value="{!this}" action="{!c.init}" />
+</aura:component>

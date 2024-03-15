@@ -1,0 +1,107 @@
+<!-- sldsValidatorIgnore -->
+<template>
+	<lightning-card title="Flagged Notes &amp; Alerts">
+		<template if:true={hasAlerts}>
+			<div class="slds-grid">
+				<div class="slds-col slds-size_2-of-5"></div>
+				<div class="slds-col slds-size_3-of-5">
+					<div class="slds-grid">
+						<div class="slds-col slds-size_2-of-6">
+							<lightning-radio-group name="FilterButtons" options={filterOption} value={value} onchange={handleSort} type="button"> </lightning-radio-group>
+						</div>
+						<div class="slds-col slds-size_2-of-6" style="margin-top: auto">
+							<lightning-button-icon icon-name="utility:refresh" onclick={load}></lightning-button-icon>
+						</div>
+					</div>
+				</div>
+				<div class="slds-col slds-size_1-of-5"></div>
+			</div>
+		</template>
+		<div class="">
+			<lightning-spinner if:true={loading}></lightning-spinner>
+
+			<div class="slds-grid slds-var-p-horizontal_medium">
+				<div class="slds-col slds-size_6-of-12">
+					<lightning-combobox options={options} value={selectedOption} label="Flagged Notes &amp; Alerts for the last:" onchange={handleOptionChange}></lightning-combobox>
+				</div>
+				<div class="slds-col slds-size_6-of-12">
+					<div class={rightColumnClass}>
+						<div class="slds-grid">
+							<div class="slds-size_1-of-2">
+								<lightning-input value={customDateFrom} type="date" date-style="short" name="From" label="Start" onchange={fromDateChange}></lightning-input>
+							</div>
+							<div class="slds-size_1-of-2">
+								<lightning-input value={customDateTo} type="date" date-style="short" name="To" label="End" onchange={toDateChange}></lightning-input>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<br />
+			<table if:true={hasAlerts} aria-multiselectable="true" class="slds-table slds-table_bordered slds-table_fixed-layout slds-table_resizable-cols" role="grid">
+				<thead>
+					<tr class="slds-line-height_reset">
+						<template for:each={flaggedColumns} for:item="header">
+							<th aria-label="Name" aria-sort="none" class="slds-is-resizable slds-is-sortable slds-cell_action-mode" scope="col" key={header}>
+								<a class="slds-th__action slds-text-link_reset" href="#" role="button" tabindex="0">
+									<span class="slds-assistive-text">Sort by: </span>
+									<div class="slds-grid slds-grid_vertical-align-center slds-has-flexi-truncate">
+										<span class="slds-truncate" title="Name">{header}</span>
+									</div>
+								</a>
+								<div class="slds-resizable">
+									<input type="range" aria-label="Name column width" class="slds-resizable__input slds-assistive-text" id="cell-resize-handle-540" max="1000" min="20" tabindex="0" />
+									<span class="slds-resizable__handle">
+										<span class="slds-resizable__divider"></span>
+									</span>
+								</div>
+							</th>
+						</template>
+					</tr>
+				</thead>
+				<tbody>
+					<template for:each={items} for:item="item">
+						<tr key={item.id}>
+							<td>
+								<c-record-link record-id={item.patientId} record-name={item.patientName}></c-record-link>
+							</td>
+							<td>
+								<div>{item.team}</div>
+							</td>
+							<td>
+								<div>{item.finalizedBy}</div>
+							</td>
+							<td class="slds-truncate" style="word-wrap: break-word; min-width: 200px">
+								<a data-id={item.id} onclick={onItemClick}>{item.subject}</a>
+							</td>
+							<td>
+								<lightning-formatted-date-time value={item.finalizedDateTime} year="numeric" month="numeric" day="numeric" hour="2-digit" minute="2-digit" hour12="true"></lightning-formatted-date-time>
+							</td>
+						</tr>
+					</template>
+				</tbody>
+			</table>
+
+			<h1 class="slds-align_absolute-center" if:false={hasAlerts}>None Found</h1>
+		</div>
+		<template if:true={showModal}>
+			<c-modal-lwc show-footer="true" onclose={closeDialog}>
+				<div slot="header">
+					<div class="slds-align_absolute-center" style="height: 5rem">
+						<div class="slds-grid">
+							<div class="slds-col slds-var-p-horizontal_x-large"><lightning-button-icon if:true={showLeftArrow} icon-name="utility:left" onclick={arrowLefttClick}></lightning-button-icon></div>
+							<div class="slds-col slds-var-p-horizontal_x-large">{selectedItemName}</div>
+							<div class="slds-col slds-var-p-horizontal_x-large"><lightning-button-icon if:true={showRightArrow} icon-name="utility:right" onclick={arrowRightClick}></lightning-button-icon></div>
+						</div>
+					</div>
+				</div>
+
+				<c-flagged-notes-details-lwc selected={selected}></c-flagged-notes-details-lwc>
+
+				<div slot="footer">
+					<lightning-button variant="brand" value="Close" label="Close" onclick={closeDialog}></lightning-button>
+				</div>
+			</c-modal-lwc>
+		</template>
+	</lightning-card>
+</template>

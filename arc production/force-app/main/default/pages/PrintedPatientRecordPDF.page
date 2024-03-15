@@ -1,0 +1,127 @@
+<apex:page renderAs="pdf" applyBodyTag="false" controller="PrintedMedicalRecordController" action="{!init}">
+    <head>
+        <style type="text/css" media="print">
+            @page {
+                padding-top: 126px;
+                @top-center {
+                    content: element(header);
+                }
+                @bottom-left {
+                    content: element(footer);
+                }
+            }
+            div.header {
+                padding: 10px;
+                padding-top: 0.25in;
+                position: running(header);
+            }
+            div.footer {
+                display: block;
+                padding: 5px;
+                padding-bottom: 0.25in;
+                position: running(footer);
+            }
+            .pagenumber:before {
+                content: counter(page);
+            }
+            .pagecount:before {
+                content: counter(pages);
+            }
+            body{
+                font-family: "Arial", "Helvetica", sans-serif;
+            }
+            .red-border{
+                border: 1px solid red;
+            }
+            .red{
+                color: red;
+            }
+            .center-text{
+                text-align: center;
+            }
+            .slim-margin{
+                margin: 5px;
+            }
+            .text-align-right{
+                text-align: right;
+            }
+            .logo-padding{
+                padding: 5px 20px 6px;
+            }
+            .float-left{
+                float: left;
+            }
+            .float-right{
+                float: right;
+                margin-top: 35px;
+            }
+            .logo-image{
+                width: 350px;
+                position: relative;
+                left: -8px;
+            }
+            .bold{
+                font-weight: 700;
+            }
+            .extra-space{
+                height: 25px;
+            }
+            .section-header {
+                font-size: 2em;
+                font-weight: 700;
+                margin-top: 20px;
+            }
+            h1 {
+                font-size: 1.5em;
+                font-weight: 500;
+            }
+            hr.rounded {
+                border-top: 8px solid #bbb;
+                border-radius: 5px;
+            }
+            .medical-record-item:nth-of-type(odd){
+            background-color: lightgrey;
+            }
+            .medical-record-item:nth-of-type(even){
+            background-color: white;
+            }
+            .answer {
+                margin-top : 2px
+            }
+
+        </style>
+    </head>
+    <div class="header">
+        <div class="red-border center-text">
+            <p class="red slim-margin bold">{!$Label.ARC_Medical_Record_Disclaimer}</p>
+        </div>
+        <div class="float-left logo-padding"><img alt="" class="logo-image" src="{!$Resource.Riggs_Logo_Medical_Records}" /><br />
+            <span style="font-size:16px;">{!$Label.ARC_Address}</span>
+        </div>
+        <div class="float-right text-align-right"><span class="bold">{!currentRecord.Patient_Account__r.Name}</span> <br />
+            <span>File No.&nbsp;{!currentRecord.Patient_Account__r.Medical_Record_Number__c}</span><br />
+            <span>Date Admitted&nbsp;<apex:outputText value="{0,date,MM/dd/yyyy}"> <apex:param value="{!currentRecord.Patient_Account__r.Current_Admission__r.Admit_Date__c}" /> </apex:outputText></span><br />
+            <span>Birthdate&nbsp;<apex:outputText value="{0,date,MM/dd/yyyy}"> <apex:param value="{!currentRecord.Patient_Account__r.Date_of_Birth__c}" /> </apex:outputText></span>
+        </div>
+    </div>
+    <div class="footer">
+        <div>Page <span class="pagenumber"/> of <span class="pagecount"/></div>
+    </div>
+    <div class="content">
+        <apex:repeat value="{!includedObjects}" var="objs" id="theRepeat1">
+            <apex:repeat value="{!objs}" var="obj" id="theRepeat2">
+                <div class="medical-record-item">
+                    <div class="section-header" ><apex:outputText value="{!obj.name}" id="theValue"/></div><br/>
+                    <apex:outputText value="{!obj.htmlText}" id="theHTML" escape="false"/>
+                    <apex:repeat value="{!obj.attachments}" var="attachment" id="theRepeat3">
+                        {!attachment}
+                        <img src="/sfc/servlet.shepherd/version/renditionDownload?rendition=THUMB720BY480&versionId={!attachment}"/>
+                    </apex:repeat>
+                </div>
+                <hr class="rounded" />
+            </apex:repeat>
+            <div style='page-break-after: always'><span style='display: none;'>&nbsp;</span></div>
+        </apex:repeat>
+
+    </div>
+</apex:page>

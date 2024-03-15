@@ -1,0 +1,279 @@
+<aura:component controller="ManageInterventionsCtl" extends="c:ApexService" implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome">
+
+    <aura:attribute name="mode" type="String" default="view" access="public"/>
+    <aura:attribute name="showManageButton" type="Boolean"  access="public"/>
+    <aura:attribute name="showAllDisciplines" type="Boolean" access="public"/>
+    <aura:attribute name="showAllCurrentToggle" type="Boolean" access="public"/>
+    
+    <aura:attribute name="treatmentPlan" type="Case" access="public"/>
+    <aura:attribute name="treatmentPlanId" type="String" access="public"/>
+    <aura:attribute name="patientId" type="String" access="public"/>
+    <aura:attribute name="instanceName" type="String" access="public"/>
+    <aura:attribute name="discipline" type="String" access="global" />
+
+
+    <aura:attribute name="diciplineInterverntions" type="Map" access="private"/>
+    <aura:attribute name="requiredDetailsInterventions" type="Map" access="private" />
+    <aura:attribute name="newIntervention" type="Object" access="private"/>
+
+    <aura:attribute name="loaded" type="Boolean" access="private"/>
+    <aura:attribute name="diciplines" type="String[]" access="private"/>
+    <aura:attribute name="interventions" type="String[]" access="private"/>
+    <aura:attribute name="showManageInterventionsModal" type="Boolean" access="private" />
+    <aura:attribute name="specifyInputRequired" type="Boolean" />
+    <aura:attribute name="showLinks" type="Boolean" default="false" />
+    <aura:attribute name="showOnlyToAllowedDiciplines" type="Boolean" default="true" />
+    
+     
+
+    <aura:attribute name="view_columns" type="Object" />
+    <aura:attribute name="data" type="List" default="[]" />
+    <aura:attribute name="view_data" type="List" default="[]" />
+    <aura:attribute name="options" type="List" default="[
+        {'label': 'All', 'value': 'All'},
+        {'label': 'Current', 'value': 'Current'}
+    ]" access="private"/>
+    <aura:attribute name="value" type="String" default="Current"/>
+
+    <aura:registerEvent name="closeModalEvent" type="c:closeModal" />
+    <aura:handler name="closeModalEvent" event="c:closeModal" action="{!c.onCloseModalHandler}" />
+    
+    <aura:handler name="init" value="{! this }" action="{!c.doInit}"/>
+    <aura:handler event="force:refreshView" action="{!c.doInit}"/>
+
+    <aura:handler name="refresh" event="c:customRefresh" action="{!c.onCustomRefreshHandler}" />
+    <aura:registerEvent name="refresh" type="c:customRefresh" />
+
+    <lightning:layout multipleRows="true">
+        <lightning:layoutItem size="2">
+            <lightning:radioGroup class="{!v.showAllCurrentToggle?'slds-show':'slds-hide'}"
+                          label=""
+                          options="{! v.options }"
+                          value="{! v.value }"
+                          type="button"
+                          onchange="{!c.handleAllAndCurrentButtons}"/>
+        </lightning:layoutItem>
+        <lightning:layoutItem size="8">&nbsp;</lightning:layoutItem>
+        <lightning:layoutItem size="2">
+            <aura:if isTrue="{!v.showManageButton}">
+                <lightning:button class="btn" variant="brand" label="Manage Interventions" title="Manage Interventions" onclick="{!c.handlerManageInterventionClick}"/>
+            </aura:if>
+        </lightning:layoutItem>
+        <lightning:layoutItem size="12">&nbsp;</lightning:layoutItem>
+        <lightning:layoutItem size="12">&nbsp;</lightning:layoutItem>
+
+        <aura:if isTrue="{!v.mode == 'edit'}">
+        <lightning:layoutItem size="12">
+        
+            <aura:if isTrue="{!v.loaded}">
+
+                <lightning:layout multipleRows="true" verticalAlign="end">
+                    <lightning:layoutItem size="1" padding="around-small">
+                        <span  style="font-weight: bold">
+                            Dicipline
+                        </span>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="4" padding="around-small">
+                        <span style="font-weight: bold">
+                            Intervention
+                        </span>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="4" padding="around-small">
+                        <span style="font-weight: bold">
+                            Patient-specific Details
+                        </span>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="1" padding="around-small">
+                        <span style="font-weight: bold">
+                            Start Date
+                        </span>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="1" padding="around-small"> 
+                        <span style="font-weight: bold">
+                            End Date
+                        </span>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="1" padding="around-small">
+                        <span style="font-weight: bold">
+                            
+                        </span>
+                    </lightning:layoutItem>
+
+                </lightning:layout>
+            </aura:if>
+            
+        </lightning:layoutItem>
+        </aura:if>
+
+        <aura:if isTrue="{!v.mode == 'view'? v.loaded : false}">
+            <!--h1>in this section</h1-->
+            <aura:if isTrue="{!v.view_columns}">
+                <aura:if isTrue="{!v.view_data.length != 0 ? true : false }">
+                    <lightning:layoutItem size="12">
+                    <lightning:datatable
+                        columns="{!v.view_columns}"
+                        data="{!v.view_data}"
+                        keyField="id"
+                        showRowNumberColumn="false"
+                        hideCheckboxColumn="true"/>
+                    </lightning:layoutItem>
+                </aura:if>
+
+                <aura:if isTrue="{!v.view_data.length == 0 ? true : false }">
+                    <p>No interventions recorded</p>
+                </aura:if>
+                
+            </aura:if>
+        </aura:if>
+    </lightning:layout>
+
+
+    <aura:if isTrue="{!v.showManageInterventionsModal}">
+        <c:sldsModal instanceName="showManageInterventionsModal">
+            <aura:set attribute="header">
+                Manage Interventions
+            </aura:set>
+            <aura:set attribute="content">
+                
+                <aura:if isTrue="{!v.loaded}">
+                    <lightning:layout multipleRows="true" verticalAlign="end">
+
+                        <lightning:layoutItem size="2" >
+                            <lightning:radioGroup class="{!v.showAllCurrentToggle?'slds-show':'slds-hide'}" name="allAndCurrentButtons"
+                                        label=""
+                                        options="{! v.options }"
+                                        value="{! v.value }"
+                                        type="button"
+                                        onchange="{!c.handleAllAndCurrentButtons}"/>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="8">&nbsp;</lightning:layoutItem>
+                        <lightning:layoutItem size="2">
+                            
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="12">&nbsp;</lightning:layoutItem>
+
+                        <lightning:layoutItem size="2" class="headerbackground" >
+                            <span style="font-weight: bold;margin-right: 10px;">
+                                Discipline
+                            </span>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="4" class="headerbackground">
+                            <span class="input" style="font-weight: bold">
+                                Intervention
+                            </span>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="3" class="headerbackground">
+                            <span class="input" style="font-weight: bold">
+                                Patient-specific Details
+                            </span>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="1" class="headerbackground">
+                            <span class="input" style="font-weight: bold">
+                                Start Date
+                            </span>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="1" class="headerbackground"> 
+                            <span class="input" style="font-weight: bold">
+                                End Date
+                            </span>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="1" class="headerbackground">
+                            <span class="input" style="font-weight: bold">
+                                &nbsp; 
+                            </span>
+                        </lightning:layoutItem>
+
+                        <aura:iteration items="{!v.data}" indexVar="index" var="intervention">
+
+                            <lightning:layoutItem size="2" >
+                                <div class="cell">
+                                    {!intervention.discipline}
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="4" >
+                                <div class="cell input">
+                                    {!intervention.description}
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="3" >
+                                <div class="cell input">
+                                    {!intervention.patientSpecificDetail}
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="1" >
+                                <div class="cell input">
+                                    <ui:outputDate value="{!intervention.startDate}" format="MM/dd/yyyy" />
+                                    <!-- lightning:formattedDateTime value="{!intervention.startDate}" year="numeric" month="2-digit" day="2-digit" timeZoneName="short" timeZone="UTC"/ -->
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="1" >
+                                <div class="cell input">
+                                    <ui:outputDate value="{!intervention.endDate}" format="MM/dd/yyyy" />
+                                    <!-- lightning:formattedDateTime value="{!intervention.endDate}" year="numeric" month="2-digit" day="2-digit" timeZoneName="short" timeZone="UTC"/ -->
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="1" >
+                                <div class="cell input">
+                                    <aura:if isTrue="{!!intervention.endDate}">
+                                        <lightning:button variant="destructive" class="btn" name="{!intervention.id}" label="Discontinue" title="{!intervention.status}" onclick="{!c.onDiscontinueClickHandler}"/>
+                                    </aura:if>
+                                </div>
+                            </lightning:layoutItem>
+                            
+                        </aura:iteration>
+
+                        <lightning:layoutItem size="2" >
+                            <div style="margin-right: 10px;" title="{!v.newIntervention.dicipline}">
+                                <lightning:select value="{!v.newIntervention.dicipline}" class="picklist slds-has-error" onchange="{!c.onDiciplineChangeHandler}" messageWhenValueMissing=" " variant="label-hidden">
+                                    <!-- <option value="">- -Select- -</option> -->
+                                    <aura:iteration items="{!v.diciplines}" var="option">
+                                        <option value="{!option}">{!option}</option>
+                                    </aura:iteration>
+                                </lightning:select>
+                            </div>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="4" >
+                            <div class="input" title="{!v.newIntervention.description}">
+                                <lightning:select value="{!v.newIntervention.description}" class="picklist slds-has-error" onchange="{!c.onInterventionChangeHandler}" messageWhenValueMissing=" " variant="label-hidden">
+                                    <option value="">--Select--</option>
+                                    <aura:iteration items="{!v.interventions}" var="option">
+                                        <option value="{!option}">{!option}</option>
+                                    </aura:iteration>
+                                </lightning:select>
+                            </div>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="3" >
+                            <lightning:input aura:id="specifyInput" required="{!v.specifyInputRequired}" class="{!v.specifyInputRequired?'input slds-has-error':'input'}" value="{!v.newIntervention.patientSpecificDetail}" messageWhenValueMissing=" "/>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="1" >
+                            <lightning:input type="date" class="slds-has-error" value="{!v.newIntervention.startDate}" year="numeric" month="2-digit" day="2-digit" date-style="short" /> 
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="1" >
+                            <lightning:formattedDateTime value="{!v.newIntervention.endDate}" year="numeric" month="2-digit" day="2-digit" timeZone="UTC"/>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="1" >
+                            <lightning:button variant="success" class="btn" name="{!index}" label="Save" title="{!v.newIntervention.status}" onclick="{!c.onSaveClickHandler}"/>
+                        </lightning:layoutItem>
+
+                        <lightning:layoutItem size="12" class="line" ></lightning:layoutItem>
+                    </lightning:layout>
+
+                </aura:if>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+                <c:modalPopupLwc aura:id="modal" />
+            </aura:set>
+            <aura:set attribute="footer">
+                <lightning:button class="slds-button slds-button_neutral" variant="brand" label="Close" title="Close" onclick="{!c.onCloseClickHandler}"/>
+            </aura:set>
+        </c:sldsModal>
+    </aura:if>
+
+    
+</aura:component>

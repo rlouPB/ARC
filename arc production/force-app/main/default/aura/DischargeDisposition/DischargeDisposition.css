@@ -1,0 +1,45 @@
+.THIS .dischargeTypeRadio .slds-form-element__label {
+	font-size: large!important;
+}.THIS .dischargeTypeRadio .slds-radio:hover {
+	font-weight: bold;
+	background-color: #D3D3D3;
+	cursor: pointer;
+}
+.THIS .slds-scrollable_y{
+    max-height: 60vh;
+}
+/* Style the header */
+.THIS .StickyHeader {
+  padding: 10px 16px;
+  background: #555;
+  color: #f1f1f1;
+}
+
+/* Page content */
+.THIS .content {
+  padding: 16px;
+}
+
+/* The sticky class is added to the header with JS when it reaches its scroll position */
+.THIS .sticky {
+  position: fixed;
+  top: 24;
+  z-index:1000;
+  width: 100%;
+}
+
+/* Add some top padding to the page content to prevent sudden quick movement (as the header gets a new position at the top of the page (position:fixed and top:0) */
+.THIS .sticky + .content {
+  padding-top: 102px;
+}
+.THIS .snapshotHtml {
+	padding: 10px;
+}
+
+.THIS .bottom-padding {
+	padding-bottom: 100px;
+}
+
+.THIS #lookupContainerDiv {
+  width: 100%
+}

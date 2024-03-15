@@ -1,0 +1,23 @@
+<aura:component>
+	<aura:attribute name="instanceName" type="String" default="" description="for use in instance tracking"/>
+	<aura:attribute name="saveFrequency" type="Integer" default="10" description="number of seconds to wait between save attempts"/>
+	<aura:attribute name="isAutosaveOn" type="Boolean" default="false" description=""/>
+	<aura:attribute name="isSaving" type="Boolean" default="false" description="true if save is started and not finished"/>
+	<aura:attribute name="isSaved" type="Boolean" default="false" description="controls display of 'Saved'"/>
+	<aura:attribute name="timeoutId" type="Integer" description="used to keep track of current window.timeout Id"/>
+	<aura:attribute name="autosaveMessage" type="String" description="optional message to display status of autosave"/>
+    <aura:attribute name="lastSuccessfulSaveTime" type="Datetime" description="timestamp of last server response on save" />
+    <aura:attribute name="previousSaveLockoutLength" type="Integer" default="15" 
+                    description="Number of seconds to wait after lastSuccessfulSaveTime (the last save attempt) to allow autosaving again" />
+
+	<aura:handler name="change" value="{!v.isAutosaveOn}" action="{!c.autosaveChange}"/>
+
+	<aura:registerEvent name="autosaveNowEvent" type="c:autosaveNow"/>
+	
+	<aura:method name="autosaveOn" action="{!c.autosaveOn}" access="public"/>
+	<aura:method name="autosaveOff" action="{!c.autosaveOff}" access="public"/>
+	<aura:method name="resetTimer" action="{!c.reset}" access="public"/>
+    
+    <ltng:require scripts="{!join(',', $Resource.momentjs, $Resource.momentTz)}" />
+
+</aura:component>

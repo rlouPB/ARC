@@ -1,0 +1,44 @@
+<template>
+    <div class="slds">        
+        <lightning-card title="Nursing Shift">
+            <div class="slds-p-left_large">
+                <template if:true={nursingShift}>
+                    <lightning-record-edit-form object-api-name="Nursing_Shift__c" record-id={recordId} onsubmit={onSubmitHandler}>
+                        <lightning-layout >
+                            <lightning-layout-item size="6">
+                                <lightning-output-field data-id="Date__c" field-name="Date__c" onchange={onRecordChange}></lightning-output-field>
+                                <lightning-output-field data-id="Type_of_Day__c" field-name="Type_of_Day__c" onchange={onRecordChange}></lightning-output-field>
+                                <lightning-output-field data-id="Shift_Number__c" field-name="Shift_Number__c" onchange={onRecordChange}></lightning-output-field>
+                                <lightning-output-field data-id="Status__c" field-name="Status__c" onchange={onRecordChange}></lightning-output-field>
+                            </lightning-layout-item>
+                            <lightning-layout-item size="6">
+                                <c-nurse-shift-lookup-lwc class="Charge_Nurse__c" nursing-shift-id={recordId} onrecordselected={onRecordChange} data-id="Charge_Nurse__c" label={Charge_Nurse__c} record-id={nursingShift.Charge_Nurse__c}></c-nurse-shift-lookup-lwc>
+                                <c-nurse-shift-lookup-lwc class="Med_Nurse__c" nursing-shift-id={recordId} onrecordselected={onRecordChange} data-id="Med_Nurse__c" label={Med_Nurse__c} record-id={nursingShift.Med_Nurse__c}></c-nurse-shift-lookup-lwc>
+                                <c-nurse-shift-lookup-lwc class="Backup_Med_Nurse__c" nursing-shift-id={recordId} onrecordselected={onRecordChange} data-id="Backup_Med_Nurse__c" label={Backup_Med_Nurse__c} record-id={nursingShift.Backup_Med_Nurse__c}></c-nurse-shift-lookup-lwc>                    
+                            </lightning-layout-item>
+                        </lightning-layout>
+                    </lightning-record-edit-form>
+                </template>
+            </div>
+        </lightning-card>
+        <lightning-card title="">
+            <div class="slds-p-left_large">
+                <lightning-tabset>
+                    <lightning-tab label="Patients">
+                        <c-nursing-shift-patient-assignments-lwc record-id={recordId} onassigntoset={reloadNurses} ></c-nursing-shift-patient-assignments-lwc>
+                    </lightning-tab>
+                    <lightning-tab label="Patient Items">
+                        <c-nursing-shift-items-by-shift-lwc record-id={recordId} is-patient-items="true" show-reload ></c-nursing-shift-items-by-shift-lwc>
+                    </lightning-tab>
+                    <lightning-tab label="Generic Items">
+                        <c-nursing-shift-generic-items-lwc record-id={recordId} show-add="true"></c-nursing-shift-generic-items-lwc>
+                    </lightning-tab>
+                    <lightning-tab label="Nurses">
+                        <c-nursing-shift-nurses-lwc record-id={recordId}></c-nursing-shift-nurses-lwc>                        
+                    </lightning-tab>
+                </lightning-tabset>
+            </div>
+        </lightning-card>
+    </div>    
+    <c-modal-popup-lwc class="popup" ></c-modal-popup-lwc>
+</template>

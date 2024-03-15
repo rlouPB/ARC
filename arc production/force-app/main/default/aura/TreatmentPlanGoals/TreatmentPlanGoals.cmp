@@ -1,0 +1,42 @@
+<aura:component >
+    <aura:attribute name="domainNumber" type="Integer"/>
+    <aura:attribute name="treatmentStatus" type="String"/>
+    <aura:attribute name="egoDate" type="Date"/>
+    <aura:attribute name="todayDate" type="Date"/>
+    <aura:attribute name="newTargetDate" type="Date"/>
+    <aura:attribute name="goals" type="List"/>
+    <aura:attribute name="isFirstDraftTreatmentPlan" type="Boolean" default="false"/>
+    <aura:attribute name="edit" type= "boolean" default="{}"/>
+    <aura:attribute name="editObjective" type="boolean" default="false"/>
+    <aura:attribute name="index" type="Integer"/>
+    <aura:attribute name="minIndex" type="Integer"/>
+    <aura:attribute name="showCancel" type="Boolean" default="false"/>
+    
+    <!-- Handler -->
+    <aura:handler name="init" value="{! this }" action="{! c.doInit }"/>
+    <aura:handler name="goalCancelEvent" event="c:TreatmentPlanGoalCancelEvent" action="{!c.cancelGoal}"/>
+    
+    <aura:registerevent name="treatmentPlanEditEvent" type="c:TreatmentPlanEditEvent"></aura:registerevent>
+    
+    <aura:iteration items="{!v.goals}" var="goal" indexVar="goalCounter">
+        <lightning:layout multipleRows="true">
+            <lightning:layoutItem size="12" class="slds-m-top_small">
+                <c:TreatmentPlanGoal domainNumber="{!v.domainNumber}" 
+                                     treatmentStatus="{!v.treatmentStatus}" 
+                                     egoDate="{!v.egoDate}"
+                                     newTargetDate="{!v.newTargetDate}" 
+                                     goal="{!goal}" 
+                                     goalCounter="{!goalCounter}"
+                                     isFirstDraftTreatmentPlan="{!v.isFirstDraftTreatmentPlan}" 
+                                     edit="{!v.edit}"/>
+            </lightning:layoutItem>
+        </lightning:layout>
+    </aura:iteration>
+    <aura:if isTrue="{!v.edit}">
+        <aura:if isTrue="{!v.domainNumber!= 6}" >
+            <div class="slds-p-top_small slds-p-left_small">
+                <lightning:button variant="brand" label="Add New Goal" title="Add New Goal" onclick="{!c.addGoal}"/>
+            </div>
+        </aura:if>
+    </aura:if>
+</aura:component>

@@ -1,0 +1,16 @@
+<template>
+  <div class="slds-box slds-box_small">
+    <lightning-card icon-name={configIconName}>
+      <div slot="title">
+        <h3>{configTitle}</h3>
+        <template if:true={configShowName}>
+          <div class="slds-text-body_regular slds-text-title">
+            {accountName}
+          </div>
+        </template>
+</div>
+<div class="chart slds-var-m-around_medium" lwc:dom="manual"></div>
+</lightning-card>
+<lightning-spinner if:true={loading}></lightning-spinner>
+</div>
+</template>

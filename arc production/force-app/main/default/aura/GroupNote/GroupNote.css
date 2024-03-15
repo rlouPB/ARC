@@ -1,0 +1,31 @@
+.THIS .attach-to-bottom{
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
+    width: 100%;
+}
+
+.THIS .modal-content{
+    max-height: 100%;
+}
+
+.THIS .slds-modal__container{
+    max-height: 100vh !important;
+}
+
+.THIS .slds-box{
+    padding: 12px 10px;
+}
+
+.THIS .slds-button slds-button_icon slds-modal__close closeIcon slds-button_icon-bare slds-button_icon-inverse{
+    display: block !important;
+}
+
+.THIS .uiOutputText {
+    color:rgb(62, 62, 60);
+}
+
+.THIS .slds-docked-form-footer{
+    justify-content: right;
+    display: inherit;
+}

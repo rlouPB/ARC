@@ -1,0 +1,152 @@
+<template>
+    <lightning-card >
+      
+
+          
+            <!-- <h3 slot="title">
+                <lightning-icon icon-name="standard:account" size="small" alternative-text="Prescriptions" class="slds-m-right_small"></lightning-icon>
+                Prescriptions
+            </h3> -->
+          
+            <!-- <div class="slds-clearfix" style="position:relative;top:-25px;">
+              <lightning-layout-item class="slds-align_absolute-center">
+                  <lightning-radio-group
+                      options={modeOptions}
+                      value={mode}
+                      type="button"
+                      onchange={changeMode}
+                  ></lightning-radio-group>
+              </lightning-layout-item>
+            </div> -->
+      
+          
+            <!-- <lightning-button-group slot="actions">
+                <lightning-button variant="neutral" label="Print Current" onclick={openPrintedLastDispensedMeds}></lightning-button>
+                <lightning-button-icon icon-name="utility:refresh" title="refresh" onclick={load}></lightning-button-icon>
+            </lightning-button-group> -->
+          
+
+            <div class="slds-grid slds-wrap slds-p-left_medium slds-p-right_medium">
+              <div class="slds-col slds-size_3-of-12">
+                  <div class="slds-grid slds-gutters">
+                      <div class="slds-col">
+                          <div class="slds-form-element">
+                              <span style="float: left;">
+                                <h1 style="font-size: 18px; font-weight: 600;">
+                                  <lightning-icon icon-name="standard:account" size="small" alternative-text="Prescriptions" class="slds-m-right_small"></lightning-icon>
+                                  Prescriptions
+                                </h1>
+                              </span>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+              <div class="slds-col slds-size_4-of-12">
+                  <div class="slds-grid slds-gutters">
+                      <div class="slds-col">
+                          <div class="slds-form-element">
+                              <span style="float: left;position:relative;top:-5px;">
+                                <lightning-radio-group
+                                    options={modeOptions}
+                                    value={mode}
+                                    type="button"
+                                    onchange={changeMode}
+                                    class="display: inline-block !important;"
+                                ></lightning-radio-group>
+                              </span>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+              
+                  <div class="slds-col slds-size_5-of-12">
+                      <div class="slds-grid slds-gutters">
+                          <div class="slds-col">
+                              <div class="slds-form-element">
+                                  <span style="float: right;">
+                                    <lightning-button-group slot="actions">
+                                      <lightning-button variant="neutral" label="Print Current" onclick={openPrintedLastDispensedMeds}></lightning-button>
+                                      <lightning-button-icon icon-name="utility:refresh" title="refresh" onclick={load}></lightning-button-icon>
+                                    </lightning-button-group>
+                                  </span>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              
+          </div>    
+    
+    <div class="slds-card">
+      <lightning-spinner if:true={loading}></lightning-spinner>    
+      <table class="slds-table slds-table_bordered slds-table_fixed-layout" role="grid">
+        <thead>
+          <tr>
+            <template for:each={columns} for:item="col" if:true={hasColumns}>
+              <th key={col.name} style={col.style}>
+                <div onclick={updateColumnSorting} data-fieldname={col.name} class="slds-th__action slds-text-link_reset slds-is-sorted slds-is-sorted_asc">
+                  {col.label}
+                  <template if:true={col.sorted}>
+                    <template if:false={col.isDESC}>
+                      <lightning-icon data-fieldname={col.name} icon-name="utility:arrowup" size="xx-small"></lightning-icon>
+                    </template>
+                    <template if:true={col.isDESC}>
+                      <lightning-icon data-fieldname={col.name} icon-name="utility:arrowdown" size="xx-small"></lightning-icon>
+                    </template>
+                  </template>
+                </div>
+              </th>
+            </template>
+          </tr>
+        </thead>
+        <tbody>
+          <template for:each={pagedData} for:item="item">
+            <tr key={item.id} class={item.rowClass}>
+              <template for:each={item.fields} for:item="field">
+                <td key={field.name} class="slds-cell-wrap">
+                  <div class="slds-p-horizontal_x-small">
+                    <template if:true={field.isName}>
+                      <c-record-link record-id={item.record.Id} record-name={field.value}></c-record-link>
+                    </template>
+                    <template if:true={field.isLookup}>
+                      <c-record-link record-id={field.valueId} record-name={field.lookupName}></c-record-link>
+                    </template>
+                    <template if:true={field.isLookup2}>
+                      <c-record-link record-id={field.valueId} record-name={field.lookupName2}></c-record-link>
+                    </template>
+                    <template if:true={field.isDate}>
+                      <lightning-formatted-date-time value={field.value} year="numeric" month="2-digit" day="2-digit" time-zone="UTC"></lightning-formatted-date-time>
+                    </template>
+                    <template if:true={field.isDateTime}>
+                      <lightning-formatted-date-time value={field.value} year="numeric" month="2-digit" day="2-digit" hour="2-digit" minute="2-digit" time-zone="America/New_York"></lightning-formatted-date-time>
+                    </template>
+                    <template if:true={field.isCheckbox}>
+                      <lightning-input type="checkbox" disabled readonly="true" checked={field.value}></lightning-input>
+                    </template>
+                    <template if:true={field.isBoolean}>
+                        <lightning-icon if:true={field.value} icon-name="utility:check" size="x-small"></lightning-icon>
+                      </template>
+                    <template if:true={field.isHtml}>
+                      <lightning-formatted-rich-text value={field.value}></lightning-formatted-rich-text>
+                    </template>
+                    <template if:true={field.isAction}>
+                      <div style="color: blue; cursor: pointer" data-rowid={item.id} data-action={field.action} onclick={onRecordActionClickHandler}>{field.value}</div>
+                    </template>
+                    <template if:true={field.isText}>{field.value}</template>
+                    <template if:true={field.isNumber}>{field.value}</template>
+                  </div>
+                </td>
+              </template>
+            </tr>
+          </template>
+        </tbody>
+        <tfoot>
+          <tr>
+            <th>
+              <c-paginator-lwc class="paginator" values={dataItems} onpagechanged={pageChangedHandler}></c-paginator-lwc>
+            </th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    </lightning-card>
+  </template>

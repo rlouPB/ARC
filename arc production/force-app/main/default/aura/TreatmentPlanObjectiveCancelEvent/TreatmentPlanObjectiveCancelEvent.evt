@@ -1,0 +1,3 @@
+<aura:event type="COMPONENT" description="An event is triggered when an objective is cancelled, it will pass the index of that objective in the list.">
+    <aura:attribute name="objectiveIndex" type="Integer"/>
+</aura:event>

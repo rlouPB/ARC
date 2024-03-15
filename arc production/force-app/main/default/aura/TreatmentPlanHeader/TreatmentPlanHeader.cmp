@@ -1,0 +1,331 @@
+<aura:component>
+    <aura:attribute name="treatmentPlan" type="Object" default="{}" />
+    <aura:attribute name="edit" type="boolean" default="{}" />
+    <aura:attribute name="showInterventionsModal" type="Boolean" default="false" />
+    <aura:attribute name="showConductEGOModal" type="Boolean" default="false" />
+    <aura:attribute name="isOverallGoalDisable" type="Boolean" default="true" />
+    <aura:attribute name="showCancelModal" type="Boolean" default="false" description="true if showing EGO cancel" />
+    <aura:attribute name="showCancelEditModal" type="Boolean" default="false" description="true if showing team edit cancel" />
+
+    <aura:attribute name="conductEGO" type="Boolean" default="true" />
+
+    <aura:attribute name="latestFinalized" type="Object" description="shows the latest finalized data for the ego and treatment plan" />
+
+    <aura:registerEvent name="treatmentPlanEditEvent" type="c:TreatmentPlanEditEvent" />
+    <aura:registerEvent name="SaveEGOEvent" type="c:SaveEGOEvent" />
+    <aura:handler event="c:closeModal" name="closeModalEvent" action="{!c.handleCloseModal}" />
+
+    <lightning:unsavedChanges aura:id="unsaved"
+                              onsave="{!c.save}"
+                               />
+    
+    <div class="slds-box">
+        <lightning:card>
+            <!-- View Draft Treatment Plan -->
+            <aura:if isTrue="{!and(v.edit==false,or(v.treatmentPlan.currentTreatmentPlan.Status=='Draft',or(v.treatmentPlan.currentTreatmentPlan.Status=='Completed',v.treatmentPlan.currentTreatmentPlan.Status=='Finalized')))}">
+                <lightning:layout multipleRows="true">
+                    <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                        <aura:unescapedHtml value="{!v.treatmentPlan.currentTreatmentPlan.Account.Photo__c}" />
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                        <label for="Patient" class="slds-form-element__label">Patient</label>
+                        <!-- <div id="Patient"><a href="{!'/'+v.treatmentPlan.patientId}" target="_blank">{!v.treatmentPlan.patientName}</a></div> -->
+                        <div id="Patient">
+                            <c:recordLink recordId="{!v.treatmentPlan.patientId}" recordName="{!v.treatmentPlan.patientName}" />
+                        </div>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                        <!-- <label for="Treatment PLan" class="slds-form-element__label">Current Treatment Plan</label> -->
+                        <!-- <div id="Treatment Plan"><a href="{!'/'+v.treatmentPlan.currentTreatmentPlan.Account.Current_Case__c}">Current Treatment Plan</a></div> -->
+                        <div id="Treatment Plan">
+                            <c:recordLink recordId="{!v.treatmentPlan.currentTreatmentPlan.Account.Current_Case__c}" recordName="Current Treatment Plan" />
+                        </div>
+                    </lightning:layoutItem>
+                    <aura:if isTrue="{!v.treatmentPlan.ego.Date__c!=null}">
+                        <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                            <label for="EGO_Conducted" class="slds-form-element__label">EGO Finalized</label>
+                            <div id="EGO_Conducted">
+                                <lightning:formattedDateTime value="{!v.treatmentPlan.ego.Date__c}" month="2-digit" day="2-digit" year="numeric" timeZone="UTC" />
+                            </div>
+                        </lightning:layoutItem>
+                    </aura:if>
+                    <!-- <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                    <label for="Overall_Goal" class="slds-form-element__label">Overall Goal</label>
+                    <div id="Overall_Goal" class="slds-hyphenate"><lightning:formattedText linkify="true" value="{!v.treatmentPlan.currentTreatmentPlan.Goal__c}"/></div>
+                </lightning:layoutItem> -->
+                    <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                        <label for="Admitted_Date" class="slds-form-element__label">Admitted Date</label>
+                        <div id="Admitted_Date" class="slds-hyphenate">
+                            <lightning:formattedDateTime value="{!v.treatmentPlan.currentTreatmentPlan.Admission__r.Admit_Date__c}" month="2-digit" day="2-digit" year="numeric" timeZone="UTC" />
+                        </div>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                        <label class="slds-form-element__label">Status</label>
+                        <div>{!v.treatmentPlan.currentTreatmentPlan.Status}</div>
+                    </lightning:layoutItem>
+                    <!-- commented out 210514 JN, since if I'm looking at a Finalized Draft Treatment Plan, it should show the finalized info for this record, even if this record isn't the latest -->
+                    <!-- <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                        <label for="Finalized_By__c" class="slds-form-element__label">Finalized By</label>
+                        <div id="Finalized_By__c">{!v.latestFinalized.treatmentplan.Finalized_By__c}</div>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                        <label for="Finalized_Date_Time__c" class="slds-form-element__label">Finalized Date/Time</label>
+                        <div id="Finalized_Date_Time__c">
+                            <lightning:formattedDateTime value="{!v.latestFinalized.treatmentplan.Finalized_Date_Time__c}" month="2-digit" day="2-digit" year="numeric" hour="numeric" minute="numeric" timeZoneName="short" timeZone="America/New_York" />
+                        </div>
+
+                    </lightning:layoutItem> -->
+                    <aura:if isTrue="{!v.treatmentPlan.currentTreatmentPlan.Finalized_Date_Time__c != null}" >
+                        <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                            <label for="Finalized_By__c" class="slds-form-element__label">Finalized By</label>
+                            <div id="Finalized_By__c">{!v.treatmentPlan.currentTreatmentPlan.Finalized_By_Professional_Name__c}</div>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                            <label for="Finalized_Date_Time__c" class="slds-form-element__label">Finalized Date/Time</label>
+                            <div id="Finalized_Date_Time__c">
+                                <lightning:formattedDateTime value="{!v.treatmentPlan.currentTreatmentPlan.Finalized_Date_Time__c}" month="2-digit" day="2-digit" year="numeric" hour="numeric" minute="numeric" timeZoneName="short" timeZone="America/New_York" />
+                            </div>
+                        </lightning:layoutItem>
+                    </aura:if>
+                    <aura:if isTrue="{!v.treatmentPlan.currentTreatmentPlan.Status=='Draft'}">
+                        <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                            <lightning:button class="slds-button_stretch" variant="brand" label="Edit Goals and Objectives" onclick="{!c.editGoalsAndObjectives}" />
+                        </lightning:layoutItem>
+                    </aura:if>
+                    <aura:if isTrue="{!and(v.treatmentPlan.userCanFinalizeTreatmentPlan, v.treatmentPlan.currentTreatmentPlan.Status == 'Draft')}">    
+                        <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                            <lightning:button class="slds-button_stretch"
+                                              variant="brand"
+                                              label="Finalize Treatment Plan"
+                                              onclick="{!c.finalizeTreatmentPlan}" />
+                        </lightning:layoutItem>
+                    </aura:if>
+
+                    <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                        <lightning:button class="slds-button_stretch" variant="brand" 
+                        label="Print" 
+                        onclick="{!c.printEgo}"
+                        disabled="{!v.loading}"/>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </aura:if>
+
+            <!-- Edit Draft Treatment Plan -->
+            <aura:if isTrue="{!and(v.edit==true,or(v.treatmentPlan.currentTreatmentPlan.Status=='Draft',v.treatmentPlan.currentTreatmentPlan.Status=='Completed'))}">
+                <lightning:layout multipleRows="true">
+                    <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                        <aura:unescapedHtml value="{!v.treatmentPlan.currentTreatmentPlan.Account.Photo__c}" />
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                        <label for="Patient" class="slds-form-element__label">Patient</label>
+                        <div id="Patient">
+                            <c:recordLink recordId="{!v.treatmentPlan.patientId}" recordName="{!v.treatmentPlan.patientName}" />
+                        </div>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                        <div id="Treatment Plan">
+                            <c:recordLink recordId="{!v.treatmentPlan.currentTreatmentPlan.Account.Current_Case__c}" recordName="Current Treatment Plan" />
+                        </div>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                        <label class="slds-form-element__label">Status</label>
+                        <div>{!v.treatmentPlan.currentTreatmentPlan.Status}</div>
+                    </lightning:layoutItem>
+                    <!-- commented out 210514 JN, since it seems strange to show Finalized while I'm editing the TP, right? -->
+                    <!-- <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                        <label for="Finalized_By__c" class="slds-form-element__label">Finalized By</label>
+                        <div id="Finalized_By__c">{!v.latestFinalized.treatmentplan.Finalized_By__c}</div>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                        <label for="Finalized_Date_Time__c" class="slds-form-element__label">Finalized Date/Time</label>
+                        <div id="Finalized_Date_Time__c">
+                            <lightning:formattedDateTime value="{!v.latestFinalized.treatmentplan.Finalized_Date_Time__c}" month="2-digit" day="2-digit" year="numeric" hour="numeric" minute="numeric" timeZoneName="short" timeZone="America/New_York" />
+                        </div>
+                    </lightning:layoutItem> -->
+                    <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                        <label for="Admitted_Date" class="slds-form-element__label">Admitted Date</label>
+                        <div id="Admitted_Date" class="slds-hyphenate">
+                            <lightning:formattedDateTime value="{!v.treatmentPlan.currentTreatmentPlan.Admission__r.Admit_Date__c}" month="2-digit" day="2-digit" year="numeric" timeZone="UTC" />
+                        </div>
+                    </lightning:layoutItem>
+                    <!-- Delete 4 buttons below after testing-->
+                    <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                        <lightning:button class="slds-button_stretch" variant="brand" label="Save" onclick="{!c.save}" disabled="{!not(v.treatmentPlan.currentTreatmentPlan.Status=='Draft')}" />
+                    </lightning:layoutItem>
+                   
+                    <!-- <aura:if isTrue="{!and(v.treatmentPlan.currentTreatmentPlan.Status!='Finalized',
+                                 and(or(v.treatmentPlan.isTeamLeader,v.treatmentPlan.isTherapist),not(v.treatmentPlan.requiresCoSignature)))}"> -->
+                    <!-- <aura:if isTrue="{!and(v.treatmentPlan.userCanFinalizeTreatmentPlan, v.treatmentPlan.currentTreatmentPlan.Status == 'Draft')}">    
+                        <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                            <lightning:button class="slds-button_stretch"
+                                              variant="brand"
+                                              label="Finalize Treatment Plan"
+                                              onclick="{!c.finalizeTreatmentPlan}" />
+                        </lightning:layoutItem>
+                    </aura:if> -->
+
+                    <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                        <lightning:button class="slds-button_stretch" variant="brand" label="Cancel" onclick="{!c.cancelEdit}" />
+                    </lightning:layoutItem>
+
+                
+                </lightning:layout>
+            </aura:if>
+            <!-- View Current Treatment Plan-->
+            <aura:if isTrue="{!v.treatmentPlan.currentTreatmentPlan.Status=='Active'}">
+                <!--
+				Menu on right side -->
+                <lightning:layout>
+                    <lightning:layoutItem size="12" padding="around-small" alignmentBump="left">
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                                <aura:unescapedHtml value="{!v.treatmentPlan.currentTreatmentPlan.Account.Photo__c}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                                <label for="Patient" class="slds-form-element__label">Patient</label>
+                                <div id="Patient">
+                                    <c:recordLink recordId="{!v.treatmentPlan.patientId}" recordName="{!v.treatmentPlan.patientName}" />
+                                </div>
+                            </lightning:layoutItem>
+                            <!-- <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                                <div id="Treatment Plan">
+                                    <c:recordLink recordId="{!v.treatmentPlan.currentTreatmentPlan.Account.Current_Case__c}" recordName="Current Treatment Plan" />
+                                </div>
+                            </lightning:layoutItem> -->
+                            <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                                <label for="Team" class="slds-form-element__label">Team</label>
+                                <div id="Team">{!v.treatmentPlan.currentTreatmentPlan.Admission__r.Team__c}</div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                                <label for="Admitted_Date" class="slds-form-element__label">Admitted Date</label>
+                                <div id="Admitted_Date" class="slds-hyphenate">
+                                    <lightning:formattedDateTime value="{!v.treatmentPlan.currentTreatmentPlan.Admission__r.Admit_Date__c}" month="2-digit" day="2-digit" year="numeric" timeZone="UTC" />
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                                <label class="slds-form-element__label">Status</label>
+                                <div>{!v.treatmentPlan.currentTreatmentPlan.Status}</div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                                <label for="Finalized_By__c" class="slds-form-element__label">Finalized By</label>
+                                <div id="Finalized_By__c">
+                                    {!v.latestFinalized.treatmentplan.Finalized_By__c}
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                                <label for="Finalized_Date_Time__c" class="slds-form-element__label">Finalized Date/Time</label>
+                                <div id="Finalized_Date_Time__c">
+                                    <lightning:formattedDateTime value="{!v.latestFinalized.treatmentplan.Finalized_Date_Time__c}" month="2-digit" day="2-digit" year="numeric" hour="numeric" minute="numeric" timeZoneName="short" timeZone="America/New_York" />
+                                </div>
+                            </lightning:layoutItem>
+
+                            <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                                <label for="Last_EGO_Finalized" class="slds-form-element__label">Last EGO Finalized</label>
+                                <div id="Last_EGO_Finalized" class="slds-hyphenate">
+                                    <lightning:formattedDateTime value="{!v.latestFinalized.ego.Finalized_Date_Time__c}" month="2-digit" day="2-digit" year="numeric" timeZone="UTC" />
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                                <label for="EGO_Finalized_By__c" class="slds-form-element__label">Last EGO Finalized by</label>
+                                <div id="EGO_Finalized_By__c" class="slds-hyphenate">{!v.latestFinalized.ego.Finalized_By__c}</div>
+                            </lightning:layoutItem>
+
+                        </lightning:layout>
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                                <lightning:button class="slds-button_stretch" variant="brand" label="Conduct EGO/EGO-R" onclick="{!c.conductEGO}"
+                                                  disabled="{!not(empty(v.treatmentPlan.unfinalizedDraftTreatmentPlanId))}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                                <lightning:button class="slds-button_stretch" variant="brand" label="Create Draft Treatment Plan (Team Edit)" disabled="{!not(v.treatmentPlan.isCreateDraftTreatmentPlanTeamEditAllowed)}" onclick="{!c.handleCreateDraftTreatmentPlan}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                                <lightning:button class="slds-button_stretch" variant="brand" label="Review Draft Treatment Plan" disabled="{!empty(v.treatmentPlan.unfinalizedDraftTreatmentPlanId)}"
+                                                  onclick="{!c.handleReviewDraftTreatmentPlan}" />
+                            </lightning:layoutItem>
+                            <!--
+                            <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                                <lightning:button class="slds-button_stretch" variant="brand" label="See EGO Rating History" disabled="true" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                                <lightning:button class="slds-button_stretch" variant="brand" label="See Goal and Objective History" disabled="true" />
+                            </lightning:layoutItem>
+                            -->
+                            <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                                <lightning:button class="slds-button_stretch" variant="brand" label="View Interventions" disabled="{!empty(v.treatmentPlan.currentTreatmentPlan)}"
+                                                  onclick="{!c.handleViewIntervnetions}" />
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </aura:if>
+        </lightning:card>
+    </div>
+
+    <aura:if isTrue="{!v.showConductEGOModal}">
+        <c:sldsModal aura:id="sldsModal" instanceName="ConductEGOModal" showXIcon="false">
+            <aura:set attribute="header">
+                {!if(v.treatmentPlan.isEGOR == true,'Conduct EGO-R', 'Conduct EGO')}
+            </aura:set>
+            <aura:set attribute="content">
+                <c:TreatmentPlan_EGO aura:id="EGO"
+                                     conductEGO="{!v.conductEGO}"
+                                     parentRecordId="{!v.treatmentPlan.currentTreatmentPlan.Id}"></c:TreatmentPlan_EGO>
+            </aura:set>
+        </c:sldsModal>
+    </aura:if>
+    <aura:if isTrue="{!v.showCancelModal}">
+        <c:sldsModal instanceName="cancelEGO">
+            <aura:set attribute="header">
+
+            </aura:set>
+            <aura:set attribute="content">
+                <div class="slds-p-horizontal--small">
+                    Are you sure you want to cancel? Any unsaved changes will be lost.
+                </div>
+            </aura:set>
+            <aura:set attribute="footer">
+                <lightning:button label="Discard Changes" variant="destructive" onclick="{!c.handleDiscardEGOChanges}" />
+                <lightning:button label="{!if(v.treatmentPlan.isEGOR==true,'Go back to EGO-R','Go back to EGO')}"
+                                  variant="neutral"
+                                  onclick="{!c.handleBackToEGO}" />
+            </aura:set>
+        </c:sldsModal>
+    </aura:if>
+
+    <aura:if isTrue="{!v.showCancelEditModal}">
+        <c:sldsModal instanceName="cancelEdit">
+            <aura:set attribute="header">
+
+            </aura:set>
+            <aura:set attribute="content">
+                <div class="slds-p-horizontal--small">
+                    Are you sure you want to cancel? Any unsaved changes will be lost.
+                </div>
+            </aura:set>
+            <aura:set attribute="footer">
+                <lightning:button label="Discard Changes" variant="destructive" onclick="{!c.handleDiscardEditChanges}" />
+                <lightning:button label="Go back to editing Treatment Plan"
+                                  variant="neutral"
+                                  onclick="{!c.handleBackToEditing}" />
+            </aura:set>
+        </c:sldsModal>
+    </aura:if>
+
+    <aura:if isTrue="{!v.showInterventionsModal}">
+        <c:sldsModal aura:id="sldsModal" instanceName="ViewInterventionsModal">
+            <aura:set attribute="header">
+                Interventions
+            </aura:set>
+            <aura:set attribute="content">
+                <!-- <c:ViewInterventions aura:id="Interventions"
+                instanceName="ViewInterventionsModal"
+                treatmentPlanId = "{!v.treatmentPlan.currentTreatmentPlan.Id}"></c:ViewInterventions> -->
+                <c:ManageInterventions aura:id="Interventions" instanceName="ViewInterventionsModal" treatmentPlanId="{!v.treatmentPlan.currentTreatmentPlan.Id}" showManageButton="false" showAllCurrentToggle="true" showOnlyToAllowedDiciplines="false"/>
+            </aura:set>
+            <aura:set attribute="footer">
+                <lightning:button class="slds-button slds-button_neutral" variant="brand" label="Close" title="Close" onclick="{!c.onCloseViewInterventionsHandler}" />
+            </aura:set>
+        </c:sldsModal>
+    </aura:if>
+</aura:component>

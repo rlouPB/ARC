@@ -1,0 +1,198 @@
+<aura:component controller="DischargeSectionCtl" extends="c:DischargeSection">
+    
+    <!-- handler -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler name="dischargeSectionActionEvent" event="c:DischargeSectionActionEvent" action="{!c.handleSectionActionEvent}"/>
+    <aura:handler name="referralChanged" event="c:DischargeDispositionReferralChanged" action="{!c.handleReferralChanged}"/>
+    
+    <!-- Register Events -->
+    
+    <lightning:card>
+        <lightning:layout multipleRows="true">
+            <lightning:layoutItem size="12">
+                <div class="slds-text-heading_medium">Residential / Day Treatment Program Referrals</div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12">
+                <c:DischargeDispositionReferrals aura:id="ResidentialDayTreatmentProgramReferrals"
+                                                 mode="institution" 
+                                                 isLoading="{!v.isLoading}"
+                                                 grouping="ResidentialDayTreatmentProgramReferrals"
+                                                 referralList="{!v.referralListMap.ResidentialDayTreatmentProgramReferrals}"
+                                                 removeReferralList="{!v.dischargeSection.removeReferralList}" 
+                                                 dischargeStatus="{!v.dischargeDisposition.dischargeDispositionObj.Status__c}" 
+                                                 dischargeDispositionId="{!v.dischargeSection.dischargeSectionObj.Discharge_Disposition__c}" 
+                                                 section="{!v.dischargeSection}"
+                                                 isEditable="{!v.isEditable}"
+                                                 />
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12">
+                <div class="slds-text-heading_medium">Couples / Family Therapy Referrals</div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12">
+                <c:DischargeDispositionReferrals aura:id="CouplesFamilyTherapyReferrals"
+                                                 mode="individual" 
+                                                 isLoading="{!v.isLoading}"
+                                                 grouping="CouplesFamilyTherapyReferrals"
+                                                 referralList="{!v.referralListMap.CouplesFamilyTherapyReferrals}"
+                                                 removeReferralList="{!v.dischargeSection.removeReferralList}" 
+                                                 dischargeStatus="{!v.dischargeDisposition.dischargeDispositionObj.Status__c}" 
+                                                 dischargeDispositionId="{!v.dischargeSection.dischargeSectionObj.Discharge_Disposition__c}" 
+                                                 section="{!v.dischargeSection}"
+                                                 isEditable="{!v.isEditable}"
+                                                 />
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12">
+                <div class="slds-text-heading_medium">Group Therapy / Self-Help Referrals</div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12">
+                <!-- <c:DischargeDispositionReferrals aura:id="GroupTherapySelfHelpReferrals"
+                                                 mode="individual" 
+                                                 isLoading="{!v.isLoading}"
+                                                 grouping="GroupTherapySelfHelpReferrals"
+                                                 referralList="{!v.referralListMap.GroupTherapySelfHelpReferrals}"
+                                                 removeReferralList="{!v.dischargeSection.removeReferralList}" 
+                                                 dischargeStatus="{!v.dischargeDisposition.dischargeDispositionObj.Status__c}" 
+                                                 dischargeDispositionId="{!v.dischargeSection.dischargeSectionObj.Discharge_Disposition__c}" 
+                                                 section="{!v.dischargeSection}"
+                                                 isEditable="{!v.isEditable}"
+                                                 /> -->
+                <c:DischargeDispositionReferrals aura:id="GroupTherapySelfHelpReferrals"
+                                                 mode="institution" 
+                                                 isLoading="{!v.isLoading}"
+                                                 grouping="GroupTherapySelfHelpReferrals"
+                                                 referralList="{!v.referralListMap.GroupTherapySelfHelpReferrals}"
+                                                 removeReferralList="{!v.dischargeSection.removeReferralList}" 
+                                                 dischargeStatus="{!v.dischargeDisposition.dischargeDispositionObj.Status__c}" 
+                                                 dischargeDispositionId="{!v.dischargeSection.dischargeSectionObj.Discharge_Disposition__c}" 
+                                                 section="{!v.dischargeSection}"
+                                                 isEditable="{!v.isEditable}"
+                                                 />
+            </lightning:layoutItem>
+
+        </lightning:layout>
+        <lightning:layout multipleRows="true">
+            <lightning:layoutItem size="12" class="slds-var-p-around_x-small">&nbsp;</lightning:layoutItem>
+            <lightning:layoutItem size="12">
+                <div class="slds-text-heading_medium">Additional Referral Notes</div>
+                <!-- <div id="Comments">Additional Referral Notes</div> -->
+            </lightning:layoutItem>
+            <!-- <lightning:layoutItem size="9"> -->
+                <!-- <aura:if isTrue="{!v.isEditable}">
+                    <lightning:InputRichText value="{!v.dischargeSection.dischargeSectionObj.Additional_Referral_Notes__c}" 
+                                             disabledCategories="FORMAT_FONT,ALIGN_TEXT,INSERT_CONTENT,REMOVE_FORMATTING"
+                                             disabled="{!not(v.isEditable)}"
+                                             />
+                    <aura:set attribute="else">
+                        <label for="Additional_Referral_Notes__c" class="slds-form-element__label"></label>
+                        <div id="Additional_Referral_Notes__c"><lightning:formattedRichText value="{!v.dischargeSection.dischargeSectionObj.Additional_Referral_Notes__c}"/></div>
+                    </aura:set>
+                </aura:if> -->
+            <!-- </lightning:layoutItem> -->
+
+            <lightning:layoutItem size="12" class="slds-var-p-around_x-small">&nbsp;</lightning:layoutItem>
+            <lightning:layoutItem size="3">
+                <label for="Comments" class="slds-form-element__label"></label>
+                <div id="Comments">Volunteer / Academic / Vocational Plan</div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="9">
+                <aura:if isTrue="{!v.isEditable}">
+                    <lightning:InputRichText value="{!v.dischargeSection.dischargeSectionObj.Volunteer_Academic_Vocational_Plan__c}" 
+                                             disabledCategories="FORMAT_FONT,ALIGN_TEXT,INSERT_CONTENT,REMOVE_FORMATTING"
+                                             disabled="{!not(v.isEditable)}"
+                                             />
+                    <aura:set attribute="else">
+                        <label for="Volunteer_Academic_Vocational_Plan__c" class="slds-form-element__label"></label>
+                        <div id="Volunteer_Academic_Vocational_Plan__c"><lightning:formattedRichText value="{!v.dischargeSection.dischargeSectionObj.Volunteer_Academic_Vocational_Plan__c}"/></div>
+                    </aura:set>
+                </aura:if>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12" class="slds-var-p-around_x-small">&nbsp;</lightning:layoutItem>
+            <lightning:layoutItem size="3">
+                <label for="Comments" class="slds-form-element__label"></label>
+                <div id="Comments">Living Arrangements / Social Support</div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="9">
+                <aura:if isTrue="{!v.isEditable}">
+                    <lightning:InputRichText value="{!v.dischargeSection.dischargeSectionObj.Living_Arrangements_Social_Support__c}" 
+                                             disabledCategories="FORMAT_FONT,ALIGN_TEXT,INSERT_CONTENT,REMOVE_FORMATTING"
+                                             disabled="{!not(v.isEditable)}"
+                                             />
+                    <aura:set attribute="else">
+                        <label for="Living_Arrangements_Social_Support__c" class="slds-form-element__label"></label>
+                        <div id="Living_Arrangements_Social_Support__c"><lightning:formattedRichText value="{!v.dischargeSection.dischargeSectionObj.Living_Arrangements_Social_Support__c}"/></div>
+                    </aura:set>
+                </aura:if>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12" class="slds-var-p-around_x-small">&nbsp;</lightning:layoutItem>
+            <lightning:layoutItem size="3">
+                <label for="Comments" class="slds-form-element__label"></label>
+                <div id="Comments">Financial Plan</div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="9">
+                <aura:if isTrue="{!v.isEditable}">
+                    <lightning:InputRichText value="{!v.dischargeSection.dischargeSectionObj.Financial_Plan__c}" 
+                                             disabledCategories="FORMAT_FONT,ALIGN_TEXT,INSERT_CONTENT,REMOVE_FORMATTING"
+                                             disabled="{!not(v.isEditable)}"
+                                             />
+                    <aura:set attribute="else">
+                        <label for="Financial_Plan__c" class="slds-form-element__label"></label>
+                        <div id="Financial_Plan__c"><lightning:formattedRichText value="{!v.dischargeSection.dischargeSectionObj.Financial_Plan__c}"/></div>
+                    </aura:set>
+                </aura:if>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12" class="slds-var-p-around_x-small">&nbsp;</lightning:layoutItem>
+            <lightning:layoutItem size="3">
+                <label for="Comments" class="slds-form-element__label"></label>
+                <div id="Comments">Local Community Involvement</div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="9">
+                <aura:if isTrue="{!v.isEditable}">
+                    <lightning:InputRichText value="{!v.dischargeSection.dischargeSectionObj.Local_Community_Involvement__c}" 
+                                             disabledCategories="FORMAT_FONT,ALIGN_TEXT,INSERT_CONTENT,REMOVE_FORMATTING"
+                                             disabled="{!not(v.isEditable)}"
+                                             />
+                    <aura:set attribute="else">
+                        <label for="Local_Community_Involvement__c" class="slds-form-element__label"></label>
+                        <div id="Local_Community_Involvement__c"><lightning:formattedRichText value="{!v.dischargeSection.dischargeSectionObj.Local_Community_Involvement__c}"/></div>
+                    </aura:set>
+                </aura:if>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12" class="slds-var-p-around_x-small">&nbsp;</lightning:layoutItem>
+            <lightning:layoutItem size="3">
+                <label for="Comments" class="slds-form-element__label"></label>
+                <div id="Comments">Others</div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="9">
+                <aura:if isTrue="{!v.isEditable}">
+                    <lightning:InputRichText value="{!v.dischargeSection.dischargeSectionObj.Other__c}" 
+                                             disabledCategories="FORMAT_FONT,ALIGN_TEXT,INSERT_CONTENT,REMOVE_FORMATTING"
+                                             disabled="{!not(v.isEditable)}"
+                                             />
+                    <aura:set attribute="else">
+                        <label for="Other__c" class="slds-form-element__label"></label>
+                        <div id="Other__c"><lightning:formattedRichText value="{!v.dischargeSection.dischargeSectionObj.Other__c}"/></div>
+                    </aura:set>
+                </aura:if>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12" class="slds-var-p-around_x-small">&nbsp;</lightning:layoutItem>
+            <lightning:layoutItem size="3">
+                <label for="Comments" class="slds-form-element__label"></label>
+                <div id="Comments">Emergency Psychiatric Contact</div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="9">
+                <div class="slds-m-bottom_small slds-p-top_medium slds-text-heading_small ">National Suicide &amp; Crisis Lifeline: Call or Text 988</div>
+                <aura:if isTrue="{!v.isEditable}">
+                    <lightning:InputRichText value="{!v.dischargeSection.dischargeSectionObj.Emergency_Psychiatric_Contact__c}" 
+                                             disabledCategories="FORMAT_FONT,ALIGN_TEXT,INSERT_CONTENT,REMOVE_FORMATTING"
+                                             disabled="{!not(v.isEditable)}"
+                                             />
+                    <aura:set attribute="else">
+                        <label for="Emergency_Psychiatric_Contact__c" class="slds-form-element__label"></label>
+                        <div id="Emergency_Psychiatric_Contact__c"><lightning:formattedRichText value="{!v.dischargeSection.dischargeSectionObj.Emergency_Psychiatric_Contact__c}"/></div>
+                    </aura:set>
+                </aura:if>
+
+            </lightning:layoutItem>
+        </lightning:layout>
+    </lightning:card>
+</aura:component>

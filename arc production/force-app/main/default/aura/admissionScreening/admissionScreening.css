@@ -1,0 +1,48 @@
+.THIS .applyDifferentCss{
+    background: #CBD5BF ;
+}
+.THIS tbody .applyDifferentCss:focus>td {
+    background: #CBD5BF !important;
+}
+.THIS thead tr {
+    font-size: .6rem;
+}
+.THIS tbody tr:focus {
+    outline: none!important;
+}
+.THIS tbody .applyDifferentCss:hover>td {
+    background: #CBD5BF !important;
+}
+.THIS tbody tr:hover {
+    outline: none!important;
+}
+.THIS .slds-table--header-fixed_container{
+    /*max-height:400px;*/
+    height: 50vh;
+    padding-top: 3rem;
+}
+.THIS td.commentOnlyLabel {
+  padding-left: 3rem;
+  font-weight: normal;
+  white-space: pre-line;
+  border-left: 1px solid rgb(221, 219, 218);
+}
+.THIS td.questionLabel {
+  font-weight:bold;
+  white-space: pre-line;
+  border-left: 1px solid rgb(221, 219, 218);
+}
+/*Header css */
+/*.THIS .fixed_header tbody{
+  display:block;
+  width: 100%;
+  overflow: auto;
+  max-height:400px;
+}
+
+.THIS .fixed_header thead tr {
+   display: block;
+}
+.THIS table.fixed_header thead tr th:last-child { 
+   border-right: 1px solid rgb(221, 219, 218);
+}*/

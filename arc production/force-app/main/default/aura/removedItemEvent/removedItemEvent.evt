@@ -1,0 +1,4 @@
+<aura:event type="COMPONENT">
+    <aura:attribute name="sourceInstanceName" type="String" access="public"/>
+    <aura:attribute name="selectedObj" type="Object" access="public" />
+</aura:event>

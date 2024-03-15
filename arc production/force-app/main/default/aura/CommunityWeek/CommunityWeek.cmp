@@ -1,0 +1,101 @@
+<aura:component controller="CommunityWeekCtl">
+
+	<aura:attribute name="timeRows" type="List" />
+	<aura:attribute name="options" type="Map" description="Scheduling.Options object" />
+	<aura:attribute name="weekdays" type="List" />
+	<aura:attribute name="viewStartDate" type="String" description="day to focus week" />
+	<aura:attribute name="showSpinner" type="Boolean" default="false"/>
+	<aura:attribute name="isShowBorder" type="Boolean" default="false" />
+	<aura:attribute name="isLoaded" type="Boolean" default="false" />
+
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+	<aura:handler name="change" value="{!v.options}" action="{!c.handleOptionSetChange}" />
+    <aura:registerEvent name="calendarNewMeetingButtonClickedEvent" type="c:CalendarNewMeetingButtonClickedEvent"/>
+    <aura:registerEvent name="calendarEventClickedEvent" type="c:CalendarEventClickedEvent"/>
+
+	<div class="slds slds-box slds-wrap" >
+		<aura:if isTrue="{!v.showSpinner}" >
+			<lightning:spinner aura:id="spinner" alternativeText="Loading"/>
+		</aura:if> 
+		<lightning:layout >
+			
+			<lightning:layoutItem size="3" class="slds-m-bottom_medium">
+				<lightning:buttonGroup >
+					<lightning:button iconName="utility:chevronleft" onclick="{!c.prev}"/>
+					<lightning:button iconName="utility:chevronright" onclick="{!c.next}"/>
+					<lightning:button label="Today" onclick="{!c.today}"/>
+				</lightning:buttonGroup>
+				<!-- <lightning:input type="checkbox" value="{!v.isShowBorder}" label="borders" onclick="{!c.handleBorderToggle}"/> -->
+                <lightning:button class="new-meeting-button" variant="brand" label="New Meeting" onclick="{!c.handleNewMeetingButtonClicked}"/>
+			</lightning:layoutItem>
+
+			<lightning:layoutItem size="6" class="slds-text-align_center bigheader slds-text-heading_large">
+				Therapeutic Community Schedule
+			</lightning:layoutItem>
+			
+		</lightning:layout>
+
+
+		<!-- <lightning:layout class="slds-header calendar-cells" >
+			<lightning:layoutItem padding="horizontal-small"> -->
+		<aura:if isTrue="{!!v.showSpinner}">
+			<table>
+				<!-- <div class="slds-header calendar-cells"> -->
+					<!-- <div> -->
+				<thead>
+					<tr>
+						<th class="calendar-cells">&nbsp;</th>
+
+						<aura:iteration items="{!v.weekdays}" var="weekday" indexVar="idx">
+						
+							<th class="slds-p-horizontal_medium calendar-cells calendar-headers">
+								<strong>
+									<lightning:formattedDateTime value="{!weekday.dateEpoch}" weekday="long" timeZone="UTC" />
+									<br/>
+									<lightning:formattedDateTime value="{!weekday.dateEpoch}" year="numeric" month="numeric" day="numeric" timeZone="UTC" />
+								</strong>
+							</th>
+								
+						</aura:iteration>
+					</tr>
+				</thead>
+						
+					<!-- </div> -->
+					<!-- </lightning:layoutItem> -->
+					
+					
+				<!-- </lightning:layout> -->
+				<!-- </div> -->
+				<tbody>
+					<aura:iteration items="{!v.timeRows}" var="timeRow">
+						<tr>
+							<td class="slds-p-left_medium calendar-cells">
+									<strong>{!timeRow.customGridRow.Row_Label__c}</strong>
+							</td>
+							<aura:iteration items="{!timeRow.days}" var="day">
+								<td class="calendar-cells">
+									<ul class="meetingList">
+										<aura:iteration items="{!day.meetings}" var="meeting" >
+											<li style="{!'background-color: ' + meeting.color + ';'}" class="{!if(v.isShowBorder, 'showBorder', '')}">
+                                                <a class="meeting" data-meeting="{!meeting.meeting.Id}" data-recurrence="{!meeting.meeting.Recurrence__c}" onclick="{!c.handleMeetingClicked}">
+                                                    <div class="meeting-box">
+                                                        <span>{!meeting.meeting.Subject__c}</span>
+                                                        <span>{!if(meeting.meeting.Room_Resource__c, ' (' + meeting.meeting.Room_Resource__r.Short_Name__c + ')', '')}</span>
+                                                    </div>
+                                                </a>
+                                            </li>
+										</aura:iteration>
+									</ul>
+								</td>
+							</aura:iteration>
+						</tr>
+					</aura:iteration>
+
+				</tbody>
+
+					
+			</table>
+		</aura:if>
+	</div>
+
+</aura:component>

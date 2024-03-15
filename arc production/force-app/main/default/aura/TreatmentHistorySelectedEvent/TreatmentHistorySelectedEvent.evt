@@ -1,0 +1,7 @@
+<aura:event type="APPLICATION" description="When treatment history is selected.">
+    <aura:attribute name="selectedRecordId" type="String"/>
+    <aura:attribute name="selectedRecordObjectName" type="String" />
+    <aura:attribute name="componentName" type="String" />
+    <aura:attribute name="componentParameters" type="Map" />
+    <aura:attribute name="queryFields" type="List" />
+</aura:event>

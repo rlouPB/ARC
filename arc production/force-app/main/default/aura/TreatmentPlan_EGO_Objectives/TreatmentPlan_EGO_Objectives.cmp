@@ -1,0 +1,35 @@
+<aura:component>
+    <aura:attribute name="domainGoalNumber" type="String"/>
+    <aura:attribute name="objectiveList" type="Objective[]"/>
+    <aura:attribute name="newTargetDate" type="Date"/>
+    <aura:attribute name="conductEGO" type="Boolean" default="false"/>
+    <aura:attribute name="egoStatus" type="String" default=""/>
+    <aura:attribute name="isEGOR" type="Boolean" default="false"/>
+    <aura:attribute name="ratingScale" type="String" 
+            default="1 = no progress, 2 = minor progress, 3 = moderate progress, 4 = significant progress, 5 = very significant progress, 6 = goal/objective met" />
+    <!-- Handler -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler name="objectiveCancelEvent" event="c:TreatmentPlanObjectiveCancelEvent" action="{!c.cancelObjective}"/>
+    
+    <div class="slds-box">
+        <p class="slds-text-heading_small"><b>Objectives</b></p>
+        <aura:iteration items="{!v.objectiveList}" var="objective" indexVar="objectiveCounter">
+            <aura:if isTrue="{!not(objective.isDeleted)}">
+                <c:TreatmentPlan_EGO_Objective objective="{!objective}" 
+                                               objectiveCounter="{!objectiveCounter}" 
+                                               domainGoalNumber="{!v.domainGoalNumber}" 
+                                               newTargetDate="{!v.newTargetDate}"
+                                               conductEGO="{!v.conductEGO}"
+                                               egoStatus="{!v.egoStatus}"
+                                               isEGOR="{!v.isEGOR}"
+                                               objRatingScale="{!v.ratingScale}"
+                                               />
+            </aura:if>
+        </aura:iteration>
+        <div class="slds-p-top_small slds-p-left_small">
+            <aura:if isTrue="{!v.conductEGO}">
+                <lightning:button variant="brand" label="Add Objective" title="Add Objective" onclick="{!c.addNewObjective}"/>
+            </aura:if>
+        </div>
+    </div>
+</aura:component>

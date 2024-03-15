@@ -1,0 +1,59 @@
+.THIS .collapsible-sidebar{
+    height: 100%; /* 100% Full-height */
+    width: 0; /* 0 width - change this with JavaScript */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Stay on top */
+    top: 0;
+    left: 0;
+    overflow-x: hidden; /* Disable horizontal scroll */
+    padding-top: 60px; /* Place content 60px from the top */
+    transition: 0.5s; /* 0.5 second transition effect to slide in the sidebar */
+}
+.THIS .main-panel{
+    float: left;
+}
+.THIS .detail-panel{
+    float: left;
+}
+.THIS .no-record-selected{
+    text-align: center;
+}
+.THIS .history-item-row tr:hover{
+    background-color: #ffa;
+}
+.THIS .sidebar-collapsed-details{
+    width: 40%;
+    float: left;
+}
+.THIS .sidebar-expanded-details{
+    width: 25%;
+    float: left;
+}
+.THIS .sidebar-collapsed{
+    width: 5%;
+    min-height: 80vh;
+    border-right: 3px solid grey;
+    float: left;
+}
+.THIS .sidebar-expanded{
+    width: 20%;
+    min-height: 80vh;
+    border-right: 3px solid grey;
+    float: left;
+    padding-right: 5px;
+}
+.THIS .collapse-sidebar{
+    display: none;
+}
+.THIS .detail-list{
+    width: 100%;
+    float:left;
+    padding-left: 5px;
+}
+.THIS .label-hidden > label{
+    display: none;
+}
+
+.THIS .custom-btn {
+    width:100%;
+}

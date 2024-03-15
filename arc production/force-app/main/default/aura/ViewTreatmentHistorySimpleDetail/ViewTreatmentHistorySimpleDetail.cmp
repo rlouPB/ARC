@@ -1,0 +1,35 @@
+<aura:component implements="force:hasRecordId" >
+
+	<aura:attribute name="objectApiName" type="String" description="sObject Type" />
+	<aura:attribute name="sobjectRecord" type="Map" description="record queried by LDS" />
+	<aura:attribute name="fields" type="List" description="fields to display in simple 1 column layout" />
+
+	<aura:attribute name="isRecordLoaded" type="Boolean" default="false" description="flag to show fields" />
+	
+	<force:recordData aura:id="recordLoader"
+		recordId="{!v.recordId}"
+		targetFields="{!v.sobjectRecord}"
+		fields="{!v.fields}"
+		layoutType="FULL"
+		recordUpdated="{!c.handleRecordUpdated}"
+		/>
+		
+	<div class="allComponent">
+
+		<aura:if isTrue="{!v.isRecordLoaded}" >
+			<lightning:recordViewForm recordId="{!v.recordId}" objectApiName="{!v.objectApiName}" >	
+				<lightning:layout multipleRows="true" >	
+					<aura:iteration items="{!v.fields}" var="field" >
+						<lightning:layoutItem size="12" >
+							<div class="slds-text-align_left">
+								<!-- <label class="slds-form-element__label" >{!item.label}</label> -->
+								<lightning:outputField  fieldName="{!field}" />
+							</div>
+						</lightning:layoutItem>
+					</aura:iteration>
+				</lightning:layout>
+			</lightning:recordViewForm>
+		</aura:if>
+
+	</div>
+</aura:component>

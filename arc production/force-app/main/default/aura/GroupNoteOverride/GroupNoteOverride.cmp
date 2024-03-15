@@ -1,0 +1,164 @@
+<aura:component implements="force:appHostable,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickActionWithoutHeader,lightning:isUrlAddressable" 
+        access="global" controller="GroupNoteController">
+    <aura:attribute name="recordId" type="String" access="global"/>
+    <aura:attribute name="lstGroupAttendance" type="Group_Attendance__c[]" access="global" />
+    <aura:attribute name="instanceName" type="String" default="" description="for use in instance tracking"/>
+    <aura:attribute name="saveFrequency" type="Integer" default="30" description="number of seconds to wait between autosaves"/>
+    <aura:attribute name="objGroupNote" type="Group_Note__c" access="global" default="{'sobjectType' : 'Group_Note__c'}"/>
+    <aura:attribute name="patientLookupFilter" type="List" default="[]"/>
+    <aura:attribute name="objmeeting" type="Meeting__c" access="global" default="{'sobjectType' : 'Meeting__c'}"/>
+    <aura:attribute name="ownerLookupFilter" type="List" default="[]"/>
+    <aura:attribute name="objSimpleMeeting" type="Object" access="global" />
+    <aura:handler name="selectedItemEvent" event="c:selectedItemEvent" action="{!c.handleSelectedItemEvent}"/> 
+    <aura:attribute name="selectedRecord" type="Object" default="{isRecord: false}" access="public" description="Use,for store SELECTED sObject Record"/>
+    <aura:attribute name="selectedRecordPatient" type="Object" default="{isRecord: false}" access="public" description="Use,for store SELECTED sObject Record"/>
+
+    <aura:attribute name="allowFreeText" type="Boolean" default="false" access="public" />
+    <aura:attribute name="isGroupMeet" type="boolean" default="false"/>
+    <aura:attribute name="ownerChange" type="boolean" default="false"/>
+    <aura:attribute name="isReadOnly" type="boolean" default="false"/>
+    <aura:attribute name="listGroupAttendanceIds" type="String[]" access="global" />
+
+    <force:recordData aura:id="groupNoteLoader"
+                      recordId="{!v.recordId}"
+                      layoutType="FULL"
+                      targetRecord="{!v.objmeeting}" targetFields="{!v.objSimpleMeeting}" recordUpdated="{!c.init}"
+                      mode="EDIT"
+                      />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.init}" />
+    
+    
+    <div class="slds-text-heading_medium slds-p-bottom_large" style="text-align: center">
+        <b> Group Note </b>
+    </div>
+    <p>This page is invalid. Please access Group Note through Scheduling tab instead.</p>
+
+<!--     
+    <div class="slds-wrap" style="background-color:white">
+        <div class="slds-grid slds-wrap">
+            
+            <aura:if isTrue="{!!v.isReadOnly}">
+            	<div class="slds-col slds-size_3-of-12 slds-p-left_large" style="margin-top: 3px; margin-right: -10px">   
+                	<ui:outputText value="Responsible for Completing:"/>
+            	</div>
+             <aura:set attribute="else">
+                 <div class="slds-col slds-size_3-of-12 slds-p-left_large" style="margin-top: 3px; margin-right: -15px">   
+                	<ui:outputText value="Responsible for Completing:"/>
+            	</div>
+             </aura:set>
+                
+            </aura:if>
+            <aura:if isTrue="{!v.ownerChange}">
+                <div class="slds-col slds-size_4-of-12 slds-p-right_xx-large slds-p-left_xx-large" style="margin-top: -20px; text-align: center;">
+                    <c:LookupComponent aura:id="ownerLookup" objectName="User" filters="{!v.ownerLookupFilter}" fieldsToSearch="Name" lookupFieldName="{!v.objGroupNote.OwnerId}"  displayField="Name" displayFieldValue="Id"/>
+                </div>
+                
+                <aura:set attribute="else">
+                    <div class="slds-col slds-size_4-of-12 slds-p-right_xx-large slds-p-left_large" style="text-align:center; margin-top: -20px;">
+                       <lightning:input name="responsibleForCmplt" value="{!v.objGroupNote.Owner.Name}" disabled="true"/>
+                    </div>
+                </aura:set>
+            </aura:if> 
+            
+             
+            
+            <aura:if isTrue="{!!v.isReadOnly}">
+                <div class="slds-col slds-size_4-of-12 slds-p-right_medium"  style="margin-top: 0px; margin-left: -10px; font-size:11px;">  
+                    <lightning:button variant="brand"
+                                      label="Change Responsible person"
+                                      title="Change"
+                                      onclick="{!c.changeOwner}" />
+                </div>
+                
+            </aura:if>
+        </div>
+        <div class="slds-grid slds-wrap" style="margin-top: 25px">
+            <div class="slds-col slds-size_1-of-12 slds-p-left_large">   
+                <ui:outputText value="Group:"/>
+            </div>
+            <div class="slds-col slds-size_3-of-12 slds-p-left_medium" style="text-align:left; ">
+               {!v.objGroupNote.Name} 
+            </div>
+            <div class="slds-col slds-size_2-of-12 slds-p-left_medium"/>
+            <div class="slds-col slds-size_2-of-12">
+                <ui:outputText value="Meeting Date:"/>
+            </div>
+            <div class="slds-col slds-size_3-of-12" style="text-align:left;">
+                <lightning:formattedDateTime value="{!v.objSimpleMeeting.Start_Date_Time__c}" month="2-digit" day="2-digit" year="2-digit"/>  
+            </div>
+            
+        </div>
+        <div class="slds-grid slds-wrap" style="margin-top: 15px">
+            <div class="slds-col slds-size_4-of-12 slds-p-left_large">   
+                
+                <lightning:select name ="groupMeet" label="Did Group Meet?" value="{!v.objGroupNote.Did_Group_Meet__c}" onchange = "{!c.groupMeet}" disabled = "{!v.isReadOnly}">
+                    
+                    <option  value= "None">-None-</option>
+                    <option  value= "Yes">Yes</option>
+                    <option  value= "No">No</option>
+                    
+                </lightning:select>
+            </div>
+            <div class="slds-col slds-size_2-of-12"/>   
+            <div class="slds-col slds-size_5-of-12  slds-p-right_large">
+                
+                <aura:if isTrue="{!v.isGroupMeet}">
+                    
+                    <lightning:select name="select1" label="Reason Group did not meet" value="{!v.objGroupNote.Reason_Group_Did_Not_Meet__c}" disabled = "{!v.isReadOnly}">
+                        <option value="">choose one...</option>
+                        <option value="Not enough patients">Not enough patients</option>
+                        <option value="No staff available">No staff available</option>
+                        
+                        <option value="Other">Other</option>
+                        
+                    </lightning:select>  
+                </aura:if>
+            </div>
+            
+        </div>
+        
+        <div class="slds-grid slds-wrap slds-box" style="margin-top: 15px">
+            <c:GroupAttendance lstGroupAttendance="{!v.lstGroupAttendance}" isReadOnly="{!v.isReadOnly}" objGroupNote="{!v.objGroupNote}" selectedRecord="{!v.selectedRecordPatient}" aura:id="gaComponent"/>
+            
+        </div>
+        
+        <div class="slds-grid slds-grid_vertical" style="margin-top: 25px">
+            <div class="slds-col">
+                <ui:outputText value="Brief Narrative Summary: (What happened? Themes? Emotional Tone?, Staff - Patient Dynamics)"/>
+            </div>
+            <div class="slds-col">
+                <lightning:inputRichText value="{!v.objGroupNote.Brief_Narrative_Summary__c}" placeholder="Type something interesting"
+                                         disabledCategories="FORMAT_FONT,ALIGN_TEXT,INSERT_CONTENT,REMOVE_FORMATTING" disabled="{!v.isReadOnly}"/>
+            </div>
+            <div class="slds-col" style="margin-top: 25px">
+            	<ui:outputText value="Patient-Specific Concerns and Follow-up"/>
+            </div>
+            <div class="slds-col">
+                
+                <lightning:inputRichText value="{!v.objGroupNote.Patient_Specific_Concerns_and_Follow_up__c}" placeholder="Type something interesting" 
+                                         disabledCategories="FORMAT_FONT,ALIGN_TEXT,INSERT_CONTENT,REMOVE_FORMATTING" disabled="{!v.isReadOnly}"/>
+                <br/>
+            </div>
+        </div>
+        
+        <aura:if isTrue="{!!v.isReadOnly}">
+            <div class="slds-form-footer">
+              <div class="alignRight" style="margin-left: 75%">
+                <lightning:button  class="slds-button slds-button_neutral"  onclick="{!c.updateGroupNoteJS}" label="Save"/>
+                <lightning:button  class="slds-button slds-button_brand"  onclick="{!c.finalizeGroupNote}" label="Finalize"/>
+             </div>
+            </div>
+            
+            <aura:set attribute="else">
+                <div class="slds-form-footer" >
+                    <button type="button" class="slds-button slds-button_brand" style="margin-left: 85%;" disabled="true">Finalized</button>      
+                </div>
+            </aura:set>
+        </aura:if>
+        
+    </div>
+     -->
+    
+    
+</aura:component>

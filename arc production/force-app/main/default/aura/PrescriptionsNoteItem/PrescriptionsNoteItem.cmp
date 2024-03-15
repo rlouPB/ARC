@@ -1,0 +1,47 @@
+<!--
+  @description       : 
+  @author            : 
+  @file type         : 
+  @created modified  : 
+  @last modified on  : 01-13-2022
+  @last modified by  : 
+-->
+<aura:component extends="c:NoteItemPlugin">
+    <aura:attribute name="patientRecord" type="Account" />
+    <aura:attribute name="medicationQuery" type="String" access="global" />
+    <aura:attribute name="includeAdherence" type="Boolean" access="global" default="false" />
+    <aura:attribute name="suppressStatus" type="Boolean" access="global" default="false" />
+    <aura:attribute name="forAway" type="Boolean" access="global" default="false" />
+    <aura:attribute name="forMSA" type="Boolean" access="global" default="false" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+
+    <aura:if isTrue="{!v.theNote.patientNote.Account__c}">
+        <force:recordData recordId="{!v.theNote.patientNote.Account__c}" fields="External_Patient_Id__c" targetFields="{!v.patientRecord}" />
+    </aura:if>
+    <div class="slds-box" style="padding:0px;">
+        <aura:if isTrue="{!and(v.patientRecord,v.theNote.patientNote.Account__c)}">
+            <div class="slds-card" >
+                <lightning:card title="Prescriptions">
+                    <body class="slds-p-horizontal_small">              
+                        <aura:if isTrue="{!v.medicationQuery}">
+                            <aura:if isTrue="{!v.theNote.patientNote.Contact_Date__c}">
+                                <!-- ADDED ::  forMSA='true' 11/1/21  -->
+                            <c:scriptSurePrescriptionTable patientNoteId="{!v.theNote.patientNote.Id}" externalpatientid="{!v.patientRecord.External_Patient_Id__c}" accountid="{!v.theNote.patientNote.Account__c}" medicationQuery="{!v.medicationQuery}"
+                            forMSA="{!v.forMSA}" forAwayOrder="{!v.forAway}"
+                            includeAdherence="{!v.includeAdherence}"
+                            suppressStatus="{!v.suppressStatus}" 
+                            onsaveawayorderinfo="{!c.handleSaveAwayOrderInfo}" />
+                                <aura:set attribute="else">
+                                    <center>Contact Date Not Found</center>
+                                </aura:set>
+                            </aura:if>
+                            <aura:set attribute="else">
+                                <c:scriptSurePrescriptionTable patientNoteId="{!v.theNote.patientNote.Id}" externalpatientid="{!v.patientRecord.External_Patient_Id__c}" accountid="{!v.theNote.patientNote.Account__c}" suppressStatus="{!v.suppressStatus}" />
+                            </aura:set>
+                        </aura:if>                      
+                    </body>
+                </lightning:card>
+            </div>
+        </aura:if>
+    </div>
+</aura:component>

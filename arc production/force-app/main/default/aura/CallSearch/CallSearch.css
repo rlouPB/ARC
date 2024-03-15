@@ -1,0 +1,36 @@
+.THIS .marginCss {
+    margin-top:20px;
+}
+.THIS div.slds-rich-text-area__content{
+    min-height: 40vh!important;
+    max-height: 90vh;
+}
+.THIS .callNotesFix{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* number of lines to show */
+    -webkit-box-orient: vertical;
+}
+.THIS .setWrapToCallNotes{
+     white-space: pre-line!important;
+}
+.THIS.popoverclass.slds-popover {
+    min-height: 50px!important;
+    max-height: 800px;
+    padding: .75rem!important;
+    width: 500px;
+    
+}
+.THIS .boldCls{
+    font-weight : bold;
+}
+.THIS.no-pointer .pointer{
+    visibility: hidden;
+}
+.THIS.slds-nubbin_right {
+    left: 55%!important;
+}
+.THIS table.notesViewTable td {
+    vertical-align: top;
+}

@@ -1,0 +1,164 @@
+<aura:component implements="flexipage:availableForAllPageTypes" controller="DispensingHomeController" >
+
+    <aura:attribute name="loading" type="Boolean" access="public" />
+    <aura:attribute name="buttonsCollapsed" type="Boolean" access="public" />
+    <aura:attribute name="currentTab" type="String" default="patients" access="public" />
+    <aura:attribute name="todaysDate" type="String" access="public" />
+    <aura:attribute name="showPharmacyTab" type="Boolean" access="public" />
+    <aura:attribute name="showBulletinBoardTab" type="Boolean" access="public" />
+    <aura:attribute name="showVarianceTab" type="Boolean" access="public" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler event="force:refreshView" action="{! c.doInit }"/>
+    
+    <aura:if isTrue="{!v.loading}">
+        <lightning:slider></lightning:slider>
+    </aura:if>
+
+    <div class="outer-wrapper">
+        <div class="slds-grid slds-wrap">
+            <div class="slds-col slds-size_3-of-4 slds-p-around_medium">
+                <div class="greybackground fullheight border slds-p-around_medium slds-text-heading_large slds-text-align_center">
+                    IRIS
+                </div>
+            </div>
+            <div class="slds-col slds-size_1-of-4 slds-p-around_medium">
+                <div class="greybackground fullheight border slds-p-around_medium slds-text-align_center">
+                    <ui:outputDate value="{!v.todaysDate}" />
+                </div>
+            </div>
+            
+            <br />
+
+            <div class="{!'slds-col ' + (v.buttonsCollapsed ? 'slds-size_1-of-12' : 'slds-size_1-of-6')}" id="ButtonContainer">
+
+                <aura:if isTrue="{!v.showBulletinBoardTab}">
+                    <div class="{!'tab slds-p-around_medium slds-text-align_center' + (v.currentTab == 'Bulletin Board' ? ' selected' : ' buttonHand')}" data-id="Bulletin Board" onclick="{!c.buttonClick}">    
+                        <aura:if isTrue="{!!v.buttonsCollapsed}">
+                            <span class="slds-text-title_bold">
+                                Bulletin Board<br />
+                            </span>
+                            <aura:set attribute="else">
+                                <p class="slds-text-title_bold slds-truncate" title="Bulletin Board">
+                                    Bulletin Board
+                                </p>
+                            </aura:set>
+                        </aura:if>
+                    </div>                
+                </aura:if>
+
+
+                <aura:if isTrue="{!v.showPharmacyTab}">
+                    <div class="{!'tab slds-p-around_medium slds-text-align_center' + (v.currentTab == 'pharmacy' ? ' selected' : ' buttonHand')}" data-id="pharmacy" onclick="{!c.buttonClick}">    
+                        <aura:if isTrue="{!!v.buttonsCollapsed}">
+                            <span class="slds-text-title_bold">
+                                Pharmacy<br />
+                            </span>
+                            <aura:set attribute="else">
+                                <p class="slds-text-title_bold slds-truncate" title="Pharmacy">
+                                    Pharmacy
+                                </p>
+                            </aura:set>
+                        </aura:if>
+                    </div>
+                </aura:if>
+
+                <div class="{!'tab slds-p-around_medium slds-text-align_center' + (v.currentTab == 'patients' ? ' selected' : ' buttonHand')}" data-id="patients" onclick="{!c.buttonClick}">
+                    <aura:if isTrue="{!!v.buttonsCollapsed}">
+                        <span class="slds-text-title_bold">
+                            Patients<br />
+                        </span>
+                        <aura:set attribute="else">
+                            <p class="slds-text-title_bold slds-truncate" title="Patients">
+                                Patients
+                            </p>
+                        </aura:set>
+                    </aura:if>
+                </div>
+                
+                <div class="{!'tab slds-p-around_medium slds-text-align_center' + (v.currentTab == 'Messages And Alerts' ? ' selected' : ' buttonHand')}" data-id="Messages And Alerts" onclick="{!c.buttonClick}">
+                    <aura:if isTrue="{!!v.buttonsCollapsed}">
+                        <span class="slds-text-title_bold">
+                            Messages And Alerts<br />
+                        </span>
+                        <aura:set attribute="else">
+                            <p class="slds-text-title_bold slds-truncate" title="Messages And Alerts">
+                                Messages And Alerts
+                            </p>
+                        </aura:set>
+                    </aura:if>
+                </div>            
+
+                <aura:if isTrue="{!v.showVarianceTab}">
+                    <div class="{!'tab slds-p-around_medium slds-text-align_center' + (v.currentTab == 'variance' ? ' selected' : ' buttonHand')}" data-id="variance" onclick="{!c.buttonClick}">
+                        <aura:if isTrue="{!!v.buttonsCollapsed}">
+                            <span class="slds-text-title_bold">
+                                Variance<br />
+                            </span>
+                            <aura:set attribute="else">
+                                <p class="slds-text-title_bold slds-truncate" title="Variance">
+                                    Variance
+                                </p>
+                            </aura:set>
+                        </aura:if>
+                    </div>
+                </aura:if>
+            </div>
+
+            <div class="{!'slds-col main-content-wrapper ' + (v.buttonsCollapsed ? 'slds-size_11-of-12' : 'slds-size_5-of-6')}" id="DisplayContainer">
+                <div class="main-content fullheight slds-p-around_medium" aura-id="display">
+                    
+                    <aura:if isTrue="{!v.currentTab=='Bulletin Board'}">
+                        <c:BulletinBoard />
+                    </aura:if>
+                    
+                    <aura:if isTrue="{!v.currentTab=='pharmacy'}">
+                        <c:pharmacyScriptsToProcessContainerLwc></c:pharmacyScriptsToProcessContainerLwc>
+                        <c:pharmacyOrdersToProcessContainerLwc></c:pharmacyOrdersToProcessContainerLwc>
+                        
+                        <div class="slds-p-left_medium slds-text-longform" style="margin-top: 20px;">
+                            <h1 style="font-size: 18px; font-weight: 600;">
+                                <lightning:icon iconName="action:new_note" size="small" alternativeText="Formulary and Emergency Box lists" title="Formulary and Emergency Box lists" class="slds-m-right_small"/>
+                                Formulary and Emergency Box lists
+                            </h1><br />
+                            <ul>
+                                <li><a href="https://austenriggscenter-my.sharepoint.com/:x:/g/personal/alexcia_adams_austenriggs_net/ETTGJwFDo3FLp6OfYa8NwjkBcWUbES_xVqL17h4CSz-R_A" target="_blank">formulary NON-PSYCHIATRIC</a></li>
+                                <li><a href="https://austenriggscenter-my.sharepoint.com/:x:/g/personal/alexcia_adams_austenriggs_net/EUpjgd80Nr9DlSTdPh9Vx6IBYNcqB_S8ajx9UC1BIz5lUA" target="_blank">formulary PSYCHIATRIC</a></li>
+                                <li><a href="https://austenriggscenter-my.sharepoint.com/:x:/g/personal/alexcia_adams_austenriggs_net/Ecv1raJxtI9Pqf2QSPgVcjIBMYm1jaB3C2Rt0zaHLcqiqA" target="_blank">Emergency Box</a></li>
+                            </ul>
+                        </div>           
+                        
+                    </aura:if>
+
+                    <aura:if isTrue="{!v.currentTab=='patients'}">
+                        <c:dispensingPatientsLwc></c:dispensingPatientsLwc> 
+                        <aura:if isTrue="{!v.showPharmacyTab}">
+                            <div style="padding-top:10px;"> 
+                                <lightning:listView objectApiName="SDocCallableParent__c" listName="Print_Jobs" rows="50" showSearchBar="false" showActionBar="false" enableInlineEdit="false" showRowLevelActions="false" />                       
+                            </div>
+                        </aura:if>
+                    </aura:if>
+
+                    <aura:if isTrue="{!v.currentTab=='Messages And Alerts'}">
+                        <lightning:card>
+                            <div class="slds-p-left_large">
+                                <c:UserInbox hidePreview="true" />
+                            </div>
+                        </lightning:card>
+                    </aura:if>
+
+                    <aura:if isTrue="{!v.currentTab=='variance'}">
+						<c:dynamicListView showNewButton="true" tableTitle="User Reported - Open" sObjectName="Variance__c" fieldSetName="Variance_List_View" 
+									additionalWhereClause="Status__c='Open' OR Status__c='Under Review'" includeName="true" iconName="standard:care_request_reviewer" 
+									showMyRecordsOnly = "true"/>
+						<br/>
+						<c:dynamicListView showNewButton="false" tableTitle="User Reported - Closed" sObjectName="Variance__c" fieldSetName="Variance_List_View" 
+									additionalWhereClause="Status__c='Closed' OR Status__c='Canceled'" includeName="true" iconName="standard:care_request_reviewer" 
+									showMyRecordsOnly = "true"/>
+					</aura:if>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</aura:component>

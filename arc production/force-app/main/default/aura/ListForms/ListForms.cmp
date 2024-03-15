@@ -1,0 +1,73 @@
+<aura:component controller="ListFormsCtl" implements="flexipage:availableForAllPageTypes,forceCommunity:availableForAllPageTypes" access="global">
+	<aura:attribute name="context" type="String" default="community" description="Location this component is being displayed"/>
+	<aura:attribute name="formList" type="String[]" description="List of Form sObjects with Ids"/>
+	<aura:attribute name="fieldList" type="String[]" default="['disco__Form_Template_Name__c', 'CreatedDate', 'disco__Status__c']"
+		description="Ordered list of fields to display left to right"/>
+	<aura:attribute name="labelList" type="Object[]" description="Labels of fields in fieldList for header columns"/>
+	
+	<aura:attribute name="sortField" type="String" default="Created Date" description="Field to sort list of Forms by"/>
+	<aura:attribute name="sortAsc" type="Boolean" default="false" description="Boolean to sort ascending (true) or descending (false)"/>
+	<aura:attribute name="formRecords" type="SObject[]" description="List of the forms with field values"/>
+
+	<aura:attribute name="latestModifiedDate" type="Datetime" description="lastmodifiedDate from latest Form query"/>
+	<aura:attribute name="secondsSinceLastActivity" type="Integer" default="0"
+		description="Number of seconds since latest activity (record updated or refresh button clicked)"/>
+	<aura:attribute name="maximumSecondsToPoll" type="Integer" default="900"
+		description="Number of seconds to continue polling. After this time, page will not update until refreshed via the onscreen button or browser."/>
+	<aura:attribute name="pollingInterval" type="Integer" default="5" description="Seconds between polls/queries"/>
+	<aura:attribute name="timeoutId" type="Integer" description="used to keep track of current window.timeout Id"/>
+
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+	<div style="border: 1px solid #CCCCCC; border-radius: 5px 5px 0px 0px; width: 100%;">
+		<lightning:layout multipleRows="true">
+			<lightning:layoutItem size="10" padding="around-small">
+				<span  style="font-weight: bold; font-size: 18px;">
+					My Forms
+				</span>
+			</lightning:layoutItem>
+			<lightning:layoutItem size="2" padding="around-small">
+				<lightning:buttonIcon
+						alternativeText="Refresh List"
+						title="Refresh List"
+						iconName="utility:refresh"
+						onclick="{!c.refreshList}"/>
+			</lightning:layoutItem>
+			<lightning:layoutItem size="12" padding="horizontal-small">
+				<lightning:layout verticalAlign="center">
+					<aura:iteration items="{!v.labelList}" var="object">
+						<lightning:layoutItem size="{!object.size}" padding="horizontal-small">
+							<div class="slds-truncate" style="font-weight: bold" title="{!object.header}" data-columnName="{!object.header}" onclick="{!c.sortByThis}">
+								{!object.header}
+								<aura:if isTrue="{!v.sortField == object.header}">
+									<span>
+										<aura:if isTrue="{!v.sortAsc}">
+											<lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up"/>
+											<aura:set attribute="else">
+												<lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow up"/>
+											</aura:set>
+										</aura:if>
+									</span>
+								</aura:if>
+							</div>
+						</lightning:layoutItem>
+					</aura:iteration>
+					<lightning:layoutItem size="2" padding="horizontal-small">
+						<div class="slds-truncate" style="font-weight: bold" title="Actions">
+							Actions
+						</div>
+					</lightning:layoutItem>
+				</lightning:layout>
+			</lightning:layoutItem>
+		</lightning:layout>
+	</div>
+	<lightning:layout multipleRows="true">
+		<aura:iteration items="{!v.formList}" var="form">
+			<div style="border-left: 1px solid #CCCCCC; border-right: 1px solid #CCCCCC; border-bottom: 1px solid #CCCCCC; width: 100%;">
+				<lightning:layoutItem size="12" padding="around-small">
+					<c:ListFormsRow formId="{!form}" fieldList="{!v.fieldList}" context="{!v.context}" aura:id="listRow"/>
+				</lightning:layoutItem>
+			</div>
+		</aura:iteration>
+	</lightning:layout>
+</aura:component>

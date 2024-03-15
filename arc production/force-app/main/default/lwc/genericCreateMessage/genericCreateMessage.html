@@ -1,0 +1,21 @@
+<template>
+    <lightning-quick-action-panel header="Create Message">
+        
+        <c-create-user-group-message></c-create-user-group-message>
+        <a class="previewUrl" target="_blank" href={previewUrl}  >Link to record</a>
+        <div slot="footer">
+            <lightning-button
+                variant="neutral"
+                label="Cancel"
+                onclick={closePanel}
+            ></lightning-button>
+            <lightning-button
+                variant="brand"
+                label="Send"
+                class="slds-m-left_x-small"
+                onclick={sendMessage}
+            ></lightning-button>
+        </div>
+    </lightning-quick-action-panel>
+    
+</template>

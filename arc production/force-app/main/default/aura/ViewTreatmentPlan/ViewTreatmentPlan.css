@@ -1,0 +1,16 @@
+.THIS .slds-scrollable_y{
+    max-height: 70vh;
+}
+.THIS .c-fill-blue-stripes{
+    background: repeating-linear-gradient(45deg, 
+            rgb(83,105,140), 
+            rgb(83,105,140) 20px, 
+            rgba(83,105,140,.95) 20px, 
+            rgba(83,105,140,.95) 40px);
+}
+.THIS .c-fill-white{
+    background: white;
+}
+.THIS .c-text-white{
+    color: white;
+}

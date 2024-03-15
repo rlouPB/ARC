@@ -1,0 +1,16 @@
+<template>
+    <lightning-card>
+        <lightning-button-icon title="reload" icon-name="utility:refresh" slot="actions" onclick={load}></lightning-button-icon>
+        <lightning-spinner if:true={loading}></lightning-spinner>
+        <lightning-datatable
+                data={data}
+                columns={columns}
+                key-field="id"
+                onrowselection={getSelectedName}  
+                sorted-by={sortBy}
+                sorted-direction={sortDirection}
+                onsort={updateColumnSorting}
+                hide-checkbox-column="true" >
+        </lightning-datatable>
+    </lightning-card>
+</template>

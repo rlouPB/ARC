@@ -1,0 +1,169 @@
+<aura:component access="public" Controller="NewBasicContactCtl" extends="c:ApexService">
+    <!--Attribute Sections-->
+    <aura:attribute name="contactRecordTypeName" type="String" access="public" Description="Input Contact RecordType Name"/>
+    <aura:attribute name="contact" type="Contact" access="public" default="{'sobjectType':'Contact'}"/>
+    <aura:attribute name="searchText" type="String" access="public" default="" description="Search Text passed by lookup component"/>
+    
+    <aura:attribute name="countryDependencies" type="List" access="private" default="[]" description="all country dependency information" />
+    <aura:attribute name="countryOptions" type="List" access="private" default="[]" description="all country options for page" />
+    <aura:attribute name="defaultCountry" type="String" access="private" default="United States" description="default country option" />
+    <aura:attribute name="mailingProvinceOptions" type="List" access="private" default="[]" description="state options for MailingState" />
+    <aura:attribute name="otherProvinceOptions" type="List" access="private" default="[]" description="state options for OtherState" />
+
+    <aura:attribute name="enableButtons" type="Boolean" access="private" default="false" description="if true, buttons can be clicked" />
+    <aura:attribute name="errorMessage" type="String" default="" access="public" Description="Used to Error Message "/>
+    <!--Event Registers-->
+    <aura:registerEvent name="closeModalView" type="c:closeModal" />
+    
+    <!--Handlers-->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+
+    <!--Modal Starts-->
+    <c:sldsModal showXIcon="false">
+        <lightning:notificationsLibrary aura:id="notifLib"/>
+        <aura:set attribute="header">
+            {!v.contactRecordTypeName + ' Contact'}
+        </aura:set>
+        
+        <aura:set attribute="content">
+            <div class="slds-is-relative">
+                <lightning:spinner aura:id="spinner" variant="brand" alternativeText="Loading" />
+                
+                <aura:if isTrue="{!v.contactRecordTypeName == 'Personal'}">
+                    
+                    <lightning:recordEditForm objectApiName="Contact" aura:id="newContactForm" onload="{!c.load}" onerror="{!c.handleOnError}"  >
+                        
+                        <lightning:messages />
+                        
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem padding="around-small" size="2">
+                                <div style="display:none"> <!-- required to load Salutation options -->
+                                  <lightning:inputField fieldName="Name"/>
+                                </div>
+                                <lightning:inputField fieldName="Salutation" value="{!v.contact.Salutation}" onchange="{!c.onFieldChange}"/>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="4">
+                                <lightning:inputField aura:id="firstname" fieldName="FirstName" value="{!v.contact.FirstName}" onchange="{!c.onFieldChange}"/>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:input class="customRequired" type="text" label="Last Name" name="lname" value="{!v.contact.LastName}" onchange="{!c.onFieldChange}"/>
+                            </lightning:layoutItem> 
+
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Preferred_First_Name__c" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Suffix_Credentials__c" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:input type="text" label="Home Phone" name="phone" value="{!v.contact.Phone}" onchange="{!c.onFieldChange}"/>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Email" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputAddress 
+                                        aura:id="mailingAddress"
+                                        addressLabel="Mailing Address"
+                                        streetLabel="Street"
+                                        cityLabel="City"
+                                        countryLabel="Country"
+                                        provinceLabel="Province/State"
+                                        postalCodeLabel="PostalCode"
+                                        street="{!v.contact.MailingStreet}"
+                                        city="{!v.contact.MailingCity}"
+                                        province="{!v.contact.MailingState}"
+                                        country="{!v.contact.MailingCountry}"
+                                        postalCode="{!v.contact.MailingPostalCode}"
+                                        countryOptions="{! v.countryOptions }"
+                                        provinceOptions="{! v.mailingProvinceOptions }" 
+                                        onchange="{!c.onAddressChange}"/>
+                            </lightning:layoutItem>
+
+                        </lightning:layout>
+                    </lightning:recordEditForm>
+                </aura:if> 
+                
+                <aura:if isTrue="{!v.contactRecordTypeName == 'Professional'}">
+                    <lightning:recordEditForm objectApiName="Contact" aura:id="newProfessionalContactForm" onload="{!c.load}" onerror="{!c.handleOnError}">  <!-- recordTypeId='{!v.selectedRecordType.value}' > -->
+                        <lightning:messages />
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem padding="around-small" size="2">
+                                <div style="display:none"> <!-- required to load Salutation options -->
+                                  <lightning:inputField fieldName="Name"/>
+                                </div>
+                                <lightning:inputField fieldName="Salutation" value="{!v.contact.Salutation}" onchange="{!c.onFieldChange}"/>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="4">
+                                <lightning:inputField aura:id="firstname" class="customRequired" fieldName="FirstName" value="{!v.contact.FirstName}" onchange="{!c.onFieldChange}"/>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:input class="customRequired" type="text" label="Last Name" name="lname" value="{!v.contact.LastName}" onchange="{!c.onFieldChange}"/>
+                            </lightning:layoutItem> 
+
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="npe01__WorkPhone__c" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Email" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Suffix_Credentials__c" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Interest_Specialty__c" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputAddress 
+                                        aura:id="mailingAddress"
+                                        addressLabel="Mailing Address"
+                                        streetLabel="Street"
+                                        cityLabel="City"
+                                        countryLabel="Country"
+                                        provinceLabel="Province/State"
+                                        postalCodeLabel="PostalCode"
+                                        street="{!v.contact.MailingStreet}"
+                                        city="{!v.contact.MailingCity}"
+                                        province="{!v.contact.MailingState}"
+                                        country="{!v.contact.MailingCountry}"
+                                        postalCode="{!v.contact.MailingPostalCode}"
+                                        countryOptions="{! v.countryOptions }"
+                                        provinceOptions="{! v.mailingProvinceOptions }" 
+                                        onchange="{!c.onAddressChange}"/>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputAddress 
+                                        aura:id="otherAddress"
+                                        addressLabel="Other Address"
+                                        streetLabel="Street"
+                                        cityLabel="City"
+                                        countryLabel="Country"
+                                        provinceLabel="Province/State"
+                                        postalCodeLabel="PostalCode"
+                                        street="{!v.contact.OtherStreet}"
+                                        city="{!v.contact.OtherCity}"
+                                        province="{!v.contact.OtherState}"
+                                        country="{!v.contact.OtherCountry}"
+                                        postalCode="{!v.contact.OtherPostalCode}" 
+                                        countryOptions="{! v.countryOptions }"
+                                        provinceOptions="{! v.otherProvinceOptions }" 
+                                        onchange="{!c.onAddressChange}"/>
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </lightning:recordEditForm>
+                </aura:if>
+            </div>            
+        </aura:set>
+        
+        <aura:set attribute="footer">
+            <lightning:button variant="brand" label="Cancel" onclick="{!c.cancel}" disabled="{!!v.enableButtons}" />
+            <lightning:button variant="brand" label="Save" onclick="{!c.save}" disabled="{!!v.enableButtons}"/>
+	    </aura:set>
+    </c:sldsModal>
+    
+</aura:component>

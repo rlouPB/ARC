@@ -1,0 +1,45 @@
+.THIS .calendar-cells {
+	border: 1px solid black;
+	min-height: 3rem;
+	width: 12%;
+	padding-top: .5rem;
+	padding-bottom: .5rem;
+	
+	/*display: inline-block; */
+	 /* float: left;  */
+}
+.THIS .bigheader {
+	/* font-size: 2em; */
+	font-weight: bold;
+}
+.THIS ul.meetingList li.showBorder {
+	border: 1px solid gray;
+	border-radius: 5px;
+	margin-bottom: 2px;
+}
+.THIS ul.meetingList li {
+	border-radius: 5px;
+	margin-bottom: 2px;
+    margin-left: 5px;
+	margin-right: 5px;
+    /* so that each line is indented the same amount */
+    padding-left: 0.35rem;
+    padding-right: 0.35rem;
+}
+.THIS ul.meetingList li span{
+    /* padding-left: 5px; */
+}
+.THIS a.meeting{
+    /* override default blue anchor color */
+    color: black;
+}
+.THIS a.meeting:hover{
+    /* no underline when mouse over */
+    text-decoration: none;
+}
+.THIS .meeting-box{
+    text-align: center;
+}
+.THIS .calendar-headers{
+    text-align: center;
+}

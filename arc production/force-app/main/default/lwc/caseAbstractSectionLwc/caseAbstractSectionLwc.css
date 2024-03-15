@@ -1,0 +1,5 @@
+div.errorMessages {
+	border-width: 3px;
+	border-color: darkgoldenrod;
+	max-width: 1200px;
+}

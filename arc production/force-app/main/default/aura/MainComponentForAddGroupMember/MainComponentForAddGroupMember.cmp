@@ -1,0 +1,22 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes"
+                                                   access="global" >
+    <aura:attribute name="group" type="Group__c" access="global"/>
+    <aura:registerEvent name="appEvent" type="c:AddNewGroupButtonEvent"/>
+    <!-- Pass below parameter from buttons staff and Patient. The value must be either Staff or Patient -->
+    <aura:attribute name="selectedUser" type="String" default="Staff"/>
+    <aura:attribute name="ButtonName" type="String" default="Staff"/>
+    <aura:attribute name="ButtonDisabled" type="Boolean" default="false"/>
+    
+        
+    
+    <lightning:overlayLibrary aura:id="overlayLib" />
+    <div>
+        <button class="slds-button slds-button--neutral" style="float: right;" disabled="{!v.ButtonDisabled}" onclick="{!c.createModal}">{!v.ButtonName}</button>   
+        
+        <!-- Modal will come here-->        
+        <div aura:id="ModalDiv">
+           
+        </div>
+    </div>
+  
+</aura:component>

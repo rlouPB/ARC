@@ -1,0 +1,11 @@
+.THIS .slds-scrollable_y{
+    max-height: 80vh;
+}
+.THIS .c-label-hidden > label{
+    display: none;
+}
+
+.THIS .slds-box td {
+    text-align: left;
+    vertical-align: top;
+}

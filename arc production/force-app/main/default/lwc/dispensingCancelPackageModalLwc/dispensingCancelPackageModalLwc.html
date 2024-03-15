@@ -1,0 +1,18 @@
+<template>
+    <lightning-quick-action-panel header="Cancel Package">
+        <h2>Are you sure you want to cancel this package?</h2>
+        <div slot="footer">
+            <lightning-button
+                variant="neutral"
+                label="No"
+                onclick={closePanel}
+            ></lightning-button>
+            <lightning-button
+                variant="brand"
+                label="Yes"
+                class="slds-m-left_x-small"
+                onclick={cancelRecord}
+            ></lightning-button>
+        </div>
+    </lightning-quick-action-panel>
+</template>

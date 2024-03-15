@@ -1,0 +1,63 @@
+.THIS .slds-required {
+  display: none;
+}
+
+.THIS .customRequired {
+  font-weight: t(fontWeightRegular);
+}
+
+.THIS .customRequired a:not(.display),
+.THIS .customRequired input {
+  border: 1px solid red;
+}
+
+.THIS .inline-input {
+  display: inline-block;
+  width: 50px;
+}
+
+.THIS .hide-label label {
+  display: none;
+}
+
+.THIS .on-text {
+  text-align: right;
+  margin-top: 5px;
+  margin-right: 5px;
+}
+
+.THIS .end-type .slds-radio {
+  margin-bottom: 5px;
+}
+
+.THIS .recurrence-pattern .slds-form-element__control {
+  border-right: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.THIS .left-padding {
+  padding-left: 10px;
+}
+
+.THIS .inline-input .slds-input {
+  padding: 0 0.25rem 0 0.25rem;
+}
+
+.THIS .weekdays-checkbox .slds-checkbox {
+  display: inline-block;
+}
+
+.THIS .label {
+  padding-top: 10px;
+  color: rgb(62, 62, 60);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.THIS .recurrence-pattern-sub-option {
+  width: initial;
+  margin: 0 5px;
+}
+
+.THIS .slds-checkbox {
+  padding-right: 10px;
+}

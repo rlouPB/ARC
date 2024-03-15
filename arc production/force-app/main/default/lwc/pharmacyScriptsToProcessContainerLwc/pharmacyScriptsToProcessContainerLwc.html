@@ -1,0 +1,59 @@
+<template>
+    <lightning-card >
+        <h3 slot="title">
+            <lightning-icon icon-name="standard:account" size="small" alternative-text="Prescriptions" class="slds-m-right_small"></lightning-icon>
+            Scripts to Process
+        </h3> 
+
+        <lightning-button-group slot="actions">
+            <lightning-button-icon icon-name="utility:refresh" title="refresh" onclick={refreshTable}></lightning-button-icon>
+        </lightning-button-group>
+       
+       <div style="text-align: center;">
+           <lightning-layout>
+                <lightning-layout-item size="1"></lightning-layout-item>
+                <lightning-layout-item size="6">
+                    <lightning-layout>
+
+                        <lightning-layout-item size="10">
+                            <lightning-radio-group
+                                options={modeOptions}
+                                value={mode}
+                                type="button"
+                                onchange={modeChangeHandler}
+                            ></lightning-radio-group>
+                        </lightning-layout-item>
+
+                        <lightning-layout-item size="10">
+                            <lightning-button-group style="padding-top:3px;">
+                                <lightning-button variant="neutral" label="Fill" onclick={onFillClickHandler}></lightning-button>
+                                <lightning-button variant="neutral" label="Clone" onclick={onCloneClickHandler}></lightning-button>
+                                <lightning-button variant="neutral" label="Mark as Discontinued" onclick={onDiscontinueClickHandler}></lightning-button>
+                                <!--<lightning-button variant="neutral" label="Cancel" onclick={onCancelClickHandler}></lightning-button>-->
+                            </lightning-button-group>
+                        </lightning-layout-item>
+
+                    </lightning-layout>
+               </lightning-layout-item>
+           </lightning-layout>
+           
+       </div>
+    
+        <div style="margin-top: 20px;">
+            <div class="slds-p-left_medium">
+                <c-pharmacy-scripts-to-process-table-lwc account-id={recordId} onaction={onActionHandler}></c-pharmacy-scripts-to-process-table-lwc>
+            </div>           
+        </div>
+        <lightning-spinner if:true={showSpinner}></lightning-spinner>
+    </lightning-card>
+
+    <c-modal-lwc size="small" header={fillHeaderStr} if:true={hasFillId} onclose={closeFillModal} show-footer show-close >
+        <c-dispensing-prescription-fill record-id={fillId}></c-dispensing-prescription-fill>
+        <div slot="footer">
+            <lightning-button variant="brand" label="Save" onclick={fillSaveClickHandler}></lightning-button>            
+        </div>        
+    </c-modal-lwc>
+
+    <c-modal-popup-lwc class="popup"></c-modal-popup-lwc>
+
+</template>

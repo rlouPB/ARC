@@ -1,0 +1,7 @@
+<aura:event type="COMPONENT" description="Referral changed">
+  <aura:attribute name="index" type="Integer" />
+  <aura:attribute name="referral" type="Map" />
+  <aura:attribute name="action" type="String" />
+  <aura:attribute name="selectedReferral" type="String" />
+  <aura:attribute name="grouping" type="String" />
+</aura:event>

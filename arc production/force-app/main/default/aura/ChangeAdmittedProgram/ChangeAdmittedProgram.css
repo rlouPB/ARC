@@ -1,0 +1,23 @@
+.THIS {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.THIS.slds-modal {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.THIS.slds-modal__container {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.THIS .customRequired {
+  font-weight: normal;
+}
+
+.THIS .customRequired a:not(.display),
+.THIS .customRequired input {
+  border: 1px solid red;
+}

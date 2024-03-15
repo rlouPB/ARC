@@ -1,0 +1,219 @@
+<aura:component implements="flexipage:availableForAllPageTypes" controller="NursingHomeAuraController" >
+
+    <aura:attribute name="buttonsCollapsed" type="Boolean" access="public" />
+    <aura:attribute name="currentTab" type="String" access="public" />
+    <aura:attribute name="todaysDate" type="String" access="public" />
+    
+    <aura:attribute name="myAssignments" type="Object[]" access="public" />
+    
+    <aura:handler name="init" value="{! this }" action="{! c.init }"/>
+    <aura:handler event="force:refreshView" action="{! c.init }"/>
+
+    <div class="outer-wrapper">
+        <div class="slds-grid slds-wrap">
+            <div class="slds-col slds-size_3-of-4 slds-p-around_medium">
+                <div class="greybackground fullheight border slds-p-around_medium slds-text-heading_large slds-text-align_center">
+                    IRIS
+                </div>
+            </div>
+            <div class="slds-col slds-size_1-of-4 slds-p-around_medium">
+                <div class="greybackground fullheight border slds-p-around_medium slds-text-align_center">
+                    <ui:outputDate value="{!v.todaysDate}" />
+                </div>
+            </div>
+            
+            <br />
+
+            <div class="{!'slds-col ' + (v.buttonsCollapsed ? 'slds-size_1-of-12' : 'slds-size_1-of-6')}" id="ButtonContainer">
+
+                <div class="{!'tab slds-p-around_medium slds-text-align_center' + (v.currentTab == 'Bulletin Board' ? ' selected' : ' buttonHand')}" data-id="Bulletin Board" onclick="{!c.buttonClick}">    
+                    <aura:if isTrue="{!!v.buttonsCollapsed}">
+                        <span class="slds-text-title_bold">
+                            Bulletin Board<br />
+                        </span>
+                        <aura:set attribute="else">
+                            <p class="slds-text-title_bold slds-truncate" title="Bulletin Board">
+                                Bulletin Board
+                            </p>
+                        </aura:set>
+                    </aura:if>
+                </div>
+
+                <div class="{!'tab slds-p-around_medium slds-text-align_center' + (v.currentTab == 'Shift Sign In/Out' ? ' selected' : ' buttonHand')}" data-id="Shift Sign In/Out" onclick="{!c.buttonClick}">
+                    <aura:if isTrue="{!!v.buttonsCollapsed}">
+                        <span class="slds-text-title_bold">
+                            Shift Sign In/Out<br />
+                        </span>
+                        <aura:set attribute="else">
+                            <p class="slds-text-title_bold slds-truncate" title="Shift Sign In/Out">
+                                Shift Sign In/Out
+                            </p>
+                        </aura:set>
+                    </aura:if>
+                </div>
+                
+                <aura:if isTrue="{!v.myAssignments.length>0}">
+                    <div class="{!'tab slds-p-around_medium slds-text-align_center' + (v.currentTab == 'nursingShifts' ? ' selected' : ' buttonHand')}"  data-id="nursingShifts" onclick="{!c.buttonClick}">
+                        <aura:if isTrue="{!!v.buttonsCollapsed}">
+                            <span class="slds-text-title_bold">
+                                Nursing Shifts<br />
+                            </span>
+                            <aura:set attribute="else">
+                                <p class="slds-text-title_bold slds-truncate" title="Nursing Shifts">
+                                    Nursing Shifts
+                                </p>
+                            </aura:set>
+                        </aura:if>
+                    </div>
+                </aura:if>
+
+                <aura:if isTrue="{!v.myAssignments.length>0}">
+                    <div class="{!'tab slds-p-around_medium slds-text-align_center' + (v.currentTab == 'Shift Items' ? ' selected' : ' buttonHand')}" data-id="Shift Items" onclick="{!c.buttonClick}">
+                        <aura:if isTrue="{!!v.buttonsCollapsed}">
+                            <span class="slds-text-title_bold">
+                                Your Shift Items<br />
+                            </span>
+                            <aura:set attribute="else">
+                                <p class="slds-text-title_bold slds-truncate" title="Shift Items">
+                                    Your Shift Items
+                                </p>
+                            </aura:set>
+                        </aura:if>
+                    </div>
+                </aura:if>
+
+                <div class="{!'tab slds-p-around_medium slds-text-align_center' + (v.currentTab == 'patients' ? ' selected' : ' buttonHand')}" data-id="patients" onclick="{!c.buttonClick}">
+                    <aura:if isTrue="{!!v.buttonsCollapsed}">
+                        <span class="slds-text-title_bold">
+                            Patients<br />
+                        </span>
+                        <aura:set attribute="else">
+                            <p class="slds-text-title_bold slds-truncate" title="Patients">
+                                Patients
+                            </p>
+                        </aura:set>
+                    </aura:if>
+                </div>
+
+                <div class="{!'tab slds-p-around_medium slds-text-align_center' + (v.currentTab == 'staff' ? ' selected' : ' buttonHand')}" data-id="staff" onclick="{!c.buttonClick}">
+                    <aura:if isTrue="{!!v.buttonsCollapsed}">
+                        <span class="slds-text-title_bold">
+                            Staff<br />
+                        </span>
+                        <aura:set attribute="else">
+                            <p class="slds-text-title_bold slds-truncate" title="Staff">
+                                Staff
+                            </p>
+                        </aura:set>
+                    </aura:if>
+                </div>
+                
+                <div class="{!'tab slds-p-around_medium slds-text-align_center' + (v.currentTab == 'Messages And Alerts' ? ' selected' : ' buttonHand')}" data-id="Messages And Alerts" onclick="{!c.buttonClick}">
+                    <aura:if isTrue="{!!v.buttonsCollapsed}">
+                        <span class="slds-text-title_bold">
+                            Messages And Alerts<br />
+                        </span>
+                        <aura:set attribute="else">
+                            <p class="slds-text-title_bold slds-truncate" title="Messages And Alerts">
+                                Messages And Alerts
+                            </p>
+                        </aura:set>
+                    </aura:if>
+                </div>            
+
+                <div class="{!'tab slds-p-around_medium slds-text-align_center' + (v.currentTab == 'schedule' ? ' selected' : ' buttonHand')}" data-id="schedule" onclick="{!c.buttonClick}">
+                    <aura:if isTrue="{!!v.buttonsCollapsed}">
+                        <span class="slds-text-title_bold">
+                            Schedule<br />
+                        </span>
+                        <aura:set attribute="else">
+                            <p class="slds-text-title_bold slds-truncate" title="Schedule">
+                                Schedule
+                            </p>
+                        </aura:set>
+                    </aura:if>
+                </div>
+
+                <div class="{!'tab slds-var-p-around_medium slds-text-align_center' + (v.currentTab == 'variance' ? ' selected' : ' buttonHand')}" aura-id="variance" data-id="variance" onclick="{!c.buttonClick}">
+					<aura:if isTrue="{!!v.buttonsCollapsed}">
+						<span class="slds-text-title_bold">
+							Variance<br />
+						</span>
+						<aura:set attribute="else">
+							<p class="slds-text-title_bold slds-truncate" title="Variance">
+								Variance
+							</p>
+						</aura:set>
+					</aura:if>
+				</div>
+            </div>
+
+            <div class="{!'slds-col main-content-wrapper ' + (v.buttonsCollapsed ? 'slds-size_11-of-12' : 'slds-size_5-of-6')}" id="DisplayContainer">
+                <div class="main-content fullheight slds-p-around_medium" aura-id="display">
+                    
+                    <aura:if isTrue="{!v.currentTab=='Bulletin Board'}">
+                        <c:BulletinBoard />
+                    </aura:if>
+                    
+                    <aura:if isTrue="{!v.currentTab=='patients'}">
+                        <lightning:card>
+                            <div class="slds-p-left_large">
+                                <lightning:listView objectApiName="Admission__c"
+                                                    listName="Patient_Photos"
+                                                    rows="50"
+                                                    showSearchBar="false"
+                                                    showActionBar="true"
+                                                    enableInlineEdit="false"
+                                                    showRowLevelActions="false"/>
+                            </div>
+                        </lightning:card>
+                    </aura:if>
+
+                    <aura:if isTrue="{!v.currentTab=='staff'}">
+                            <lightning:listView objectApiName="Contact" listName="Staff_Photos" rows="50" showSearchBar="false" showActionBar="false" enableInlineEdit="false" showRowLevelActions="false" />
+                        </aura:if>
+
+                    <aura:if isTrue="{!v.currentTab=='nursingShifts'}">
+                        <c:nursingShiftsLwc></c:nursingShiftsLwc>
+                        <!-- <c:nursingShiftItemsByShiftLwc recordId="{!v.recordId}" isFromPatientAccount="true"></c:nursingShiftItemsByShiftLwc> -->
+                    </aura:if>
+
+                    <aura:if isTrue="{!v.currentTab=='Messages And Alerts'}">
+                        <lightning:card>
+                            <div class="slds-p-left_large">
+                                <c:UserInbox hidePreview="true" />
+                            </div>
+                        </lightning:card>
+                    </aura:if>
+
+
+                    <aura:if isTrue="{!v.currentTab=='Shift Items'}">
+                        <c:nursingShiftItemsSignedLwc></c:nursingShiftItemsSignedLwc>                       
+                    </aura:if>
+
+                    <aura:if isTrue="{!v.currentTab=='Shift Sign In/Out'}">                        
+                        <c:nursingSignInOutLwc onrefreshview="{!c.onRefreshViewHandler}"></c:nursingSignInOutLwc>                            
+                    </aura:if>
+
+                    <aura:if isTrue="{!v.currentTab=='schedule'}">
+                        <lightning:card>
+                            <div class="slds-p-left_large">
+                                <c:ScheduleApp topLevelTabName="Home"/>
+                            </div>
+                        </lightning:card>
+                    </aura:if>
+                    
+                    <aura:if isTrue="{!v.currentTab=='variance'}">
+						<c:dynamicListView showNewButton="true" tableTitle="User Reported - Open" sObjectName="Variance__c" fieldSetName="Variance_List_View" 
+									additionalWhereClause="Status__c='Open' OR Status__c='Under Review'" includeName="true" iconName="standard:care_request_reviewer" 
+									showMyRecordsOnly = "true"/>
+						<br/>
+						<c:dynamicListView showNewButton="false" tableTitle="User Reported - Closed" sObjectName="Variance__c" fieldSetName="Variance_List_View" 
+									additionalWhereClause="Status__c='Closed' OR Status__c='Canceled'" includeName="true" iconName="standard:care_request_reviewer" 
+									showMyRecordsOnly = "true"/>
+					</aura:if>
+                </div>
+            </div>
+        </div>
+    </div>
+</aura:component>

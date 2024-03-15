@@ -1,0 +1,579 @@
+<aura:component controller="DischargeDispositionCtl" extends="c:ApexService" implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickActionwithoutheader,lightning:actionOverride">
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="parentRecordId" type="String" />
+    <aura:attribute name="dischargeDisposition" type="Map"/>
+    <aura:attribute name="patient" type="Map"/>
+    <aura:attribute name="snapshotHtml" type="String" default="snapshot unavailable" description="rendered html of Finalized record" />
+    <!-- Internal Attributes -->
+
+    <aura:attribute name="psetAssignmentFilters" type="List" description="PermissionSetAssignment filter list to pass to lookupComponent. Assembled in this component based on parameters" />
+    <aura:attribute name="postDischargeAddressFilters" type="List" description="PermissionSetAssignment filter list to pass to lookupComponent. Assembled in this component based on parameters" />
+    <aura:attribute name="permissionSetNames" type="String" default="'Clinical'" 
+			description="Single-quoted comma-separated Permission Set Names to include in query. Only applies to PermissionSetAssignment queries. Default selects RiggsClinical." />
+    <aura:attribute name="selectedResponsibleSocialWorker" type="Map" access="public" />
+    <aura:attribute name="selectedPostDischargeAddress" type="Map" access="public" description="Contact Address record selected in lookup"/>
+    <aura:attribute name="responsibleSocialWorkerName" type="String"/>
+    <aura:attribute name="responsibleSocialWorkerFilter" type="List" default="[]" access="public" description="The filter applied to all searches for responsible social worker record selection" />
+    
+    <aura:attribute name="methodOptions" type="List" default="[{'label': 'In person', 'value': 'In person'},{'label': 'By mail', 'value': 'By mail'}]" access="public"/>
+    <aura:attribute name="dischargeTypeOptions" type="List" default="[{'label':'Discharge Plan',value:'Discharge Plan'},{'label':'Emergency Transfer',value:'Emergency Transfer'}]"/>
+    <aura:attribute name="dischargeTypeSelected" type="String"/>
+    <aura:attribute name="numErrors" type="Integer" default="0"/>
+    <aura:attribute name="isTest" type="Boolean" default="false"/>
+    <aura:attribute name="isEditable" type="Boolean" default="false"/>
+    <aura:attribute name="showCancelModal" type="Boolean" default="false"/>
+    <aura:attribute name="showFinalizeModal" type="Boolean" default="false"/>
+    <aura:attribute name="showReOpenModal" type="Boolean" default="false"/>
+    <aura:attribute name="showPrintDraftModal" type="Boolean" default="false"/>
+    
+    
+    <aura:attribute name="isLoading" type="Boolean" default="true"/>
+    <aura:attribute name="loading" type="Boolean" default="true" />
+    <aura:attribute name="offsetTop" type="Integer" default="0" />
+
+    <!-- handler -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler name="dischargeSectionReopenedEvent" event="c:DischargeSectionReopenedEvent" action="{!c.handleDischargeSectionReopend}"/>
+    <aura:handler name="DischargeDispositionActionEvent" event="c:DischargeDispositionActionEvent" action="{!c.handleDischargeDispositionAction}"/>
+    <aura:if isTrue="{! v.loading }">
+        <lightning:spinner variant="brand" size="large" alternativeText="Loading" />
+    </aura:if>
+
+    <lightning:layout>
+
+                        
+        <lightning:layoutItem size="9" class="slds-p-right_large">
+            <!-- No Record ID, Create New Discharge -->
+            <!-- <aura:if isTrue="{!and(empty(v.recordId),empty(v.dischargeDisposition))}">
+                <lightning:card>
+                    <aura:set attribute="title">
+                        <p class="slds-text-heading_large">Discharge Disposition</p>
+                    </aura:set>
+                    <lightning:layout multipleRows="false">
+                        <lightning:layoutItem size="6" class="slds-var-p-around_x-small">
+                            <lightning:layout multipleRows="true">
+                                <lightning:layoutItem size="12">
+                                    &nbsp;
+                                </lightning:layoutItem>
+                                <lightning:layoutItem size="12" class="slds-var-p-around_x-small">
+                                    <div class="slds-text-align_right">Select Discharge Type</div>
+                                </lightning:layoutItem>
+                            </lightning:layout>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="6" class="slds-var-p-around_x-small">
+                            <lightning:layout multipleRows="true">
+                                <lightning:layoutItem size="12" class="slds-var-p-around_x-small">
+                                    <lightning:radioGroup class="dischargeTypeRadio"
+                                                          name="dischargeTypeRadioGroup"
+                                                          label=""
+                                                          options="{!v.dischargeTypeOptions}"
+                                                          value="{!v.dischargeTypeSelected}"
+                                                          type="radio"
+                                                          required="false"
+                                                          onchange="{!c.handleDischargeTypeChange}"/>
+                                </lightning:layoutItem>
+                            </lightning:layout>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                </lightning:card>
+            </aura:if> -->
+            
+            <!-- Discharge Plan -->
+            <aura:if isTrue="{!and(not(empty(v.dischargeDisposition)),not(v.dischargeDisposition.dischargeDispositionObj.Emergency_Transfer__c))}">
+                <lightning:card>
+                    <lightning:layout>
+                        <lightning:layoutItem size="10">
+                            <div style="font-weight: bold;" class="slds-text-heading_large slds-text-align_center">Discharge Disposition and Recommendations</div>
+                        </lightning:layoutItem>
+                        
+                        <lightning:layoutItem size="2">
+                            <lightning:layout multipleRows="true">
+                                <lightning:layoutItem size="12">
+                                    <div class="slds-form-element slds-form-element_readonly">
+                                        <label class="slds-form-element__label">Status</label>
+                                        <div class="slds-form-element__control">{!v.dischargeDisposition.dischargeDispositionObj.Status__c}</div>
+                                    </div>
+                                </lightning:layoutItem>
+                            </lightning:layout>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+
+                    <div class="slds-scrollable_y">
+                        
+                        <aura:if isTrue="{!and(v.dischargeDisposition.dischargeDispositionObj.Status__c != 'Finalized', v.dischargeDisposition.dischargeDispositionObj.Status__c != 'Cancelled')}">
+                            <lightning:layout multipleRows="true">
+                                <lightning:layoutItem size="12" padding="around-small">
+                                    <lightning:layout multipleRows="false">
+                                        <lightning:layoutItem size="3">
+                                            <label for="" class="slds-form-element__label"></label>
+                                            <div>Responsible Social Worker</div>
+                                        </lightning:layoutItem>
+                                        <lightning:layoutItem size="3">
+                                            <aura:if isTrue="{!v.isEditable}">
+                                                <!--c:LookupComponent required="true" aura:id="responsibleSocialWorker" 
+                                                                    selectedRecord="{!v.selectedResponsibleSocialWorker}" 
+                                                                    splitSearchTextBySeperator="true" 
+                                                                    displayField="Name" 
+                                                                    displayFieldValue="Id" 
+                                                                    allowFreeText="true" 
+                                                                    lookupFieldName="{!v.responsibleSocialWorkerName}" 
+                                                                    filters="{!v.responsibleSocialWorkerFilter}" 
+                                                                    label="" 
+                                                                    objectName="User" 
+                                                                    fieldsToSearch="Name"/-->
+                                                <!--c:LookupComponent required="true" aura:id="responsibleSocialWorker" 
+                                                                    selectedRecord="{!v.selectedResponsibleSocialWorker}" 
+                                                                    splitSearchTextBySeperator="true" 
+                                                                    displayField="User_Name__c" 
+                                                                    displayFieldValue="User__c" 
+                                                                    allowFreeText="true" 
+                                                                    filters="{!v.responsibleSocialWorkerFilter}" 
+                                                                    label="" 
+                                                                    objectName="Assigned_Clinician__c" 
+                                                                    fieldsToSearch="User_Name__c"/-->
+                                                <c:LookupComponent required="true" aura:id="assignedToLookup" 
+                                                                    selectedRecord="{!v.selectedResponsibleSocialWorker}" 
+                                                                    fieldsToSearch="Assignee.Name" 
+                                                                    filters="{!v.psetAssignmentFilters}" 
+                                                                    displayField="Assignee.Professional_Name__c"
+                                                                    splitSearchTextBySeperator="true" 
+                                                                    allowPropagation="true"
+                                                                    displayFieldValue="Assignee.Id" 
+                                                                    allowFreeText="true"  
+                                                                    label="" 
+                                                                    objectName="PermissionSetAssignment" />
+                                                <aura:set attribute="else">
+                                                    <label for="ResponsibleSocialWorker" class="slds-form-element__label"></label>
+                                                    <div id="ResponsibleSocialWorker"><lightning:formattedText class="slds-hyphenate" 
+                                                                                                                value="{!v.dischargeDisposition.responsibleSocialWorker.Professional_Name__c}"/></div>
+                                                </aura:set>
+                                            </aura:if>
+                                        </lightning:layoutItem>
+                                        <lightning:layoutItem size="6"></lightning:layoutItem>
+                                    </lightning:layout>
+                                </lightning:layoutItem>
+                                <aura:if isTrue="{!v.dischargeDisposition.dischargeDispositionObj.Status__c=='Draft'}">
+                                    <lightning:layoutItem size="12" padding="around-small">
+                                        <lightning:layout multipleRows="false">
+                                            <lightning:layoutItem size="3">
+                                                <label for="" class="slds-form-element__label"></label>
+                                                <div>Anticipated Discharge Date</div>
+                                            </lightning:layoutItem>
+                                            <lightning:layoutItem size="3">
+                                                <aura:if isTrue="{!v.isEditable}">
+                                                    <div><lightning:input type="date" value="{!v.dischargeDisposition.dischargeDispositionObj.Anticipated_Discharge_Date__c}" dateStyle="short"/></div>
+                                                    <aura:set attribute="else">
+                                                        <div><lightning:formattedDateTime value="{!v.dischargeDisposition.dischargeDispositionObj.Anticipated_Discharge_Date__c}" month="2-digit" day="2-digit" year="numeric" timeZone="UTC" /></div>
+                                                    </aura:set>
+                                                </aura:if>
+                                            </lightning:layoutItem>
+                                            <lightning:layoutItem size="6"></lightning:layoutItem>
+                                        </lightning:layout>
+                                    </lightning:layoutItem>
+                                    
+                                </aura:if>
+                            </lightning:layout>
+
+                            <aura:if isTrue="{!not(empty(v.dischargeDisposition))}">
+                                <!-- All Discharge Sections -->
+                                <aura:iteration items="{!v.dischargeDisposition.dischargeSectionList}" var="dischargeSection">
+                                    <aura:if isTrue="{!and(dischargeSection.dischargeSectionObj.Role__c=='Psychotherapy',
+                                                        or(or(or(v.dischargeDisposition.currentUser.Profile.Name=='System Administrator',
+                                                            v.dischargeDisposition.currentUser.Id==dischargeSection.dischargeSectionObj.OwnerId),
+                                                            v.dischargeDisposition.currentUser.Id==v.dischargeDisposition.responsibleSocialWorker.Id),v.dischargeDisposition.isMedRecords))}">
+                                        <div class="slds-var-p-around_small">
+                                            <c:DischargeSectionPsychotherapy numErrors="{!v.numErrors}" 
+                                                                                isLoading="{!v.isLoading}"
+                                                                                dischargeSection="{!dischargeSection}" 
+                                                                                responsibleSocialWorker="{!v.dischargeDisposition.responsibleSocialWorker}"
+                                                                                currentUser="{!v.dischargeDisposition.currentUser}"
+                                                                                dischargeDisposition="{!v.dischargeDisposition}"
+                                                                                aura:id="Psychotherapy"
+                                                                                />
+                                        </div>
+                                    </aura:if>
+
+                                    <aura:if isTrue="{!and(dischargeSection.dischargeSectionObj.Role__c=='Psychopharmacology',
+                                                        or(or(or(v.dischargeDisposition.currentUser.Profile.Name=='System Administrator',
+                                                            v.dischargeDisposition.currentUser.Id==dischargeSection.dischargeSectionObj.OwnerId),
+                                                            v.dischargeDisposition.currentUser.Id==v.dischargeDisposition.responsibleSocialWorker.Id),v.dischargeDisposition.isMedRecords))}">
+                                        <div class="slds-var-p-around_small">
+                                            <c:DischargeSectionPsychopharmacology numErrors="{!v.numErrors}" 
+                                                                                    isLoading="{!v.isLoading}"
+                                                                                    dischargeSection="{!dischargeSection}" 
+                                                                                    responsibleSocialWorker="{!v.dischargeDisposition.responsibleSocialWorker}"
+                                                                                    currentUser="{!v.dischargeDisposition.currentUser}"
+                                                                                    dischargeDisposition="{!v.dischargeDisposition}"
+                                                                                    aura:id="Psychopharmacology"
+                                                                                    />
+                                        </div>
+                                    </aura:if>
+
+                                    <aura:if isTrue="{!dischargeSection.dischargeSectionObj.Role__c == 'Medical Care Instructions' 
+                                                        &amp;&amp; (v.dischargeDisposition.currentUser.Profile.Name == 'System Administrator'
+                                                                || v.dischargeDisposition.currentUser.Id == dischargeSection.dischargeSectionObj.OwnerId
+                                                                || v.dischargeDisposition.isMedOfficeUser == true || v.dischargeDisposition.isMedRecords
+                                                                || v.dischargeDisposition.currentUser.Id == v.dischargeDisposition.responsibleSocialWorker.Id)}">
+                                        <div class="slds-var-p-around_small">
+                                            <c:DischargeSectionMedicalCareInstructions numErrors="{!v.numErrors}" 
+                                                                                        isLoading="{!v.isLoading}"
+                                                                                        dischargeSection="{!dischargeSection}" 
+                                                                                        responsibleSocialWorker="{!v.dischargeDisposition.responsibleSocialWorker}"
+                                                                                        currentUser="{!v.dischargeDisposition.currentUser}"
+                                                                                        dischargeDisposition="{!v.dischargeDisposition}"
+                                                                                        aura:id="Medical Care Instructions"
+                                                                                        />
+                                        </div>
+                                    </aura:if>
+                                    
+                                    <aura:if isTrue="{!and(dischargeSection.dischargeSectionObj.Role__c=='Nursing',
+                                                        or(or(or(v.dischargeDisposition.currentUser.Profile.Name=='System Administrator',
+                                                            v.dischargeDisposition.currentUser.Id==dischargeSection.dischargeSectionObj.OwnerId),
+                                                            v.dischargeDisposition.currentUser.Id==v.dischargeDisposition.responsibleSocialWorker.Id),v.dischargeDisposition.isMedRecords))}">
+                                        <div class="slds-var-p-around_small">
+                                            <c:DischargeSectionNursing numErrors="{!v.numErrors}" 
+                                                                        isLoading="{!v.isLoading}"
+                                                                        dischargeSection="{!dischargeSection}" 
+                                                                        responsibleSocialWorker="{!v.dischargeDisposition.responsibleSocialWorker}"
+                                                                        currentUser="{!v.dischargeDisposition.currentUser}"
+                                                                        dischargeDisposition="{!v.dischargeDisposition}"
+                                                                        aura:id="Nursing"
+                                                                        />
+                                        </div>
+                                    </aura:if>
+
+                                    <aura:if isTrue="{!and(dischargeSection.dischargeSectionObj.Role__c=='Substance Use Services',
+                                                        or(or(or(v.dischargeDisposition.currentUser.Profile.Name=='System Administrator',
+                                                            v.dischargeDisposition.currentUser.Id==dischargeSection.dischargeSectionObj.OwnerId),
+                                                            v.dischargeDisposition.currentUser.Id==v.dischargeDisposition.responsibleSocialWorker.Id),v.dischargeDisposition.isMedRecords))}">
+                                        <div class="slds-var-p-around_small">
+                                            <c:DischargeSectionSubstanceUseServices numErrors="{!v.numErrors}" 
+                                                                                    isLoading="{!v.isLoading}"
+                                                                                    dischargeSection="{!dischargeSection}" 
+                                                                                    responsibleSocialWorker="{!v.dischargeDisposition.responsibleSocialWorker}"
+                                                                                    currentUser="{!v.dischargeDisposition.currentUser}"
+                                                                                    dischargeDisposition="{!v.dischargeDisposition}"
+                                                                                    aura:id="Substance Use Services"
+                                                                                    />
+                                        </div>
+                                    </aura:if>
+
+                                    <aura:if isTrue="{!and(dischargeSection.dischargeSectionObj.Role__c=='Social Work',
+                                                        or(or(or(v.dischargeDisposition.currentUser.Profile.Name=='System Administrator',
+                                                            v.dischargeDisposition.currentUser.Id==dischargeSection.dischargeSectionObj.OwnerId),
+                                                            v.dischargeDisposition.currentUser.Id==v.dischargeDisposition.responsibleSocialWorker.Id),v.dischargeDisposition.isMedRecords))}">
+                                        <div class="slds-var-p-around_small">
+                                            <c:DischargeSectionSocialWorker numErrors="{!v.numErrors}" 
+                                                                            isLoading="{!v.isLoading}"
+                                                                            dischargeSection="{!dischargeSection}" 
+                                                                            responsibleSocialWorker="{!v.dischargeDisposition.responsibleSocialWorker}"
+                                                                            currentUser="{!v.dischargeDisposition.currentUser}"
+                                                                            dischargeDisposition="{!v.dischargeDisposition}"
+                                                                            aura:id="Social Work"
+                                                                            />
+                                        </div>
+                                    </aura:if>
+
+                                    <aura:if isTrue="{!and(dischargeSection.dischargeSectionObj.Role__c=='Team Leader',
+                                                        or(or(or(v.dischargeDisposition.currentUser.Profile.Name=='System Administrator',
+                                                            v.dischargeDisposition.currentUser.Id==dischargeSection.dischargeSectionObj.OwnerId),
+                                                            v.dischargeDisposition.currentUser.Id==v.dischargeDisposition.responsibleSocialWorker.Id),v.dischargeDisposition.isMedRecords))}">
+                                        <div class="slds-var-p-around_small">
+                                            <c:DischargeSectionTeamLeader numErrors="{!v.numErrors}" 
+                                                                            isLoading="{!v.isLoading}"
+                                                                            dischargeSection="{!dischargeSection}" 
+                                                                            responsibleSocialWorker="{!v.dischargeDisposition.responsibleSocialWorker}"
+                                                                            currentUser="{!v.dischargeDisposition.currentUser}"
+                                                                            dischargeDisposition="{!v.dischargeDisposition}"
+                                                                            aura:id="Team Leader"
+                                                                            />
+                                        </div>
+                                    </aura:if>
+                                </aura:iteration>
+
+                                <div class="slds-var-p-around_small">
+                                    <lightning:layout multipleRows="true">
+                                        <lightning:layoutItem size="3">
+                                            <label for="" class="slds-form-element__label"></label>
+                                            <div>Date Delivered to Patient</div>
+                                        </lightning:layoutItem>
+                                        <lightning:layoutItem size="3" class="slds-var-p-around_x-small">
+                                            <aura:if isTrue="{!v.isEditable}">
+                                                <div><lightning:input type="date" value="{!v.dischargeDisposition.dischargeDispositionObj.Date_Delivered_to_Patient__c}" dateStyle="short"/></div>
+                                                <aura:set attribute="else">
+                                                    <div><lightning:formattedDateTime value="{!v.dischargeDisposition.dischargeDispositionObj.Date_Delivered_to_Patient__c}" month="2-digit" day="2-digit" year="numeric" timeZone="UTC" /></div>
+                                                </aura:set>
+                                            </aura:if>
+                                        </lightning:layoutItem>
+                                        <lightning:layoutItem size="6"></lightning:layoutItem>
+
+                                        <lightning:layoutItem size="3">
+                                            <label for="" class="slds-form-element__label"></label>
+                                            <div>Method</div>
+                                        </lightning:layoutItem>
+                                        <lightning:layoutItem size="3" class="slds-var-p-around_x-small">
+                                            <aura:if isTrue="{!v.isEditable}">
+                                                <div>
+                                                    <lightning:radioGroup aura:id="method"
+                                                        name="method"
+                                                        options="{! v.methodOptions }"
+                                                        value="{! v.dischargeDisposition.dischargeDispositionObj.Method__c }"
+                                                        type="radio"/>
+                                                </div>
+                                                <aura:set attribute="else">
+                                                    <label for="" class="slds-form-element__label"></label>
+                                                    <div >
+                                                        <lightning:formattedText value="{!v.dischargeDisposition.dischargeDispositionObj.Method__c}"/>
+                                                    </div>
+                                                </aura:set>
+                                            </aura:if>
+                                        </lightning:layoutItem>
+                                        <lightning:layoutItem size="6"></lightning:layoutItem>
+
+                                        <lightning:layoutItem size="3" padding="around-small">
+                                            <div>Post-Discharge Address</div>
+                                        </lightning:layoutItem>
+                                        <lightning:layoutItem size="3">
+                                            <aura:if isTrue="{!v.isEditable}">
+                                                <div class="slds-float_left slds-m-top_small" id="lookupContainerDiv">
+                                                    <c:LookupComponent aura:id="postDischargeAddressLookup" 
+                                                                    selectedRecord="{!v.selectedPostDischargeAddress}" 
+                                                                    fieldsToSearch="Name, City__c, Street_1__c" 
+                                                                    filters="{!v.postDischargeAddressFilters}" 
+                                                                    lookupFieldName="{!v.dischargeDisposition.dischargeDispositionObj.Post_Discharge_Address__c}"
+                                                                    displayField="Summary__c"
+                                                                    displayFieldValue="Id" 
+                                                                    objectName="Contact_Address__c" 
+                                                                    minimumSearchTextLength="0"
+                                                                    labelHidden="true"/>
+                                                </div>
+                                                <aura:set attribute="else">
+                                                    <div class="slds-form-element__control">{!v.dischargeDisposition.dischargeDispositionObj.Post_Discharge_Address__r.Summary__c}</div>
+                                                </aura:set>
+                                            </aura:if>
+                                        </lightning:layoutItem>
+                                        <lightning:layoutItem size="6"><div class="bottom-padding">&nbsp;</div></lightning:layoutItem>
+                                    </lightning:layout>
+                                </div>
+                            </aura:if>
+                        </aura:if>
+
+                        <aura:if isTrue="{!v.dischargeDisposition.dischargeDispositionObj.Status__c == 'Finalized'}">
+                            <div class="slds-form-element__control snapshotHtml">
+                                <aura:unescapedHtml value="{!v.snapshotHtml}" />
+                            </div>
+                        </aura:if>
+                        <aura:if isTrue="{!v.dischargeDisposition.dischargeDispositionObj.Status__c == 'Draft'}">
+                            <div class="slds-form-element__control snapshotHtml">
+                                <aura:unescapedHtml value="{!v.snapshotHtml}" />
+                            </div>
+                        </aura:if>
+
+                    </div>
+                </lightning:card>
+                <aura:if isTrue="{!v.dischargeDisposition.dischargeDispositionObj.Status__c == 'Draft'}">
+                    <div style="margin-top: 30px; margin-bottom: 30px; width: 100%;">
+                        <lightning:card>
+                            <c:dynamicListView showNewButton="false" tableTitle="Draft History" sObjectName="Snapshot__c" sObjectLookupIDField="Discharge_Disposition__c" fieldSetName="Draft_History" 
+                                includeName="true" iconName="standard:care_request_reviewer" 
+                                additionalWhereClause="Is_Draft__c = true"
+                                showMyRecordsOnly = "false" recordId="{!v.dischargeDisposition.dischargeDispositionObj.Id}" orderBy="Createddate desc" enableColumnSorting="false"/>
+                        </lightning:card>
+                    </div>	
+                </aura:if>
+            </aura:if>
+            
+            <!-- Emergency Transfer -->
+            <aura:if isTrue="{!and(not(empty(v.dischargeDisposition)),v.dischargeDisposition.dischargeDispositionObj.Emergency_Transfer__c)}">
+                <div aura:id="MainScrollablePanel" class="slds-scrollable_y">
+                    <lightning:card>
+                        <lightning:layout>
+                            <lightning:layoutItem size="10">
+                                <div style="font-weight: bold;" class="slds-text-heading_large slds-text-align_center">Emergency Transfer Discharge Disposition</div>
+                            </lightning:layoutItem>
+                            
+                            <lightning:layoutItem size="2">
+                                <lightning:layout multipleRows="true">
+                                    <lightning:layoutItem size="12">
+                                        <div class="slds-form-element slds-form-element_readonly">
+                                            <label class="slds-form-element__label">Status</label>
+                                            <div class="slds-form-element__control">{!v.dischargeDisposition.dischargeDispositionObj.Status__c}</div>
+                                        </div>
+                                    </lightning:layoutItem>
+                                </lightning:layout>
+                            </lightning:layoutItem>
+                        </lightning:layout>
+
+                        <aura:if isTrue="{!v.dischargeDisposition.dischargeDispositionObj.Status__c != 'Finalized'}">
+                            <lightning:layout multipleRows="true">
+                                <lightning:layoutItem size="12" padding="around-small">
+                                    <lightning:layout multipleRows="false">
+                                        <lightning:layoutItem size="3">
+                                            <label for="" class="slds-form-element__label"></label>
+                                            <div>Responsible Social Worker</div>
+                                        </lightning:layoutItem>
+                                        <lightning:layoutItem size="9">
+                                            <aura:if isTrue="{!v.isEditable}">
+                                                <c:LookupComponent required="true" aura:id="responsibleSocialWorker" 
+                                                                selectedRecord="{!v.selectedResponsibleSocialWorker}" 
+                                                                splitSearchTextBySeperator="true" 
+                                                                displayField="Name" 
+                                                                displayFieldValue="Id" 
+                                                                allowFreeText="true" 
+                                                                lookupFieldName="{!v.responsibleSocialWorkerName}" 
+                                                                filters="{!v.responsibleSocialWorkerFilter}" 
+                                                                label="" 
+                                                                objectName="User" 
+                                                                fieldsToSearch="Name"/>
+                                                <aura:set attribute="else">
+                                                    <label for="ResponsibleSocialWorker" class="slds-form-element__label"></label>
+                                                    <div id="ResponsibleSocialWorker"><lightning:formattedText class="slds-hyphenate" 
+                                                                                                            value="{!v.dischargeDisposition.responsibleSocialWorker.Professional_Name__c}"/></div>
+                                                </aura:set>
+                                            </aura:if>
+                                        </lightning:layoutItem>
+                                    </lightning:layout>
+                                </lightning:layoutItem>
+                                <lightning:layoutItem size="12" padding="around-small">
+                                    <lightning:layout multipleRows="false">
+                                        <lightning:layoutItem size="3">
+                                            <label for="TransferDetailsLabel" class="slds-form-element__label"></label>
+                                            <div id="TransferDetailsLabel">Transfer Details</div>
+                                        </lightning:layoutItem>
+                                        <lightning:layoutItem size="9">
+                                            <aura:if isTrue="{!v.isEditable}">
+                                                <lightning:textarea name="TransferDetailsTextArea" value="{!v.dischargeDisposition.dischargeDispositionObj.Transfer_Details__c}" maxlength="4000"/>
+                                                <aura:set attribute="else">
+                                                    <label for="TransferDetails" class="slds-form-element__label"></label>
+                                                    <div id="TransferDetails"><lightning:formattedText class="slds-hyphenate" value="{!v.dischargeDisposition.dischargeDispositionObj.Transfer_Details__c}"/></div>
+                                                </aura:set>
+                                            </aura:if>
+                                        </lightning:layoutItem>
+                                    </lightning:layout>
+                                </lightning:layoutItem>
+                                <lightning:layoutItem size="12" padding="around-small">
+                                    <lightning:layout multipleRows="false">
+                                        <lightning:layoutItem size="3">
+                                            <label for="AnticipatedDischargeDateLabel" class="slds-form-element__label"></label>
+                                            <div id="AnticipatedDischargeDateLabel">Anticipated Discharge Date</div>
+                                        </lightning:layoutItem>
+                                        <lightning:layoutItem size="3">
+                                            <aura:if isTrue="{!v.isEditable}">
+                                                <lightning:input type="date" value="{!v.dischargeDisposition.dischargeDispositionObj.Anticipated_Discharge_Date__c}"
+                                                                dateStyle="short"/>
+                                                <aura:set attribute="else">
+                                                    <label for="AnticipatedDischargeDate" class="slds-form-element__label"></label>
+                                                    <div id="AnticipatedDischargeDate"><lightning:formattedDateTime value="{!v.dischargeDisposition.dischargeDispositionObj.Anticipated_Discharge_Date__c}" 
+                                                                                                                    year="numeric" month="2-digit" day="2-digit" timeZone="UTC" /></div>
+                                                </aura:set>
+                                            </aura:if>
+                                        </lightning:layoutItem>
+                                        <lightning:layoutItem size="6"></lightning:layoutItem>
+                                    </lightning:layout>
+                                </lightning:layoutItem>
+                                <aura:if isTrue="{!v.dischargeDisposition.dischargeDispositionObj.Status__c=='Finalized'}">
+                                    <lightning:layoutItem size="6" padding="around-small">
+                                        <label for="FinalizedBy" class="slds-form-element__label">Finalized By</label>
+                                        <div id="FinalizedBy">
+                                            <!-- <lightning:formattedText value="{!v.dischargeDisposition.dischargeDispositionObj.Finalized_By__r.Name}"/> -->
+                                            <lightning:formattedText value="{!v.dischargeDisposition.dischargeDispositionObj.Finalized_By_Professional_Name__c}"/>
+                                        </div>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem size="6" padding="around-small">
+                                        <label for="FinalizedDateTime" class="slds-form-element__label">Finalized Date/Time</label>
+                                        <div id="FinalizedDateTime">
+                                            <lightning:formattedDateTime value="{!v.dischargeDisposition.dischargeDispositionObj.Finalized_Date_Time__c}" 
+                                                                        month="2-digit" day="2-digit" year="numeric"
+                                                                        hour="2-digit" minute="2-digit" hour12="true" timeZoneName="short" timeZone="America/New_York" />
+                                        </div>
+                                    </lightning:layoutItem>
+                                </aura:if>
+                            </lightning:layout>
+                        </aura:if>
+                        <aura:if isTrue="{!v.dischargeDisposition.dischargeDispositionObj.Status__c == 'Finalized'}">
+                            <div class="slds-form-element__control snapshotHtml">
+                                <aura:unescapedHtml value="{!v.snapshotHtml}" />
+                            </div>
+                        </aura:if>
+                    </lightning:card>
+                </div>
+            </aura:if>
+        </lightning:layoutItem>
+
+        <lightning:layoutItem size="3" >
+            <c:DischargeDispositionSidebar patient="{!v.patient}" aura:id="DischargeDispositionSidebar" isEditable="{!v.isEditable}"
+                                           dischargeDisposition="{!v.dischargeDisposition}"/>
+        </lightning:layoutItem>
+
+    </lightning:layout>
+
+    <aura:if isTrue="{!v.showCancelModal}">
+        <c:sldsModal instanceName="cancelDischargeDisposition">
+            <aura:set attribute="header">
+                <h2 class="slds-text-heading_medium">Permanently Discard Discharge Disposition and Recommen</h2>
+            </aura:set>
+            <aura:set attribute="content">
+                <div class="slds-p-horizontal_small">
+                    Are you sure you want to throw away this Discharge Disposition?
+                </div>
+            </aura:set>
+            <aura:set attribute="footer">
+                <lightning:button label="Discard Discharge Disposition" variant="destructive" onclick="{!c.handleConfirmCancel}"/>
+                <lightning:button label="Go back to Discharge Disposition" variant="neutral" onclick="{!c.handleBackToDischargeDisposition}"/>
+            </aura:set>
+        </c:sldsModal>
+    </aura:if>
+    
+    <aura:if isTrue="{!v.showPrintDraftModal}">
+        <c:sldsModal instanceName="printDraftDischargeDisposition">
+            <aura:set attribute="header">
+                <h2 class="slds-text-heading_medium">Print Draft Discharge Disposition</h2>
+            </aura:set>
+            <aura:set attribute="content">
+                <div class="slds-p-horizontal_small">
+                    <lightning:select name="purpose" label="Purpose" aura:id="purpose" required="true">
+                        <option value="Deliver to Patient">Deliver to Patient</option>
+                        <option value="Internal Use">Internal Use</option>
+                    </lightning:select>
+                </div>
+            </aura:set>
+            <aura:set attribute="footer">
+                <lightning:button label="Print Draft" variant="destructive" onclick="{!c.handleConfirmPrintDraft}"/>
+                <lightning:button label="Go back to Discharge Disposition" variant="neutral" onclick="{!c.handleBackToDischargeDisposition}"/>
+            </aura:set>
+        </c:sldsModal>
+    </aura:if>
+
+    <aura:if isTrue="{!v.showFinalizeModal}">
+        <c:sldsModal instanceName="finalizeDischargeDisposition">
+            <aura:set attribute="header">
+                
+            </aura:set>
+            <aura:set attribute="content">
+                <div class="slds-p-horizontal_small">
+                    Are you sure you want to Finalize this Discharge Disposition?
+                </div>
+            </aura:set>
+            <aura:set attribute="footer">
+                <lightning:button label="Finalize" variant="destructive" onclick="{!c.handleConfirmFinalize}"/>
+                <lightning:button label="Go back to Discharge Disposition" variant="neutral" onclick="{!c.handleBackToDischargeDisposition}"/>
+            </aura:set>
+        </c:sldsModal>
+    </aura:if>
+    <aura:if isTrue="{!v.showReOpenModal}">
+        <c:sldsModal instanceName="reopenDischargeDisposition">
+            <aura:set attribute="header">
+                
+            </aura:set>
+            <aura:set attribute="content">
+                <div class="slds-p-horizontal_small">
+                    Are you sure you want to Re-Open this Discharge Disposition?
+                </div>
+            </aura:set>
+            <aura:set attribute="footer">
+                <lightning:button label="Re-Open" variant="destructive" onclick="{!c.handleConfirmReOpen}"/>
+                <lightning:button label="Go back to Discharge Disposition" variant="neutral" onclick="{!c.handleBackToDischargeDisposition}"/>
+            </aura:set>
+        </c:sldsModal>
+    </aura:if>
+</aura:component>

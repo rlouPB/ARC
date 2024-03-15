@@ -1,0 +1,8 @@
+<design:component>
+	<design:attribute
+		name="recordId"
+		label="Record Id"/>
+	<design:attribute
+		name="parentRecordId"
+		label="Parent Record Id"/>
+</design:component>

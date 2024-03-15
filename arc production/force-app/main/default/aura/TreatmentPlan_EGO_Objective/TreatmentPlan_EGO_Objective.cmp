@@ -1,0 +1,116 @@
+<aura:component >
+    <aura:attribute name="domainGoalNumber" type="String"/>
+    <aura:attribute name="newTargetDate" type="Date" access="global"/>
+    <aura:attribute name="objective" type="Object"/>
+    <aura:attribute name="objectiveCounter" type="Integer"/>
+    <aura:attribute name="isObjectiveEditDisable" type="Boolean" default="true"/>
+    <aura:attribute name="ratings" type="List" description="List of ratings" default="[{'label':'1','value':'1'},
+    {'label':'2','value':'2'},
+    {'label':'3','value':'3'},
+    {'label':'4','value':'4'},
+    {'label':'5','value':'5'},
+    {'label':'6','value':'6'}
+    ]"/>
+    <aura:attribute name="objRatingScale" type="String" 
+            default="1 = no progress, 2 = minor progress, 3 = moderate progress, 4 = significant progress, 5 = very significant progress, 6 = goal/objective met" />
+    <aura:attribute name="conductEGO" type="Boolean" default="false"/>
+    <aura:attribute name="egoStatus" type="String" default=""/>
+    <aura:attribute name="isEGOR" type="Boolean" default="false"/>
+    
+    <!-- Handler -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler event="c:EGOActionEvent" action="{!c.handleEGOAction}"/>
+    
+    <!-- Register Event -->
+    <aura:registerEvent name="objectiveCancelEvent" type="c:TreatmentPlanObjectiveCancelEvent"/>
+    
+    <div class="slds-box c-lightgrey-darker slds-m-top_small slds-m-left_large">
+        <lightning:layout>
+            <lightning:layoutItem size="11">
+                <aura:if isTrue="{!(v.objective.objectiveObj.Id!=null)}">
+                    <lightning:layout multipleRows="true">
+                        <lightning:layoutItem size="11" padding="around-small">
+                            <lightning:textarea aura:id="objectiveLabel" value="{!v.objective.objectiveObj.Label__c}" 
+                                    disabled="{!v.isObjectiveEditDisable}" maxlength="5000" />
+                            <aura:if isTrue="{!v.objective.isLabelEmpty}">
+                                <div aura:id="objectiveErrorMessage" class="slds-form-element__help egoError">Please enter an objective</div>
+                            </aura:if>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="1" padding="around-small">
+                            <aura:if isTrue="{!and(v.conductEGO, v.isObjectiveEditDisable)}">
+                                <label for="{!v.objective.objectiveObj.Id+'_Edit_Icon'}" class="slds-form-element__label"></label>
+                                <div id="{!v.objective.objectiveObj.Id+'_Edit_Icon'}">
+                                    <lightning:buttonIcon iconName="utility:edit" variant="bare" title="" onclick="{!c.handleOnClickEditObjective}"/>
+                                </div>
+                            </aura:if>
+                        </lightning:layoutItem>
+                        <aura:if isTrue="{!and(v.isEGOR,not(empty(v.objective.objectiveObj.Continued_From_Objective__c)))}">
+                            <lightning:layoutItem size="12">
+                                <label for="{!v.objective.objectiveObj.Id+'_Objective_Rating'}" class="slds-form-element__label">Objective Rating</label>
+                                <div id="{!v.objective.objectiveObj.Id+'_Objective_Rating'}">
+                                    <lightning:radioGroup aura:id="objectiveRating"
+                                                          class="horizontalRadioCls" 
+                                                          name="{!v.objective.objectiveObj.Id+'_rating'}" 
+                                                          options="{!v.ratings}" 
+                                                          value="{!v.objective.rating}" 
+                                                          type="button"
+                                                          title="{!'Objective Rating Scale: ' + v.objRatingScale}"
+                                                          onchange="{!c.handleChange}"
+                                                          disabled="{!not(v.conductEGO)}"
+                                                          />
+                                    <lightning:button variant="base" label="Reset" title="Reset action" onclick="{! c.handleResetClick }"/>
+                                    <aura:if isTrue="{!v.objective.isRatingEmpty}">
+                                        <div aura:id="ratingErrorMessage" class="slds-form-element__help egoError">Please enter an objective rating</div>
+                                    </aura:if>
+                                </div>
+                            </lightning:layoutItem>                            
+                        </aura:if>
+                    </lightning:layout>
+                    <aura:set attribute="else">
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" padding="around-small">
+                                <lightning:textarea label="Objective" aura:id="objectiveLabel" value="{!v.objective.objectiveObj.Label__c}" maxlength="5000" />
+                                <aura:if isTrue="{!v.objective.isLabelEmpty}">
+                                    <div aura:id="objectiveErrorMessage" class="slds-form-element__help egoError">Please enter an objective</div>
+                                </aura:if>
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </aura:set>
+                </aura:if>
+            </lightning:layoutItem>
+
+            <lightning:layoutItem size="1">
+                <aura:if isTrue="{!and(v.conductEGO,empty(v.objective.objectiveObj.Continued_From_Objective__c))}">
+                    <div class="cancel-icon-middle">
+                        <label for="{!v.objective.objectiveObj.Id+'_Cancel_Icon'}" class="slds-form-element__label"></label>
+                        <div id="{!v.objective.objectiveObj.Id+'_Cancel_Icon'}">
+                            <lightning:buttonIcon iconName="utility:close" variant="bare" title="Remove" onclick="{!c.handleOnClickCancelObjective}"/>
+                        </div>
+                    </div>
+                </aura:if>
+            </lightning:layoutItem>
+                
+        </lightning:layout>
+        <!--
+            <aura:if isTrue="{!and(v.isEGOR,not(empty(v.objective.objectiveObj.Continued_From_Objective__c)))}">
+                <lightning:layout>
+                    <lightning:layoutItem padding="around-small">
+                        <label for="{!v.objective.objectiveObj.Id+'_Objective_Rating'}" class="slds-form-element__label">Objective Rating</label>
+                        <div id="{!v.objective.objectiveObj.Id+'_Objective_Rating'}">
+                            <lightning:radioGroup aura:id="objectiveRating"
+                                                    class="horizontalRadioCls" 
+                                                    name="{!v.objective.objectiveObj.Id+'_rating'}" 
+                                                    options="{!v.ratings}" 
+                                                    value="{!v.objective.rating}" 
+                                                    type="button"
+                                                    title="Objective Rating Scale: 1 = no progress, 2 = minor progress, 3 = moderate progress, 4 = significant progress, 5 = very significant progress, 6, goal/objective met"
+                                                    onchange="{!c.handleChange}"
+                                                    disabled="{!not(v.conductEGO)}"
+                                                    />
+                            <div aura:id="ratingErrorMessage" class="slds-form-element__help slds-hide egoError">Please enter an objective rating</div>
+                        </div>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </aura:if>-->
+    </div>	
+</aura:component>

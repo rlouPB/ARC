@@ -1,0 +1,18 @@
+:host {
+	/* --slds-c-card-body-spacing-block-end: 0; */
+	/* --slds-c-card-body-spacing-block-start: 0; */
+	--slds-c-card-color-background: rgb(243, 243, 243);
+}
+
+thead a:hover {
+	background-color: rgb(196, 74, 74);
+	padding-top: 0.75rem !important;
+}
+
+lightning-datatable div {
+	border-top: 1px solid;
+}
+
+article:last-child {
+	background-color: white;
+}

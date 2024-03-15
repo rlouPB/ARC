@@ -1,0 +1,140 @@
+<apex:page sidebar="false" controller="ViewPatientPostsCtl" applyHtmlTag="true" applyBodyTag="false">
+    <head>
+        <apex:slds />
+
+        <style>
+            .slds-box.postinfo {
+                min-height: 200px;
+            }
+            .slds-box ol {
+                list-style-type: decimal!important;
+                margin-left: initial!important;
+            }
+            .slds-box ul {
+                list-style-type: disc!important;
+                margin-left: initial!important;
+            }
+            
+            .slds-box ol li {
+                margin-left: 1.5rem!important;
+            
+            }
+            .activeTabClass
+            {
+                background-color: white;
+                background-image: none;
+                font-family: Lato;
+                font-size: 13px;
+                /* text-decoration: underline;
+                text-decoration-color: rgb(36, 119, 204); */
+                border-bottom: 2px solid rgb(36, 119, 204);
+            }
+            .inactiveTabClass
+            {
+                background-color: white;
+                background-image: none;
+                font-family: Lato;
+                font-size: 13px;
+            }
+            .inactiveTabClass:hover{
+                background: #e6e6e6;
+            }
+            .activeTabClass, .inactiveTabClass {
+                height: 2.5rem;
+                padding: 5px !important;
+                cursor: pointer;
+                margin-bottom: 5px;
+            }
+            .tabClass{
+                position: relative;
+                top: 0px;
+                border: none;
+            }
+            .rich-tabhdr-side-border{
+                background-image: none;
+            }
+            .rich-tabhdr-side-cell{
+                border: none;
+            }
+            .rich-tabpanel-content{
+                width: 100vw;
+                border: none;
+            }
+            .rich-tabpanel-content-position{
+                margin-top: 5px;
+            }
+            .slds-scope table{
+                width: auto;
+            }
+            .wrapper{
+                background-color: white;
+            }
+            .wrapper-inner{
+                border: none;
+            }
+        </style>
+    </head>
+
+    <body class="slds-scope " >
+        <div class="wrapper slds-p-around_small">
+        <apex:tabPanel switchType="client" id="postPanel" headerClass="tabClass" activeTabClass="activeTabClass" inactiveTabClass="inactiveTabClass">
+            <apex:tab label="Individual Posts" name="IndividualPosts" id="individualPosts" rendered="{!individualPosts.size > 0}">
+                <div class="wrapper-inner">
+                <apex:outputPanel rendered="{!individualPosts.size > 0}" >
+                    <article class="slds-card">
+                        <!-- <header>
+                            <div class="slds-text-heading_small slds-p-around_small">
+                                Posts for {!patientContact.Abbreviated_Name__c}
+                            </div>
+                        </header> -->
+                        <apex:repeat value="{!individualPosts}" var="wrapper" >
+                            <div class=" slds-p-around_small">
+                                <div class="slds-text-align_right">
+                                    last updated {!wrapper.formattedLastUpdated}
+                                </div>
+                                <div class="slds-box postinfo" >
+                                    <apex:outputText value="{!wrapper.post.Info__c}" escape="false" title="Individual Info"/>
+                                </div>
+        
+                            </div>
+                        </apex:repeat>
+                    </article>
+                </apex:outputPanel>
+                </div>
+            </apex:tab>
+            <apex:tab label="Shared Posts" name="SharedPosts" id="sharedPosts" rendered="{!(patientWidePosts.size + familyWidePosts.size) > 0}">
+                <apex:outputPanel rendered="{!patientWidePosts.size > 0}" >
+                    <article class="slds-card">
+                        <apex:repeat value="{!patientWidePosts}" var="wrapper" >
+                            <div class=" slds-p-around_small">
+                                <div class="slds-text-align_right">
+                                    last updated {!wrapper.formattedLastUpdated}
+                                </div>
+                                <div class="slds-box postinfo" >
+                                    <apex:outputText value="{!wrapper.post.Info__c}" escape="false" title="Shared Info"/>
+                                </div>
+                            </div>
+                        </apex:repeat>
+                    </article>
+                </apex:outputPanel>
+                <apex:outputPanel rendered="{!familyWidePosts.size > 0}" >
+                    <article class="slds-card">
+                        <apex:repeat value="{!familyWidePosts}" var="wrapper" >
+                            <div class=" slds-p-around_small">
+                                <div class="slds-text-align_right">
+                                    last updated {!wrapper.formattedLastUpdated}
+                                </div>
+                                <div class="slds-box postinfo" >
+                                    <apex:outputText value="{!wrapper.post.Info__c}" escape="false" title="Shared Info"/>
+                                </div>
+                            </div>
+                        </apex:repeat>
+                    </article>
+                </apex:outputPanel>
+            </apex:tab>    
+                      
+            
+        </apex:tabPanel>
+        </div>
+    </body>
+</apex:page>

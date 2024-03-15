@@ -1,0 +1,24 @@
+.THIS .cCalendar {
+    background-color: white;
+}
+
+.THIS .calendar-container {
+    height: 55vh;
+}
+
+.THIS.popover-container {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+}
+
+.THIS .popover {
+    z-index: 900;
+    position: absolute;
+}
+
+.THIS .popover .slds-popover_medium {
+    max-width: 18rem;
+}

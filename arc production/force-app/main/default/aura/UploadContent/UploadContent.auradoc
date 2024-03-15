@@ -1,0 +1,8 @@
+<aura:documentation>
+	<aura:description>
+		<p>UploadContent is designed to easily upload one or more files and attach them to one or more related records. It is essentially a wrapper around the base component lightning:fileUpload that automatically creates ContentDocumentLink records when the upload is complete.</p>
+	</aura:description>
+	<!-- <aura:example name="ExampleName" ref="c:UploadContent" label="Label">
+		Example Description
+	</aura:example> -->
+</aura:documentation>

@@ -1,0 +1,151 @@
+<apex:page standardController="Physical_Monitor__c" extensions="PrintPhysicalMonitorController" showHeader="false" sidebar="false" 
+            standardStylesheets="false" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0" renderAs="pdf" action="{!init}">
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+        <head>
+            <!-- Import the Design System style sheet -->
+            <!-- <apex:slds /> -->
+            <style type="text/css" media="print">
+                @page,
+                body {
+                    size: letter;
+                }
+                th {
+                    font-weight: bold;
+                }
+                
+                .patient-name, .vitals {
+                    font-weight: bold;
+                    font-size: 22pt;    
+                }
+                @page {
+                    padding-top: 95px;
+                    margin-bottom: 100px;
+                    @top-center {
+                        content: element(header);
+                    }
+                    @bottom-left {
+                        content: element(footer);
+                    }
+                }
+                div.header {
+                    padding: 10px;
+                    padding-top: 0.25in;
+                    position: running(header);
+                }
+                div.footer {
+                    display: block;
+                    padding: 5px;
+                    padding-bottom: 0.25in;
+                    position: running(footer);
+                }
+                .pagenumber:before {
+                    content: counter(page);
+                }
+                .pagecount:before {
+                    content: counter(pages);
+                }
+                body{
+                    font-family: "Arial", "Helvetica", sans-serif;
+                }
+                .red-border{
+                    border: 1px solid red;
+                }
+                .red{
+                    color: red;
+                }
+                .center-text{
+                    text-align: center;
+                }
+                .slim-margin{
+                    margin: 5px;
+                }
+                .text-align-right{
+                    text-align: right;
+                }
+                .logo-padding{
+                    padding: 5px 20px 6px;
+                }
+                .float-left{
+                    float: left;
+                }
+                .float-right{
+                    float: right;
+                    margin-top: 35px;
+                }
+                .logo-image{
+                    width: 350px;
+                    position: relative;
+                    left: -8px;
+                }
+                .bold{
+                    font-weight: 700;
+                }
+                .extra-space{
+                    height: 25px;
+                }
+                .section-header {
+                    font-size: 2em;
+                    font-weight: 700;
+                    margin-top: 20px;
+                }
+                h1 {
+                    font-size: 1.5em;
+                    font-weight: 500;
+                }
+                hr.rounded {
+                    border-top: 8px solid #bbb;
+                    border-radius: 5px;
+                }
+                .medical-record-item:nth-of-type(odd){
+                background-color: lightgrey;
+                }
+                .medical-record-item:nth-of-type(even){
+                background-color: white;
+                }
+                .answer {
+                    margin-top : 2px
+                }
+                table.physical-monitor-section {
+                    margin-top: 10px;
+                    margin-bottom: 10px;
+                    width: 100%;
+                    border: 1px solid black;
+                }
+    
+            </style>
+        </head>
+        <div class="header">
+            <div class="red-border center-text">
+                <p class="red slim-margin bold">{!$Label.ARC_Medical_Record_Disclaimer}</p>
+            </div>
+            <div class="float-left logo-padding"><img alt="" class="logo-image" src="{!$Resource.Riggs_Logo_Medical_Records}" /><br />
+                <span style="font-size:16px;">{!$Label.ARC_Address}</span>
+            </div>
+            <div class="float-right text-align-right"><span class="bold">{!currentRecord.Account__r.Name}</span> 
+                <span>File No.&nbsp;{!currentRecord.Account__r.Medical_Record_Number__c}</span><br />
+                <span>Date Admitted&nbsp;<apex:outputText value="{0,date,MM/dd/yyyy}"> <apex:param value="{!currentRecord.Account__r.Current_Admission__r.Admit_Date__c}" /> </apex:outputText></span><br />
+                <span>Birthdate&nbsp;<apex:outputText value="{0,date,MM/dd/yyyy}"> <apex:param value="{!currentRecord.Account__r.Date_of_Birth__c}" /> </apex:outputText></span>
+            </div>
+        </div>
+        <div class="footer">
+            
+            <div>Page <span class="pagenumber"/> of <span class="pagecount"/></div>
+        </div>
+        <body>   
+            <div >
+                <table class="physical-monitor-section">
+                    <tr><th>Performed Date</th><th>Finalized By</th><th>Finalized Date</th></tr>
+                    <tr><td><apex:outputText value="{0,date,MM/dd/yyyy}"> <apex:param value="{!currentRecord.Performed_Date_Time__c}" /> </apex:outputText></td>
+                        <td><apex:outputField value="{!currentRecord.Finalized_By_User__r.Professional_Name__c}"/></td>
+                        <td><apex:outputText value="{0,date,MM/dd/yyyy}"> <apex:param value="{!currentRecord.Finalized_Date_Time__c}" /> </apex:outputText></td>
+                    </tr>
+                </table>
+            </div>
+
+            <apex:outputText value="{!HtmlText}" escape="false" />
+
+           
+
+        </body>
+    </html>
+</apex:page>

@@ -1,0 +1,125 @@
+<aura:component controller="AdvancedSearchViewComponentController" extends="c:ApexService">
+    <aura:attribute name="searchData" type="Map" default="{'name':'','searchFor':'', 'startDate':'','endDate':'', 'isIncludeNonStarterCalls':true,'ARCUser':''}" access="public" />
+    <aura:attribute name="task" type="Task" default="{'sobjectType': 'Task','Subject': ''}" access="public" />    
+    <aura:attribute name="whoToSearch" type="List" default="[]" access="public"/>
+    <aura:attribute name="searchType" type="String" default="contactSearch" access="public"/>
+    <aura:attribute name="searchTypes" type="List" default="[]" access="public"/>
+    <aura:attribute name="renderFlag" type="boolean" default="false" access="public"/>
+    <aura:attribute name="isSelectedAll" type="Boolean" default="true" access="public" Description="Used to Store isSelectedAll or Notes View"/>
+    <aura:attribute name="context" type="String" default="patient" access="public"/>
+    <aura:attribute name="recordId" type="String"  access="public"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:registerEvent name="buttonClicked" type="c:clickedButton" /> 
+                        
+    <lightning:notificationsLibrary aura:id="notifLib"/>
+    
+    <lightning:layout multipleRows="true">
+        <lightning:layoutItem class="borderClass" padding="around-small" size="6" >
+            <lightning:layout multipleRows="true">
+                <lightning:layoutItem size="4" padding="horizontal-medium">
+                    <aura:if isTrue="{!(not(empty(v.whoToSearch)))}">
+                        <!-- <lightning:layoutItem padding="around-small" size="6"> -->
+                        <lightning:radioGroup aura:id="searchFor"
+                                              name="radioGroup"
+                                              label="Search For"
+                                              options="{! v.whoToSearch }"
+                                              value="{! v.searchData.searchFor }"
+                                              type="radio"/>
+                        <!-- </lightning:layoutItem> -->
+                    </aura:if>
+                </lightning:layoutItem>
+                <lightning:layoutItem size="4">
+                    <h2 class="slds-text-heading_medium slds-hyphenate slds-p-top_x-small" style="text-align:center;">
+                        Search Options                        
+                    </h2>
+                </lightning:layoutItem>  
+                <!-- <lightning:layoutItem size="3" /> -->
+
+                <lightning:layoutItem padding="around-small" size="6">
+                    <lightning:input name="inputName" value="{!v.searchData.name}" label="Name" />
+                </lightning:layoutItem>
+                <lightning:layoutItem padding="around-small" size="6">
+                    <label><span class="slds-form-element__label">Gender</span> </label> 
+                    <force:inputField  value="{!v.task.Caller_Gender__c}"/> 
+                </lightning:layoutItem>
+                <lightning:layoutItem padding="around-small" size="6">
+                    <label><span class="slds-form-element__label">City</span> </label> 
+                    <force:inputField  value="{!v.task.Patient_City__c}"/> 
+                </lightning:layoutItem>
+                <lightning:layoutItem padding="around-small" size="6" >
+                    <label> <span class="slds-form-element__label">State</span> </label> 
+                    <force:inputField  value="{!v.task.Patient_State__c}"/> 
+                </lightning:layoutItem>
+                <lightning:layoutItem padding="around-small" size="6">
+                    <label><span class="slds-form-element__label">Phone</span> </label> 
+                    <force:inputField  value="{!v.task.Calling_Number__c}"/> 
+                </lightning:layoutItem>
+                <aura:if isTrue="{!(v.searchType == 'searchByCall' || v.searchType == 'searchAllColumns' || v.searchType == 'notesView')}">
+                    <lightning:layoutItem padding="around-small" size="6">
+                        <span>
+                            <c:LookupComponent  aura:id="userLookup" displayField="Name" 
+                                               displayFieldValue="Id" lookupFieldName="{!v.searchData.ARCUser}" label="ARC User" objectName="User" 
+                                               fieldsToSearch="Name" 
+                                               splitSearchTextBySeperator="true"/>
+                        </span>
+                    </lightning:layoutItem>
+                </aura:if>
+            </lightning:layout>
+        </lightning:layoutItem>
+        <lightning:layoutItem padding="around-small" size="6">
+            <lightning:layout multipleRows="true">
+                <lightning:layoutItem padding="around-small" size="6">
+                    <!-- Empty Layoutitem -->
+                </lightning:layoutItem>
+                <lightning:layoutItem padding="around-small" size="6">
+                    <lightning:buttonGroup>
+                        <aura:iteration items="{!v.searchTypes}" var="searchType">
+                            <lightning:button class="{!v.searchType == searchType.value ? 'slds-button_brand': ''}" name="{!searchType.value}" label="{!searchType.label}" onclick="{!c.onButtonGroupClick}"/>
+                        </aura:iteration>
+                    </lightning:buttonGroup>
+                </lightning:layoutItem>
+                
+                <aura:if isTrue="{!(v.searchType == 'searchByCall' || v.searchType == 'searchAllColumns' || v.searchType == 'notesView')}"> 
+                    <aura:if isTrue="{!v.recordId}">
+                        <lightning:layoutItem padding="around-small" size="12">
+                            <h2 class="slds-text-heading_medium slds-hyphenate" style="text-align:center;">Call Search Options</h2>
+                        </lightning:layoutItem>
+                    </aura:if>
+                    <lightning:layoutItem padding="around-small" size="6">
+                        <label> <span class="slds-form-element__label">Search Range</span> </label> 
+                        <lightning:input type="date" name="inputName" value="{!v.searchData.startDate}" label="Start" />
+                    </lightning:layoutItem>
+                    <lightning:layoutItem padding="around-small" size="6">
+                        <label> <span class="slds-form-element__label"></span> </label> 	
+                        <lightning:input type="date" name="inputName" value="{!v.searchData.endDate}" label="End" />
+                    </lightning:layoutItem>
+                    <lightning:layoutItem padding="around-small" size="12">
+                        <lightning:input type="checkbox" name="inputName" checked="{!v.searchData.isIncludeNonStarterCalls}" label="Include Non-starter Calls" />
+                    </lightning:layoutItem>
+                    
+                    <aura:set attribute="else">
+                        <lightning:layoutItem padding="around-small" size="12">
+                            <!--Empty layout --> 
+                        </lightning:layoutItem>
+                        <lightning:layoutItem padding="around-small" size="12">
+                            <!--Empty layout --> 
+                        </lightning:layoutItem>
+                        <lightning:layoutItem padding="around-small" size="12">
+                            <!--Empty layout --> 
+                        </lightning:layoutItem>
+                    </aura:set>
+                </aura:if>
+                <lightning:layoutItem padding="around-small" size="3">
+                    <lightning:button aura:id="search" label="Search" name="search" variant="brand" onclick="{!c.onSearch}"/>
+                </lightning:layoutItem>
+                <lightning:layoutItem padding="around-small" size="9">
+                    <lightning:button aura:id="reset"  label="Reset" name="reset" variant="brand" onclick="{!c.resetSearchOptions}"/>
+                </lightning:layoutItem>
+                
+            </lightning:layout>
+        </lightning:layoutItem>
+        
+    </lightning:layout>
+    
+</aura:component>

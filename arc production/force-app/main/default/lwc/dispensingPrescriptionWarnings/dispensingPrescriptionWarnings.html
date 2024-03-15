@@ -1,0 +1,26 @@
+<template>
+    <lightning-card if:true={isMaxDosageWarning}>
+        <div class="slds-text-heading_medium" style="text-align: center;">
+            {medicationName} has already been dispensed the maximum number of times <span style="color:red">({maxDailyDosage})</span> in the last 24 hours. 
+            It was last dispensed at <span style="color:red">{maxDailyDosageLastDispensed}</span>.
+        </div>
+    </lightning-card>
+    <lightning-card if:true={isScheduledDrugWarning}>
+        <div class="slds-text-heading_medium" style="text-align: center;">
+            {medicationName}
+            <div style="color:red;padding-top:20px">Please verify that you have checked the previous day's dispensing history before proceeding.</div>
+        </div>
+    </lightning-card>
+    <lightning-card if:true={isDurationWarning}>
+        <div class="slds-text-heading_medium" style="text-align: center;">
+            {medicationName}
+            <div style="color:red;padding-top:20px">You have to wait {duration} hour(s) between dispensings.</div>
+        </div>
+    </lightning-card>
+    <lightning-card if:true={isDateRangeWarning}>
+        <div class="slds-text-heading_medium" style="text-align: center;">
+            {medicationName}
+            <div style="color:red;padding-top:20px">Today is not within the medication start and end dates.</div>
+        </div>
+    </lightning-card>
+</template>

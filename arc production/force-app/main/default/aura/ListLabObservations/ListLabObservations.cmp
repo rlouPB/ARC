@@ -1,0 +1,284 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,force:hasRecordId,lightning:actionOverride,forceCommunity:availableForAllPageTypes"
+				controller="ListLabObservationController" extends="c:ApexService"  access="global" >
+	
+	<aura:attribute name="recordId" type="String" />
+	<aura:attribute name="accountRecord" type="Account" />
+	<aura:attribute name="labObservations" type="Lab_Observation__c[]" access="global" />
+    <aura:attribute name="sortField" type="String" default="End_Date__c" />
+	<aura:attribute name="sortAsc" type="Boolean" default="false" />
+	<aura:attribute name="loaded" type="Boolean" default="false" />
+    <aura:attribute name="showManageModal" type="Boolean" default="false"/>
+    <aura:attribute name="showBundleContent" type="Boolean" default="false"/>
+    <aura:attribute name="showLabObservations" type="Boolean" default="false"/>
+    <aura:attribute name="allBundles" type="Map" />
+    <aura:attribute name="bundleOptions" type="List" />
+    <aura:attribute name="bundledTests" type="List" />
+    <aura:attribute name="bundledTestColumns" type="List" />
+    <aura:attribute name="selectedBundledTest" type="List" />
+	<aura:attribute name="isActive" type="Boolean" default="false" />
+    
+	<aura:attribute name="radioOptions" type="List" default="[
+	{'label': 'Show All', 'value': 'all'},
+	{'label': 'Show Active', 'value': 'active'}
+	]"/>
+	<aura:attribute name="radioValue" type="String" default="active"/>
+	
+	<aura:attribute name="thisComponent" type="Aura.Component" default="{!this}" />
+	
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+	<aura:handler event="force:refreshView" action="{!c.doInit}" />
+	<aura:handler name="closeModalEvent" event="c:closeModal" action="{!c.handleCloseModalEvent}"/>
+	<aura:handler event="c:refreshPatient" action="{!c.handleRefreshPatient}" />	
+	
+	<force:recordData aura:id="recordLoader"
+						recordId="{!v.recordId}"
+						fields="Name,Current_Case__c"
+						targetFields="{!v.accountRecord}"
+			
+	/>
+	
+	<lightning:overlayLibrary aura:id="overlayLib"/>
+	<lightning:notificationsLibrary aura:id="notifLib"/>
+
+	<div class="slds-box slds-theme_default slds-p-around_medium">
+		<div class="slds-grid slds-wrap slds-p-left_medium slds-p-right_medium">
+			<div class="slds-col slds-size_3-of-12">
+				<div class="slds-grid slds-gutters">
+					<div class="slds-col">
+						<div class="slds-form-element">
+							<span style="float: left;">
+								<h1 style="font-size: 18px; font-weight: 600;">
+									<lightning:icon iconName="standard:team_member" size="small" alternativeText="Lab Observations" class="slds-m-right_small"/>
+									Labs
+								</h1>
+							</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="slds-col slds-size_4-of-12">
+				<div class="slds-grid slds-gutters">
+					<div class="slds-col">
+						<div class="slds-form-element">
+							<span style="float: left;">
+								<!-- Removed 210527 JN, for some reason this version wasn't showing the default selection right, don't understand why
+									<lightning:radioGroup name="viewOption"
+														label=""
+														options="{!v.radioOptions}"
+														value="{!v.radioValue}"
+														type="button"
+														variant="label-hidden"
+														class="display: inline-block !important;"
+														onchange="{!c.reloadData}" /> -->
+								<!--lightning:radioGroup name="radioButtonGroup"
+														options="{! v.radioOptions }"
+														value="{! v.radioValue }"
+														type="button"
+														variant="label-hidden"
+														class="display: inline-block !important;"
+														onchange="{!c.reloadData}" /-->
+							</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="slds-col slds-size_5-of-12">
+				<div class="slds-grid slds-gutters">
+					<div class="slds-col">
+						<div class="slds-form-element">
+							<span style="float: right;">
+								<aura:if isTrue="{!!v.isActive}">
+									<lightning:buttonGroup class="slds-p-bottom_medium slds-float_right">
+										<lightning:buttonIcon iconName="utility:refresh" onclick="{!c.handleRefreshButtonClick}" alternativeText="Refresh" />
+										<lightning:button variant="neutral" onclick="{!c.handleShowManageModal}" label="Change Lab Orders" title="Change Lab Orders" />
+									</lightning:buttonGroup>
+								</aura:if>
+							</span>
+						</div>
+                        
+					</div>
+				</div>
+			</div>
+            
+		</div>
+        <div class="slds-grid slds-wrap slds-p-left_medium slds-p-right_medium">
+            <div class="slds-col slds-size_3-of-12">
+                <div class="slds-grid slds-gutters">
+                    <div class="slds-col">
+                        <div class="slds-form-element">
+                            <span style="float: left;">
+								<aura:if isTrue="{!!v.isActive}">
+									<lightning:combobox name="Bundles" label="Add from a Bundle" placeholder="Select a Bundle" options="{! v.bundleOptions }" onchange="{! c.bundleSelected }"/>    
+								</aura:if>
+							</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <aura:if isTrue="{!v.showBundleContent}">
+        <section aura:id="bundleContentModal" role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container modal-window">
+                <lightning:spinner aura:id="mySpinner" variant="brand" size="medium" class="{!v.showSpinner ? 'slds-show' : 'slds-hide'}"/>
+                <!-- ###### MODAL BOX HEADER Start ######-->
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close" class="slds-modal__close" variant="bare"  alternativeText="Cancel" onclick="{!c.removeComponent}" />
+                    <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">
+                        Add Bundled Tests to Order
+                    </h2>
+                </header>
+    
+                <!--###### MODAL BOX BODY Part Start######-->
+                <div class="slds-modal__content slds-p-around_medium modal-body" id="modal-content-id-1">
+                    <div style="height: 300px">
+                        <lightning:datatable
+                                aura:id="bundleContent"
+                                keyField="code"
+                                data="{! v.bundledTests }"
+                                columns="{! v.bundledTestColumns }"
+                                selectedRows = "{!v.selectedBundledTest}"
+                                />
+                    </div>
+                    <lightning:layout >
+                        <lightning:layoutItem padding="around-small" size="12">
+                            <lightning:layout >
+                                <lightning:layoutItem padding="around-small" size="8">
+                                </lightning:layoutItem> 
+                                <lightning:layoutItem padding="around-small" size="2">
+                                    <lightning:button variant="Neutral" label="Cancel" onclick="{!c.closeBundledModal}" />
+                                </lightning:layoutItem> 
+                                <lightning:layoutItem padding="around-small" size="2">
+                                    <lightning:button variant="brand" label="Save" onclick="{!c.saveLabObservationsFromBundle}" />
+                                </lightning:layoutItem>   
+                            </lightning:layout>
+                            
+                        </lightning:layoutItem> 
+                    </lightning:layout>
+                </div>
+            </div>
+        </section>
+    </aura:if>
+    <aura:if isTrue="{!v.showLabObservations}">
+		<div class="slds-grid slds-wrap" style="margin-top: 25px;">
+			<div class="slds-col slds-size_1-of-1">
+				<table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped">
+					<thead>
+						<tr class="slds-line-height_reset">
+							<th class="slds-col slds-size_4-of-12" scope="col" data-columnName="Test_Name__c" onclick="{!c.sortByName}">
+								<div class="slds-truncate" title="Test Name">
+									Test Name
+									<aura:if isTrue="{!v.sortField=='Test_Name__c'}">
+										<span>      
+											<aura:if isTrue="{!v.sortAsc}">
+												<lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up"/>
+												<aura:set attribute="else">
+													<lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow up"/>
+												</aura:set>
+											</aura:if>
+										</span>
+									</aura:if>
+								</div>
+							</th>
+							<th class="slds-col slds-size_4-of-12" scope="col" data-columnName="Name" onclick="{!c.sortByName}">
+								<div class="slds-truncate" title="Test Code">
+									Test Code
+									<aura:if isTrue="{!v.sortField=='Name'}">
+										<span>      
+											<aura:if isTrue="{!v.sortAsc}">
+												<lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up"/>
+												<aura:set attribute="else">
+													<lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow up"/>
+												</aura:set>
+											</aura:if>
+										</span>
+									</aura:if>
+								</div>
+							</th>
+							
+							<th class="slds-col slds-size_2-of-12" scope="col" data-columnName="Query__c" onclick="{!c.sortByName}">
+								<div class="slds-truncate" title="Query">
+									Query
+									<aura:if isTrue="{!v.sortField=='Query__c'}">
+										<span>      
+											<aura:if isTrue="{!v.sortAsc}">
+												<lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up"/>
+												<aura:set attribute="else">
+													<lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow up"/>
+												</aura:set>
+											</aura:if>
+										</span>
+									</aura:if>
+								</div>
+							</th>
+							<th class="slds-col slds-size_2-of-12" scope="col" data-columnName="Query_Answer__c" onclick="{!c.sortByName}">
+								<div class="slds-truncate" title="Answer">
+									Answer
+									<aura:if isTrue="{!v.sortField=='Query_Answer__c'}">
+										<span>      
+											<aura:if isTrue="{!v.sortAsc}">
+												<lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up"/>
+												<aura:set attribute="else">
+													<lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow up"/>
+												</aura:set>
+											</aura:if>
+										</span>
+									</aura:if>
+								</div>
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						<aura:if isTrue="{! v.loaded }">
+							<aura:iteration items="{!v.labObservations}" var="labObservation">
+                                <tr class="slds-hint-parent">
+                                    <td data-label="Test Name" scope="row" class="slds-col slds-size_4-of-12">
+                                        <div class="slds-truncate" title="{!labObservation.Compendium_Entry__r.Test_Name__c}">
+                                            {!labObservation.Compendium_Entry__r.Test_Name__c}
+                                        </div>
+                                    </td>
+                                    <td data-label="Test Code" class="slds-col slds-size_4-of-12">
+                                        <div class="slds-truncate" title="{!labObservation.Compendium_Entry__r.Name}">
+                                            {!labObservation.Compendium_Entry__r.Name}
+                                        </div>
+                                    </td>
+                                    
+									<td data-label="Query" class="slds-col slds-size_2-of-12">
+                                        <div class="slds-truncate" title="{!labObservation.Compendium_Entry__r.Query__c}">
+                                            {!labObservation.Compendium_Entry__r.Query__c}
+                                        </div>
+                                    </td>
+									<td data-label="Query" class="slds-col slds-size_2-of-12">
+                                        <div class="slds-truncate" title="{!labObservation.Query_Answer__c}">
+                                            {!labObservation.Query_Answer__c}
+                                        </div>
+                                    </td>
+                                </tr>
+							</aura:iteration>
+
+							<aura:set attribute="else">
+								<lightning:spinner alternativeText="Loading" />
+							</aura:set>
+						</aura:if>
+					</tbody>
+				</table>
+			</div>
+		</div>
+    </aura:if>
+	</div>
+
+	<aura:if isTrue="{!v.showManageModal}">
+		<c:sldsModal instanceName="manageClinicians" maxHeight="true">
+			<aura:set attribute="header">
+				Change Lab Orders
+			</aura:set>
+			<aura:set attribute="content">
+				<c:ManageLabObservations recordId="{!v.recordId}" aura:id="manageLabObservations" />
+			</aura:set>
+			<aura:set attribute="footer">
+				<lightning:button variant="Neutral" label="Cancel" onclick="{!c.hideManageModal}" />
+				<lightning:button variant="brand" label="Save" onclick="{!c.saveLabObservations}" />
+			</aura:set>
+		</c:sldsModal>
+	</aura:if>
+		
+</aura:component>

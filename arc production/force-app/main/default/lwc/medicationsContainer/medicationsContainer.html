@@ -1,0 +1,63 @@
+<template>
+
+    <template if:true='{showModal}'>
+        <!-- <c-script-sure-embedded-u-i 
+        onmodalclosed={modalclosed} 
+        externalpatientid={externalpatientid}></c-script-sure-embedded-u-i> -->
+        <c-script-sure-embedded-u-i 
+        onmodalclosed={modalclosed} 
+        patientcontactid={recordId}></c-script-sure-embedded-u-i>
+        <!-- <c-script-sure-embedded-u-i></c-script-sure-embedded-u-i> -->
+        <!-- <c-add-ssn-contact-form onmodalclosed={modalclosed} onrefresh={loadPatientData}></c-add-ssn-contact-form> -->
+    </template>
+
+      
+    <template if:true={displayScriptSureButton}>
+        <section id="header" style="width: 100%; text-align: center;">
+            <button onclick={openScriptSureModal}
+            class="tab slds-var-p-around_medium slds-text-align_center selected"
+            style="margin: auto; border-radius: 7px 7px 7px 7px; margin-bottom: 50px;">Open Prescription System</button>
+        </section>
+    </template>
+
+    <div style="margin-bottom: 30px; width: 100%;">
+        <lightning-layout-item size="12">
+            <lightning-card>
+                <!-- <c:scriptSurePrescriptionTable 
+                externalpatientid="{!v.accountRecord.External_Patient_Id__c}"
+                accountid="0012i00000UClczAAD"></c:scriptSurePrescriptionTable> -->
+                <!-- <c-script-sure-prescription-table 
+                externalpatientid={externalpatientid}
+                accountid={recordId}
+                showrefresh="true"></c-script-sure-prescription-table> -->
+
+                
+
+                <div style="margin-top: 20px;">
+                    <div class="slds-p-left_medium">
+                        <c-clinical-prescriptions-table account-id={recordId} onaction={onActionHandler}></c-clinical-prescriptions-table>
+                    </div>           
+                </div>
+                <lightning-spinner if:true={showSpinner}></lightning-spinner>
+            </lightning-card>
+        </lightning-layout-item>
+    </div>
+
+    <lightning-card>
+        <c-dispensing-history record-id={recordId}></c-dispensing-history>
+    </lightning-card>
+    
+    <lightning-card>
+    <div>
+        <h1 style="font-size: 18px; font-weight: 600;">
+            <lightning-icon icon-name="action:new_note" size="small" alternative-text="Formulary and Emergency Box lists" class="slds-m-right_small"></lightning-icon>
+            Formulary and Emergency Box lists
+        </h1><br />
+        <ul>
+            <li><a href="https://austenriggscenter-my.sharepoint.com/:x:/g/personal/alexcia_adams_austenriggs_net/ETTGJwFDo3FLp6OfYa8NwjkBcWUbES_xVqL17h4CSz-R_A" target="_blank">formulary NON-PSYCHIATRIC</a></li>
+            <li><a href="https://austenriggscenter-my.sharepoint.com/:x:/g/personal/alexcia_adams_austenriggs_net/EUpjgd80Nr9DlSTdPh9Vx6IBYNcqB_S8ajx9UC1BIz5lUA" target="_blank">formulary PSYCHIATRIC</a></li>
+            <li><a href="https://austenriggscenter-my.sharepoint.com/:x:/g/personal/alexcia_adams_austenriggs_net/Ecv1raJxtI9Pqf2QSPgVcjIBMYm1jaB3C2Rt0zaHLcqiqA" target="_blank">Emergency Box</a></li>
+        </ul>
+    </div>
+    </lightning-card>
+</template>

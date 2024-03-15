@@ -1,0 +1,7 @@
+<aura:component>
+    <aura:attribute name="selectedRecordId" type="String" default="" description="Display record when not empty"/>
+    <aura:attribute name="displayRecordId" type="String" default="false" description="Display record when true"/>
+    
+    <aura:handler event="c:TreatmentHistorySelectedEvent" action="{!c.handleSelectedTreatmentHistoryRecord}"/>
+    <div class="slds-box">{!v.body}</div>
+</aura:component>

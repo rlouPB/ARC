@@ -1,0 +1,20 @@
+.heading__text {
+	font-weight: bold !important;
+}
+
+lightning-card article:first-of-type {
+	padding: 1rem;
+	background: rgb(255, 255, 255);
+	border: 1px solid rgb(201, 201, 201);
+	border-radius: 0.25rem;
+	background-clip: padding-box;
+	box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.1);
+}
+
+table {
+	border-top: 1px outset lightgray;
+}
+
+.c {
+	font-size: medium;
+}

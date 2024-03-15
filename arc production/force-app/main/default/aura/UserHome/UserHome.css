@@ -1,0 +1,52 @@
+.THIS div.border {
+    border: 1px solid grey;
+    border-radius: 5px;
+}
+.THIS div.fullheight {
+    height:100%;
+}
+.THIS.outer-wrapper{
+    background-color: white;
+    border: 1px solid grey
+}
+.THIS .tab{
+    border: 1px solid #aaaaaa;
+    background-color: #f2f2f2;
+    border-collapse: collapse;
+    margin: -1px 0px -1px -1px;
+    border-radius: 7px;
+    /* border-radius: 0 7px 7px 0; */
+}
+.THIS .tab:hover{
+    background-color: #e3e3e3;
+}
+.THIS .selected:hover{
+    background-color: var(--lwc-brandAccessibleActive,rgb(0, 95, 178));
+    text-decoration: none;
+}
+.THIS .selected {
+	background-color:t(colorBackgroundAlt);
+    background-color: var(--lwc-brandAccessibleActive,rgb(0, 95, 178));
+    color: var(--lwc-colorTextBrandPrimary,rgb(255, 255, 255));
+    /* text-decoration: underline; */
+}
+.THIS .greybackground {
+	background-color:t(colorBackground);
+}
+.THIS .whitebackground {
+	background-color:t(colorBackgroundAlt);
+}
+.THIS .buttonHand {
+    cursor: pointer;
+}
+.THIS .darkbackground{
+    background-color: grey;
+}
+.THIS .main-content{
+    background-color: white;
+    /* border: 1px solid grey; */
+    border-left: none;
+}
+.THIS .main-content-wrapper{
+    height: 100%;
+}

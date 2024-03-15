@@ -1,0 +1,19 @@
+<aura:event
+	type="APPLICATION"
+	description="Portal notification event">
+	<aura:attribute
+		name="messageId"
+		type="String"
+		default=""></aura:attribute>
+	<aura:attribute
+		name="label"
+		type="String"
+		default=""></aura:attribute>
+	<aura:attribute
+		name="value"
+		type="String"
+		default=""></aura:attribute>
+	<!-- <aura:attribute name="subject" type="String" default=""></aura:attribute> -->
+	<!-- <aura:attribute name="clients" type="List" default="[]"></aura:attribute> -->
+	<!-- <aura:attribute name="groups" type="List" default="[]"></aura:attribute> -->
+</aura:event>

@@ -1,0 +1,7 @@
+<aura:event
+	type="COMPONENT"
+	description="Calendar Event Meeting Loaded Event">
+	<aura:attribute
+		name="canEditMeeting"
+		type="Boolean"/>
+</aura:event>

@@ -1,0 +1,281 @@
+<aura:component access="public" Controller="PatientController" extends="c:ApexService">
+    <!--Attribute Sections-->
+    <aura:attribute name="contact" type="Contact" access="public" default="{'sobjectType':'Contact'}"/>
+    <aura:attribute name="relatedContact" type="Related_Contact__c" access="public" default="{'sobjectType':'Related_Contact__c'}"/>
+    <aura:attribute name="recordId" type="String" access="public" Description="Used to store Account Id"/>
+    <aura:attribute name="relatedContactRecordTypeList" type="list" access="public" Description="Used to store related Contact RecordType List"/>
+    <aura:attribute name="contactRecordTypeList" type="list" access="public" Description="Used to store  Contact RecordType List"/>
+    <aura:attribute name="selectedRecordType" type="Map" default="{'label':'','value':'','relatedValue':''}" access="public" Description="Used to Selected RecordType "/>
+    <aura:attribute name="errorMessage" type="String" default="" access="public" Description="Used to Error Message "/>
+    <!--Event Registers-->
+    <aura:registerEvent name="closeModalView" type="c:closeModal" />
+    
+    <!--Handlers-->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    
+    <!--Modal Starts-->
+    <c:sldsModal>
+        <lightning:notificationsLibrary aura:id="notifLib"/>
+        <aura:set attribute="header">
+            {!v.selectedRecordType.label == '' ? 'Choose Record Type' : v.selectedRecordType.label + ' Contact'}
+        </aura:set>
+        
+        <aura:set attribute="content">
+            <div class="slds-is-relative">
+                <lightning:spinner aura:id="spinner" variant="brand" />
+                
+                <lightning:combobox name="progress" label="Select a Record Type" class="slds-p-around--small" placeholder="Select a Record Type" options="{! v.contactRecordTypeList }" onchange="{! c.onrecordTypeChange }"/>
+                <aura:if isTrue="{!v.selectedRecordType.label == ''}">
+                    <div class="slds-p-bottom_large"></div>
+                    <div class="slds-p-bottom_medium"></div>
+                    <div class="slds-p-bottom_medium"></div>
+                    <div class="slds-p-bottom_medium"></div>
+                    <div class="slds-p-bottom_medium"></div>
+                </aura:if>
+                <aura:if isTrue="{!v.selectedRecordType.label == 'Personal'}">
+                    
+                    <lightning:recordEditForm objectApiName="Contact" aura:id="newContactForm" onload="{!c.load}" onerror="{!c.handleOnError}"  recordTypeId='{!v.selectedRecordType.value}' >
+                        
+                        <lightning:messages />
+                        
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="FirstName" onchange="{!c.onFieldChange}"/>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="LastName" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Preferred_First_Name__c" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Suffix_Credentials__c" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Marital_Status__c" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:input type="text" label="Phone" name="phone" value="{!v.contact.Phone}" onchange="{!c.onFieldChange}"/>
+                                <!-- <lightning:inputField fieldName="Phone" onchange="{!c.onFieldChange}" /> -->
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="MobilePhone" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Email" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Personal_Assistant_Name__c" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Contact_through_Personal_assistant__c" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Personal_Assistant_Phone__c" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Deceased__c" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Gender__c" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <!-- <lightning:layoutItem padding="around-small" size="6"/> -->
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Gender_Identifies_As__c" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="MailingStreet" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="OtherStreet" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="MailingCity" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="OtherCity" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="MailingState" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="OtherState" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="MailingPostalCode" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="OtherPostalCode" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="MailingCountry" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="OtherCountry" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </lightning:recordEditForm>
+                    
+                    <div class="slds-p-Bottom_medium"></div>
+                    <h1 class="slds-text-heading_medium slds-hyphenate slds-p-top_x-small" style="text-align:center;">Related Contact</h1>        
+                    
+                    <lightning:recordEditForm objectApiName="Related_Contact__c" aura:id="relatedContactFormPersonal"  recordTypeId='{!v.selectedRecordType.relatedValue}' onerror="{!c.handleOnError}" >
+                        <lightning:messages />
+                        <lightning:layout multipleRows="true">
+                            
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Contact_Permissions__c" onchange="{!c.onFieldChangeRelated}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Role__c" class="customRequired" onchange="{!c.onFieldChangeRelated}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Primary_Contact__c" onchange="{!c.onFieldChangeRelated}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Payor__c" onchange="{!c.onFieldChangeRelated}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Insurance_Contact__c" onchange="{!c.onFieldChangeRelated}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Role_Details__c" onchange="{!c.onFieldChangeRelated}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Start_Date__c" onchange="{!c.onFieldChangeRelated}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="End_Date__c" onchange="{!c.onFieldChangeRelated}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Notes__c" onchange="{!c.onFieldChangeRelated}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Former__c" onchange="{!c.onFieldChangeRelated}" />
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </lightning:recordEditForm >
+                </aura:if> 
+                
+                <aura:if isTrue="{!v.selectedRecordType.label == 'Professional'}">
+                    <lightning:recordEditForm objectApiName="Contact" aura:id="newProfessionalContactForm" onload="{!c.load}" onerror="{!c.handleOnError}"  recordTypeId='{!v.selectedRecordType.value}' >
+                        <lightning:messages />
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Name" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Preferred_First_Name__c" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Deceased__c" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Suffix_Credentials__c" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <!-- <lightning:inputField fieldName="Phone" onchange="{!c.onFieldChange}" /> -->
+                                <lightning:input type="text" label="Phone" name="phone" value="{!v.contact.Phone}" onchange="{!c.onFieldChange}"/>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Interest_Specialty__c" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="MobilePhone" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Email" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Contact_through_Personal_assistant__c" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+<!--  removed 180717 JN                              
+                                <c:LookupComponent required="false" aura:id="patientLookup"  additionalOptions="[{'label': 'Advanced Search', 'value': 'advanceSearch', 'isRecord': false, 'componentName': ''},
+                                                                                                                {'label': 'Create New Insitution', 'value': 'newPatient', 'isRecord': false, 'componentName': 'c:NewPatientView'}]" 
+                                                   displayField="Name"  lookupFieldName="{!v.contact.Works_at_Institution__c}" label="Works at Institution" objectName="Account" fieldsToSearch="Name" /> -->
+                                <lightning:inputField fieldName="Works_at_Institution__c" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Personal_Assistant_Name__c" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Personal_Assistant_Phone__c" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>                       
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="MailingStreet" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="OtherStreet" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="MailingCity" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="OtherCity" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="MailingState" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="OtherState" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="MailingPostalCode" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="OtherPostalCode" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="MailingCountry" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="OtherCountry" onchange="{!c.onFieldChange}" />
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </lightning:recordEditForm>
+                    <div class="slds-p-Bottom_medium"></div>
+                    <h1 class="slds-text-heading_medium slds-hyphenate slds-p-top_x-small" style="text-align:center;">Related Contact</h1>        
+                    <lightning:recordEditForm objectApiName="Related_Contact__c" aura:id="relatedContactFormProfessional" recordTypeId='{!v.selectedRecordType.relatedValue}' onerror="{!c.handleOnError}" >
+                        <lightning:messages />
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Contact_Permissions__c" onchange="{!c.onFieldChangeRelated}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Role__c" class="customRequired" onchange="{!c.onFieldChangeRelated}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Referrer__c" onchange="{!c.onFieldChangeRelated}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Role_Details__c" onchange="{!c.onFieldChangeRelated}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Start_Date__c" onchange="{!c.onFieldChangeRelated}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="End_Date__c" onchange="{!c.onFieldChangeRelated}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Notes__c" onchange="{!c.onFieldChangeRelated}" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem padding="around-small" size="6">
+                                <lightning:inputField fieldName="Former__c" onchange="{!c.onFieldChangeRelated}" />
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                        
+                    </lightning:recordEditForm >
+                </aura:if>            
+            </div>            
+        </aura:set>
+        
+        <aura:set attribute="footer">
+            <aura:if isTrue="{!v.selectedRecordType.label != ''}">
+                <lightning:button variant="brand" label="Cancel" onclick="{!c.cancel}" />
+                <lightning:button variant="brand" label="Save" onclick="{!c.save}" />
+            </aura:if>
+        </aura:set>
+    </c:sldsModal>
+    
+</aura:component>

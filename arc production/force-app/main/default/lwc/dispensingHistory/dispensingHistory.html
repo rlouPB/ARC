@@ -1,0 +1,55 @@
+<template>
+    <lightning-card>
+        <h3 slot="title">
+            <lightning-icon icon-name="standard:account" size="small" alternative-text="Dispensing History" class="slds-m-right_small"></lightning-icon>
+            Dispensing History
+        </h3>
+            
+        <lightning-button-group slot="actions" if:true={isPatient}>
+            <lightning-button variant="neutral" label="Print Current" onclick={openPrintedLastDispensedMeds}></lightning-button>
+        </lightning-button-group>
+
+        <div>
+            <template if:true={isPatient}>
+                <c-full-calendar-lwc
+                    object-name="Medication_Administration_Line__c"
+                    start-field="Last_Dispensed__c"
+                    end-field="CreatedDatePlus__c"
+                    title-field="Dispensing_History_Label__c"
+                    additional-filter={patientFilter}
+                    oneventclick={eventClickHandler}
+                    view-type="week"
+                    list-type=false
+                ></c-full-calendar-lwc>
+            </template>
+
+            <template if:true={isPrescription}>
+                <c-full-calendar-lwc
+                    object-name="Medication_Administration_Line__c"
+                    start-field="Last_Dispensed__c"
+                    end-field="CreatedDatePlus__c"
+                    title-field="Dispensing_History_Label__c"
+                    additional-filter={prescriptionFilter}
+                    oneventclick={eventClickHandler}
+                    view-type="week"
+                    list-type=false
+                ></c-full-calendar-lwc>
+            </template>
+        </div>        
+    </lightning-card>
+
+    <!-- {selectedId}
+    <template if:true={selectedId} >
+    </template>     -->
+    
+    
+    <c-modal-lwc if:true={selectedId} onclose={closeDialog} show-close>
+        <lightning-record-form    
+            record-id={selectedId}
+            object-api-name="Medication_Administration_Line__c" 
+            layout-type="Full"
+            mode="readonly"
+            columns="2"
+        ></lightning-record-form>
+    </c-modal-lwc>
+</template>

@@ -1,0 +1,161 @@
+<apex:page sidebar="false" applyHtmlTag="true" applyBodyTag="false" controller="AdminControlCenterCtl" title="IRIS Admin">
+
+<head>
+	<apex:slds />
+	<style>
+		a.btn.cmdLinkBtn {
+			font-size: 1.1rem;
+			font-weight: normal; 
+			color:rgb(24, 24, 24); 
+			text-decoration:none; 
+			padding:4px;
+		}
+	</style>
+</head>
+
+<body class="slds-scope " >
+	<apex:pageMessages />
+
+	<article class="slds-card ">
+		<div class="slds-text-heading_large ">
+			{!resultString}
+		</div>
+	</article>
+
+	<apex:outputPanel rendered="{!$Profile.Name != 'RiggsInternalIntegration'}" > 
+		<div class="slds-text-heading_large slds-text-color_error slds-p-top_medium slds-p-bottom_medium">
+			STOP: Please login as a RiggsInternalIntegration user before running jobs.
+		</div>
+	</apex:outputPanel>
+
+	<apex:outputPanel rendered="{!$Profile.Name == 'RiggsInternalIntegration'}">  
+		<div class="slds-text-heading_large ">
+			Thanks for logging in as a RiggsInternalIntegration user before running jobs.
+		</div>
+	</apex:outputPanel>	
+
+	<apex:pageBlock title="Links">
+		<apex:pageBlockSection title="Places in Setup area" columns="3" html-style="font-weight: bold;">
+			<apex:outputLink value="/lightning/setup/ScheduledJobs/home" id="ScheduledJobs" title="Scheduled Jobs Link" target="_blank">Open Scheduled Jobs</apex:outputLink>
+			<apex:outputLink value="/lightning/setup/AsyncApexJobs/home" id="ApexAsyncJobs" title="Apex Async Jobs Link" target="_blank">Open Apex Async Jobs</apex:outputLink>
+			<apex:outputLink value="/lightning/setup/ApexDebugLogs/home" id="ApexDebugLogs" title="Apex Debug Logs Link" target="_blank">Open Apex Debug Logs</apex:outputLink>
+		</apex:pageBlockSection>
+	</apex:pageBlock>
+
+	<apex:pageBlock title="Batches and Scheduled Jobs">
+		<apex:form >		
+		
+			<apex:pageBlockSection title="SystemSchedulingBatch">
+				<apex:commandLink value="Run Batch now" title="Run SystemSchedulingBatch Batch now" action="{!handleButtonPress}" styleClass="btn cmdLinkBtn">
+					<apex:param name="buttonName" value="systemSchedulingBatchRunBatch" assignTo="{!buttonName}"/> 
+				</apex:commandLink>
+
+				<apex:commandLink value="Schedule Batch to Run Every hour" title="Schedule SystemSchedulingBatch to Run Every hour" action="{!handleButtonPress}" styleClass="btn cmdLinkBtn">
+					<apex:param name="buttonName" value="systemSchedulingBatchSchedule" assignTo="{!buttonName}"/> 
+				</apex:commandLink>
+			</apex:pageBlockSection>
+
+			<!-- <apex:pageBlockSection title="SIP_DailyNursingShifts">
+				<apex:commandLink value="Run Batch now" title="Run SIP_DailyNursingShifts Batch now" action="{!handleButtonPress}" styleClass="btn cmdLinkBtn">
+					<apex:param name="buttonName" value="runDailyNursingProcess" assignTo="{!buttonName}"/> 
+				</apex:commandLink>
+			</apex:pageBlockSection> -->
+
+			<apex:pageBlockSection title="SIP_OrderResultRetrieval">
+				<apex:commandLink value="Run Batch now" title="Run SIP_OrderResultRetrieval Batch now" action="{!handleButtonPress}" styleClass="btn cmdLinkBtn">
+					<apex:param name="buttonName" value="runLabTestResultRetrievalProcess" assignTo="{!buttonName}"/> 
+				</apex:commandLink>
+			</apex:pageBlockSection>
+			
+			<apex:pageBlockSection title="Lab Order Request Batch">
+				<apex:commandLink value="Run Batch now" title="Run Lab Order Request Batch now" action="{!handleButtonPress}" styleClass="btn cmdLinkBtn">
+					<apex:param name="buttonName" value="runLabOrderRequestBatch" assignTo="{!buttonName}"/> 
+				</apex:commandLink>
+
+				<apex:commandLink value="Schedule Batch to Run Every hour" title="Schedule SystemSchedulingBatch to Run Every hour" action="{!handleButtonPress}" styleClass="btn cmdLinkBtn">
+					<apex:param name="buttonName" value="systemSchedulingLabOrderBatchSchedule" assignTo="{!buttonName}"/> 
+				</apex:commandLink>
+			</apex:pageBlockSection>
+
+			<apex:pageBlockSection title="RecurringMeetings">
+				<apex:commandLink value="Run Batch now" title="Run RecurringMeetings Batch now" action="{!handleButtonPress}" styleClass="btn cmdLinkBtn">
+					<apex:param name="buttonName" value="RecurringMeetingsBatchRun" assignTo="{!buttonName}"/> 
+				</apex:commandLink>
+				<apex:commandLink value="Schedule Batch to Run every hour at x:30" title="Schedule RecurringMeetingsBatch to Run every hour at x:30" action="{!handleButtonPress}" styleClass="btn cmdLinkBtn">
+					<apex:param name="buttonName" value="RecurringMeetingsBatchSchedule" assignTo="{!buttonName}"/> 
+				</apex:commandLink>
+			</apex:pageBlockSection>
+
+			<apex:pageBlockSection title="Auto Patient Program GroupMemberships">
+				<apex:commandLink value="Run Process now" title="Run ProgramGroupMemberships now" action="{!handleButtonPress}" styleClass="btn cmdLinkBtn">
+					<apex:param name="buttonName" value="ProgramGroupMembershipsRun" assignTo="{!buttonName}"/> 
+				</apex:commandLink>
+			</apex:pageBlockSection>
+
+			<apex:pageBlockSection title="Auto Staff GroupMemberships">
+				<apex:commandLink value="Run AutoGroupMemberships now" title="Run AutoGroupMemberships now" action="{!handleButtonPress}" styleClass="btn cmdLinkBtn">
+					<apex:param name="buttonName" value="AutoGroupMembershipsRun" assignTo="{!buttonName}"/> 
+				</apex:commandLink>
+			</apex:pageBlockSection>
+
+			<apex:pageBlockSection title="Data Retention Batch">
+				<apex:commandLink value="Run Data Retention Batch now" title="Run Data Retention Batch now" action="{!handleButtonPress}" styleClass="btn cmdLinkBtn">
+					<apex:param name="buttonName" value="DataRetentionBatchRun" assignTo="{!buttonName}"/> 
+				</apex:commandLink>
+				<apex:commandLink value="Schedule Data Retention Batch now" title="Schedule Data Retention Batch now" action="{!handleButtonPress}" styleClass="btn cmdLinkBtn">
+					<apex:param name="buttonName" value="DataRetentionBatchSchedule" assignTo="{!buttonName}"/> 
+				</apex:commandLink>
+			</apex:pageBlockSection>
+
+			<apex:pageBlockSection title="Admitted Program Days Batch">
+				<apex:commandLink value="Run AdmittedProgramDays Batch now" title="Run AdmittedProgramDays Batch now" action="{!handleButtonPress}" styleClass="btn cmdLinkBtn">
+					<apex:param name="buttonName" value="AdmittedProgramDaysBatchRun" assignTo="{!buttonName}"/> 
+				</apex:commandLink>
+				<apex:commandLink value="Schedule AdmittedProgramDays Batch daily" title="Schedule AdmittedProgramDays Batch daily" action="{!handleButtonPress}" styleClass="btn cmdLinkBtn">
+					<apex:param name="buttonName" value="AdmittedProgramDaysBatchSchedule" assignTo="{!buttonName}"/> 
+				</apex:commandLink>
+			</apex:pageBlockSection>
+
+		</apex:form>
+	</apex:pageBlock>
+	
+	<script>
+		var isCheckingDateTime = false;
+		var pollingInterval = 60000; //msec to wait to check date time. 60000 = 10 minutes
+		var intervalId;
+
+		//hit apex server real quick
+		function getDateTimeFromApex()
+		{
+			// console.log('getDateTimeFromApex intervalId ' + intervalId + ' isCheckingDateTime ' + isCheckingDateTime);
+			if (!isCheckingDateTime)
+			{
+				isCheckingDateTime = true;
+				var context = 'AdminControlCenter';
+				//ping server to keep connection alive
+				Visualforce.remoting.Manager.invokeAction(
+					'{!$RemoteAction.AdminControlCenterCtl.getNowDateTime}',
+					context,
+					function(result, event) 
+					{
+						isCheckingDateTime = false;
+						console.log('getNowDateTime result ' + result);
+					});
+			} else
+			{
+				console.log('tried to check datetime but it is already checking!');
+			}
+		}
+
+		(function () 
+		{
+			console.log('setting up server polling ');
+			intervalId = window.setInterval(
+				getDateTimeFromApex,
+				pollingInterval
+			);
+		})();
+	</script>
+</body>
+
+</apex:page>

@@ -1,0 +1,50 @@
+<aura:component >
+    <!-- Component Inputs -->
+    <aura:attribute name="isEditable" type="Boolean"/>
+    <aura:attribute name="mode" type="String" description="Put 'individual' for Contact and 'institution' for Account."/>
+    <aura:attribute name="isLoading" type="Boolean" default="false"/>
+    <aura:attribute name="grouping" type="String"/>
+    <aura:attribute name="dischargeStatus" type="String"/>
+    <aura:attribute name="dischargeDispositionId" type="String" description="Discharge Section Id"/>
+    <aura:attribute name="section" type="Map" description="Discharge Section"/>
+    <aura:attribute name="referralList" type="List"/>
+    <aura:attribute name="removeReferralList" type="List"/>
+    
+    <!-- Internal Attributes -->
+    <aura:attribute name="numReferral" type="Integer"/>
+    <aura:handler name="change" value="{!v.referralList}" action="{!c.handleChangedReferralList}"/>
+	
+    <!-- Handler -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler name="referralChanged" event="c:DischargeDispositionReferralChanged" action="{!c.handleReferralChanged}"/>
+    <aura:handler event="c:DischargeSectionSplitCompleteEvent" action="{!c.handleSplitComplete}"/>
+    
+    <!-- Method -->
+    <aura:method name="addNewReferral" action="{!c.addNewReferral}">
+    </aura:method>
+    
+    <aura:if isTrue="{!!v.numReferral}" >
+        <div class="slds-var-p-bottom_x-small">
+            <div class="slds-box">
+                No referrals
+            </div>
+        </div>
+        <aura:set attribute="else">
+            <aura:iteration items="{!v.referralList}" var="referral" indexVar="index">
+                <div class="slds-var-p-bottom_x-small">
+                    <c:DischargeDispositionReferral isEditable="{!v.isEditable}"
+                                                    isLoading="{!v.isLoading}"
+                                                    mode="{!v.mode}" 
+                                                    grouping="{!v.grouping}"
+                                                    referral="{!referral}" 
+                                                    dischargeStatus="{!v.dischargeStatus}" 
+                                                    dischargeDispositionId="{!v.dischargeDispositionId}" 
+                                                    index="{!index}"
+                                                    numReferral="{!v.numReferral}"
+                                                    dischargeSection="{!v.section}"
+                                                    />
+                </div>
+            </aura:iteration>
+        </aura:set>
+    </aura:if>
+</aura:component>

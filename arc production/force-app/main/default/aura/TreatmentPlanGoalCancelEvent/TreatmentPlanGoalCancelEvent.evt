@@ -1,0 +1,3 @@
+<aura:event type="COMPONENT" description="An event is triggered when a goal is cancelled, it will pass the index of that goal in the list.">
+    <aura:attribute name="goalIndex" type="Integer"/>
+</aura:event>

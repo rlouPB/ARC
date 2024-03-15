@@ -1,0 +1,9 @@
+<aura:component implements="flexipage:availableForAllPageTypes,force:hasRecordId" access="global">
+    <!-- Id of the Account the page hosting this component is showing -->
+    <aura:attribute name="recordId" type="String" />
+
+    <div class="slds-theme_default">
+        <div class="slds-text-heading_large slds-text-align_center">Related Contacts</div>
+    </div>
+    <c:dataTable accntId="{!v.recordId}" />
+</aura:component>

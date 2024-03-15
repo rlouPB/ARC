@@ -1,0 +1,9 @@
+.THIS .slds-tree {
+    
+    font-weight: bold;
+}
+
+.THIS [role='group'] {
+    
+    font-weight: normal;
+}

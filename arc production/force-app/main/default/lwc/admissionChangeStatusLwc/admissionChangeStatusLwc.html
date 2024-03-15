@@ -1,0 +1,17 @@
+<template>
+    <lightning-button label="Change Status" onclick={onChangeStatusClick}></lightning-button>
+    <template if:true={showPopup}>
+        <c-modal-lwc size="small " onclose={onCancelHandler} show-close>
+            <lightning-record-form
+                record-id={admissionId}
+                object-api-name="Admission__c"
+                fields={fields} 
+                mode='edit'
+                oncancel={onCancelHandler}
+                onsuccess={onSuccessHandler}
+                onerror={onErrorHandler}    
+            ></lightning-record-form>
+            <c-dispensing-orders-list account-id={recordId}></c-dispensing-orders-list>
+        </c-modal-lwc>
+    </template>
+</template>

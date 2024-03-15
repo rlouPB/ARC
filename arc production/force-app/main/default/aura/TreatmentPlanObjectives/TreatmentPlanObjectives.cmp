@@ -1,0 +1,120 @@
+<aura:component >
+    <aura:attribute name="edit" type="Boolean" default="false" />
+    <aura:attribute name="treatmentStatus" type="String"/>
+    <aura:attribute name="newTargetDate" type="Date"/>
+    <aura:attribute name="goalStatus" type="String"/>
+    <aura:attribute name="objectives" type="List" access="global"/>
+    
+    <!-- Handler -->
+    <aura:handler name="objectiveCancelEvent" event="c:TreatmentPlanObjectiveCancelEvent" action="{!c.cancelObjective}"/>
+    
+    <!-- View Draft / Current Treatment Plan -->
+    <aura:if isTrue="{!not(v.edit)}">
+        <lightning:layout multipleRows="true">
+            <lightning:layoutItem size="{!if(v.treatmentStatus == 'Draft', 5, 6)}" class="slds-var-p-around_xx-small">
+                <p class="slds-form-element__label">Objective</p>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="2" class="slds-var-p-around_xx-small">
+                <p class="slds-form-element__label">Date Added</p>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="2" class="slds-var-p-around_xx-small">
+                <p class="slds-form-element__label">Previous Target Date</p>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="2" class="slds-var-p-around_xx-small">
+                <p class="slds-form-element__label">New Target Date</p>
+            </lightning:layoutItem>
+            <aura:if isTrue="{!v.treatmentStatus == 'Draft'}">
+                <lightning:layoutItem size="1" class="slds-var-p-around_xx-small">
+                    <p class="slds-form-element__label">Status</p>
+                </lightning:layoutItem>
+            </aura:if>
+            <aura:iteration items="{!v.objectives}" var="objective">
+                <c:TreatmentPlanObjective 
+                edit="{!v.edit}" 
+                treatmentStatus="{!v.treatmentStatus}" 
+                newTargetDate="{!v.newTargetDate}" 
+                goalStatus="{!v.goalStatus}" 
+                objective="{!objective}"/>
+            <!--
+                <lightning:layoutItem size="7" padding="around-small">
+                    Objective:&nbsp;{!objective.objectiveObj.Label__c}
+                </lightning:layoutItem>
+                <lightning:layoutItem size="5" padding="around-small">
+                    Target Date:&nbsp;<lightning:formattedDateTime value="{!objective.objectiveObj.Target_Date__c}"/>
+                </lightning:layoutItem>
+			-->
+            </aura:iteration>
+        </lightning:layout>
+        <aura:set attribute="else">
+            
+            <!-- Edit Draft Treatment Plan -->
+            <lightning:layout multipleRows="true">
+                <lightning:layoutItem size="4" class="slds-p-around_xxx-small">
+                    <p class="slds-form-element__label">Objective</p>
+                </lightning:layoutItem>
+                <lightning:layoutItem size="8" class="slds-p-around_xxx-small">
+                    <lightning:layout>
+                        <lightning:layoutItem size="2" class="slds-p-around_xxx-small">
+                            <p class="slds-form-element__label">Date Added</p>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="2" class="slds-p-around_xxx-small">
+                            <p class="slds-form-element__label">Previous Target Date</p>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="3" class="slds-p-around_xxx-small">
+                            <p class="slds-form-element__label">Target Date</p>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="2" class="slds-p-around_xxx-small">
+                            <p class="slds-form-element__label">Status</p>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="3" class="slds-p-around_xxx-small">
+                            <p class="slds-form-element__label">Met/Discontinued Date</p>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                </lightning:layoutItem>
+            </lightning:layout>
+            <aura:iteration items="{!v.objectives}" var="objective" indexVar="objectiveIndex">
+                <c:TreatmentPlanObjective edit="{!v.edit}" 
+                                          treatmentStatus="{!v.treatmentStatus}" 
+                                          newTargetDate="{!v.newTargetDate}" 
+                                          goalStatus="{!v.goalStatus}" 
+                                          objective="{!objective}"
+                                          selfIndex="{!objectiveIndex}"/>
+                <!--
+                <lightning:layout multipleRows="true">
+                    <lightning:layoutItem size="4" padding="around-small">
+                        <aura:if isTrue="{!and(objective.objectiveObj.Id!=null,or(objective.status=='Met',objective.status=='Discontinued'))}">
+                            Objective:&nbsp;{!objective.objectiveObj.Label__c}
+                            <aura:set attribute="else">
+                                <lightning:input name="ObjectiveLabel" value="{!objective.objectiveObj.Label__c}" maxlength="255"/>
+                            </aura:set>
+                        </aura:if>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="3" padding="around-small">
+                        <aura:if isTrue="{!objective.objectiveObj.Status__c=='Continue'}">
+                            <lightning:input type="date" value="{!objective.objectiveObj.Target_Date__c}"/>
+                        </aura:if>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="2" padding="around-small">
+                        <aura:if isTrue="{!or(objective.status=='Met',objective.status=='Discontinued')}">
+                        	{!objective.objectiveObj.Status__c}
+                            <aura:set attribute="else">
+                                <lightning:select name="{!objective.objectiveObj.Id+'_Status'}" label="Objective Status" value="{!objective.objectiveObj.Status__c}">
+                                    <option value="Continue">Continue</option>
+                                    <option value="Met">Met</option>
+                                    <option value="Discontinued">Discontinued</option>
+                                </lightning:select>
+                            </aura:set>
+                        </aura:if>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="3" padding="around-small">
+                        <aura:if isTrue="{!and(objective.objectiveObj.Id!=null,objective.objectiveObj.Met_Discontinued_Date__c!=null)}">
+                            <lightning:formattedDateTime value="{!objective.objectiveObj.Met_Discontinued_Date__c}"/>
+                        </aura:if>
+                    </lightning:layoutItem>
+                </lightning:layout>
+-->
+            </aura:iteration>
+            <lightning:button variant="brand" label="Add New Objective" title="Add New Objective" onclick="{!c.addObjective}" />
+        </aura:set>
+    </aura:if>
+</aura:component>

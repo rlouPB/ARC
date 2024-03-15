@@ -1,0 +1,145 @@
+<aura:component implements="flexipage:availableForAllPageTypes,force:hasRecordId">
+	<aura:attribute name="bulletSectionList" type="List" default="[]" />
+	<aura:attribute name="loading" type="Boolean" default="false" />
+	<aura:attribute name="showModal" type="Boolean" default="false" />
+	<aura:attribute name="showEditModal" type="Boolean" default="false" />
+	<aura:attribute name="currentItemId" type="String" />
+	
+	<lightning:notificationsLibrary aura:id="notifLib" />
+	<div class="wrapper">
+		<lightning:card class="outer-card slds-var-m-vertical_medium">
+			<aura:set attribute="title">
+				<div aria-level="2">
+					<span class="slds-truncate">Bulletin Board</span>
+				</div>
+			</aura:set>
+			<aura:set attribute="actions">
+				<lightning:button class="slds-var-m-right_large slds-var-m-vertical_x-small" variant="neutral" label="New" title="New Bulletin Item" onclick="{!c.showModal}"></lightning:button>
+			</aura:set>
+			<aura:iteration items="{!v.bulletSectionList}" var="bulletSection">
+				<div class="section slds-box_small">
+					<lightning:card class="slds-card-wrapper inner-card">
+						<aura:set attribute="title">
+							<div class="slds-var-p-left_xx-small">
+								<span class="slds-text-body_regular">{!bulletSection.sectionLabel}</span>
+							</div>
+						</aura:set>
+						
+						<div class="scrollable-section slds-scrollable slds-var-m-top_x-small">
+							<aura:iteration items="{!bulletSection.bulletinItemList}" var="bulletinItem">
+								<lightning:card class="section-item slds-var-m-horizontal_small slds-var-m-top_x-small">
+									<aura:set attribute="title">
+										<aura:if isTrue="{!bulletinItem.Show_Label__c}">
+											<div class="bulletin-board-label">{!bulletinItem.Label__c}</div>
+										</aura:if>
+									</aura:set>
+									<aura:set attribute="actions">
+										<lightning:buttonIcon iconName="utility:edit" variant="bare" value="{!bulletinItem.Id}" title="Edit Bulletin Item" onclick="{!c.showEditModal}"></lightning:buttonIcon>
+									</aura:set>
+									<div class="rich-text slds-var-p-around_xxx-small slds-var-m-around_xx-small">
+										<lightning:formattedRichText value="{!bulletinItem.Rich_Text__c}" />
+									</div>
+								</lightning:card>
+							</aura:iteration>
+						</div>
+					</lightning:card>
+				</div>
+			</aura:iteration>
+		</lightning:card>
+
+		<aura:if isTrue="{!v.showEditModal}">
+			<section aura:id="modal" role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-01" class="slds-modal slds-fade-in-open">
+				<div class="slds-modal__container">
+					<lightning:buttonIcon iconName="utility:close" class="slds-modal__close" size="large" variant="bare" alternativeText="Close window" onclick="{!c.closeEditModal}" />
+					<div class="slds-modal__header">
+						<h1 id="modal-heading-01" class="slds-modal__title slds-hyphenate">Edit Bulletin Item</h1>
+					</div>
+					<div class="slds-modal__content slds-var-p-around_medium" id="modal-content-id-1">
+						<lightning:messages aura:id="BulletinBoardMessage" />
+						<lightning:recordEditForm objectApiName="Bulletin_Item__c" aura:id="editBulletinItemForm" recordId="{!v.currentItemId}" onsuccess="{!c.handleSuccess}" onerror="{!c.handleErrors}">
+							<lightning:layout multipleRows="true" class="">
+								<lightning:layoutItem padding="around-small" size="6">
+									<lightning:inputField aura:id="newBulletinItem" name="section" fieldName="Section__c" class="customRequired" />
+								</lightning:layoutItem>
+								<lightning:layoutItem padding="around-small" size="6">
+									<lightning:inputField aura:id="newBulletinItem" fieldName="Display_Start_Date__c" class="customRequired" />
+								</lightning:layoutItem>
+								<lightning:layoutItem padding="around-small" size="6">
+									<lightning:inputField aura:id="newBulletinItem" fieldName="Label__c" class="customRequired" />
+								</lightning:layoutItem>
+								<lightning:layoutItem padding="around-small" size="6">
+									<lightning:inputField aura:id="newBulletinItem" fieldName="Display_End_Date__c" class="customRequired" />
+								</lightning:layoutItem>
+								<lightning:layoutItem padding="around-small" size="6"></lightning:layoutItem>
+								<lightning:layoutItem padding="around-small" size="6">
+									<lightning:inputField aura:id="newBulletinItem" fieldName="Order__c" />
+								</lightning:layoutItem>
+								<lightning:layoutItem padding="around-small" size="12">
+									<lightning:inputField aura:id="newBulletinItem" fieldName="Rich_Text__c" />
+								</lightning:layoutItem>
+								<lightning:layoutItem padding="around-small" size="6">
+									<lightning:outputField fieldName="Last_Modified_By__c">
+									</lightning:outputField>
+								</lightning:layoutItem>
+								<lightning:layoutItem padding="around-small" size="6">
+									<lightning:outputField fieldName="LastModifiedDate">
+									</lightning:outputField>
+								</lightning:layoutItem>
+								
+							</lightning:layout>
+						</lightning:recordEditForm>
+					</div>
+					<div class="slds-modal__footer slds-text-align_center">
+						<button class="slds-button slds-button_neutral" aria-label="Cancel" onclick="{! c.closeEditModal }">Cancel</button>
+						<button class="slds-button slds-button_brand" aria-label="Save" onclick="{!c.saveEditedForm}">Save</button>
+					</div>
+				</div>
+			</section>
+			<div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
+		</aura:if>
+		<aura:if isTrue="{!v.showModal}">
+			<section aura:id="modal" role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-01" class="slds-modal slds-fade-in-open">
+				<div class="slds-modal__container">
+					<lightning:buttonIcon iconName="utility:close" class="slds-modal__close" size="large" variant="bare" alternativeText="Close window" onclick="{!c.closeModal}" />
+					<div class="slds-modal__header">
+						<h1 id="modal-heading-01" class="slds-modal__title slds-hyphenate">New Bulletin Item</h1>
+					</div>
+					<div class="slds-modal__content slds-var-p-around_medium" id="modal-content-id-1">
+						<lightning:messages aura:id="BulletinBoardMessage" />
+						<lightning:recordEditForm objectApiName="Bulletin_Item__c" aura:id="newBulletinItemForm" onsuccess="{!c.handleSuccess}" onerror="{!c.handleErrors}">
+							<lightning:layout multipleRows="true" class="">
+								<lightning:layoutItem padding="around-small" size="6">
+									<lightning:inputField aura:id="newBulletinItem" name="section" fieldName="Section__c" class="customRequired" />
+								</lightning:layoutItem>
+								<lightning:layoutItem padding="around-small" size="6">
+									<lightning:inputField aura:id="newBulletinItem" fieldName="Display_Start_Date__c" class="customRequired" />
+								</lightning:layoutItem>
+								<lightning:layoutItem padding="around-small" size="6">
+									<lightning:inputField aura:id="newBulletinItem" fieldName="Label__c" class="customRequired" />
+								</lightning:layoutItem>
+								<lightning:layoutItem padding="around-small" size="6">
+									<lightning:inputField aura:id="newBulletinItem" fieldName="Display_End_Date__c" class="customRequired" />
+								</lightning:layoutItem>
+								<lightning:layoutItem padding="around-small" size="6"></lightning:layoutItem>
+								<lightning:layoutItem padding="around-small" size="6">
+									<lightning:inputField aura:id="newBulletinItem" fieldName="Order__c" />
+								</lightning:layoutItem>
+								<lightning:layoutItem padding="around-small" size="12">
+									<lightning:inputField aura:id="newBulletinItem" fieldName="Rich_Text__c" />
+								</lightning:layoutItem>
+							</lightning:layout>
+						</lightning:recordEditForm>
+					</div>
+					<div class="slds-modal__footer slds-text-align_center">
+						<button class="slds-button slds-button_neutral" aria-label="Cancel" onclick="{! c.closeModal }">Cancel</button>
+						<button class="slds-button slds-button_brand" aria-label="Save" onclick="{!c.save}">Save</button>
+					</div>
+				</div>
+			</section>
+			<div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
+		</aura:if>
+		<aura:if isTrue="{!v.loading}">
+			<lightning:spinner alternativeText="Loading" />
+		</aura:if>
+	</div>
+</aura:component>

@@ -1,0 +1,491 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId" extends="c:ApexService" access="global" controller="CallSearch">
+    <aura:attribute name="pageReference" type="Object" />
+
+    <aura:attribute name="recordId" type="String" description="Holds a Account Record Id" />
+    <aura:attribute name="title" type="String" access="public" />
+    <aura:attribute name="searchData" type="Map" default="{'name':'','searchFor':'','startDate':'','endDate':''}" access="public" />
+    <aura:attribute name="whoToSearch" type="List" default="[]" access="public" />
+    <aura:attribute name="context" type="String" access="public" />
+    <aura:attribute name="notes" type="List" default="[]" access="public" />
+    <aura:attribute name="filteredNotes" type="List" default="[]" access="public" />
+    <aura:attribute name="returnCount" type="String" Description="count of records returned (may be truncated if query hits limit on server)" />
+
+    <aura:attribute name="isSearchBtnClicked" type="Boolean" access="public" />
+    <aura:attribute name="loading" type="Boolean" access="public" />
+    <aura:attribute name="renderFlag" type="boolean" default="false" access="public" />
+
+    <!-- after-Search filters above table -->
+    <aura:attribute name="selectedFilterOption" type="Map" default="{'patient':'', 'caller':'', 'ARCUser' : '[]', 'callStatus': ''}" />
+    <aura:attribute name="filterOption" type="Map" default="{'patients': [], 'callers':[], 'ARCUsers' : []}" />
+    <aura:attribute name="showFilterOptions" type="Map" default="{'ARCUsers': true}" description="show options for multi-select filters" />
+
+    <aura:attribute name="isSelectedAll" type="Boolean" default="true" access="public" Description="Used to Store isSelectedAll or Notes View" />
+
+    <!-- Notes Popover -->
+    <aura:attribute name="cursorOnColumn" type="Boolean" default="false" description="true if hovering on notes column" />
+    <aura:attribute name="cursorOnPopover" type="Boolean" default="false" description="true if hovering on a popover" />
+    <aura:attribute name="popoverIsOpen" type="Boolean" default="false" description="true if popover currently open" />
+
+    <!--Sorting-->
+    <aura:attribute type="String" name="sortField" />
+    <aura:attribute type="String" name="defaultSortField" default="callDateTime_dt" />
+    <aura:attribute type="Boolean" name="sortAsc" />
+
+    <!--Pagination Attributes -->
+    <aura:attribute name="currentPage" type="Integer" default="1" access="public" Description="Used to Store Current Page" />
+    <aura:attribute name="pagesPerRecord" type="Integer" default="10" access="public" Description="Used to Store Pages Per Record" />
+    <aura:attribute name="maxPage" type="Integer" default="100" access="public" Description="Used to Store Max Pages Record Count" />
+    <aura:attribute name="rowsToDisplay" type="List" default="[]" access="public" Description="Used to Store Crrent Pages Records" />
+    <aura:attribute name="overlay" type="Aura.Component" access="public" Description="Used to Store Crrent Pages Records" />
+    <aura:attribute name="formFactor" type="String" access="public" Description="Used to Store Width type" />
+
+    <!-- Handler Section -->
+    <aura:handler name="change" value="{!v.currentPage}" action="{!c.renderPage}" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler name="buttonClicked" event="c:clickedButton" action="{!c.handlerSearchOptionBtnClick}" />
+    <!-- <aura:handler name="mouseLeaveNotes" event="c:mouseLeave" action="{!c.handleMouseLeavePopover}" includeFacets="true"/> -->
+
+    <aura:handler event="c:onPopulateLogACall" action="{!c.handleRefreshList}" />
+    <aura:registerEvent name="buttonClicked" type="c:clickedButton" />
+
+    <lightning:notificationsLibrary aura:id="notifLib" />
+    <lightning:overlayLibrary aura:id="overlayLib" />
+
+    <lightning:flexipageRegionInfo width="{!v.formFactor}" />
+
+    <div class="{!v.recordId ? '' : 'slds-var-p-around_medium' }" style="background:white;">
+        <lightning:spinner aura:id="spinner" variant="brand" alternativeText="Please wait" />
+        <!--Header-->
+        <!-- <lightning:layout class="{!v.recordId ? '' : 'slds-hide' }" >
+            <lightning:layoutItem  size="12">
+                <h2 class="slds-text-heading_medium  slds-p-top_x-small slds-float_center" style="text-align:center">
+                    {!v.title}
+                </h2>
+            </lightning:layoutItem>
+        </lightning:layout> -->
+        <aura:if isTrue="{!v.recordId}">
+            <lightning:layout>
+                <lightning:layoutItem padding="around-small" size="3">
+                </lightning:layoutItem>
+                <lightning:layoutItem padding="around-small" size="6">
+                    <aura:if isTrue="{!v.title != null}" >
+                        <div class="slds-text-heading_medium slds-text-align_center  " style="font-weight: bold;">{!v.title}</div>
+                    </aura:if>
+                </lightning:layoutItem>
+                <lightning:layoutItem padding="around-small" size="3">
+                    <lightning:buttonGroup class="slds-float_right">
+                        <lightning:button class="{!v.isSelectedAll == true ?  'slds-button_brand': ''}" title="allColumns" label="All Columns" onclick="{!c.onViewChange}" />
+
+                        <lightning:button class="{!v.isSelectedAll == false ? 'slds-button_brand': ''}" title="notesView" label="Notes View" onclick="{!c.onViewChange}" />
+                    </lightning:buttonGroup>
+                </lightning:layoutItem>
+            </lightning:layout>
+        </aura:if>
+
+        <aura:if isTrue="{!!v.recordId}">
+            <c:ContactSearchOptions isSelectedAll="{!v.isSelectedAll}" context="{!v.context}" recordId="{!v.recordId}" searchType="searchAllColumns" searchTypes="[{'label':'All Columns','value':'searchAllColumns'},{'label':'Notes View', 'value' : 'notesView'}]" />
+        </aura:if>
+        <!--Search Filters-->
+        <aura:if isTrue="{!v.recordId}">
+            <lightning:layout>
+
+                <lightning:layoutItem padding="around-small" size="3">
+                    <lightning:input type="date" name="inputName" value="{!v.searchData.startDate}" label="Start Date" />
+                </lightning:layoutItem>
+                <lightning:layoutItem padding="around-small" size="3">
+                    <lightning:input type="date" name="inputName" value="{!v.searchData.endDate}" label="End Date" />
+                </lightning:layoutItem>
+                <lightning:layoutItem padding="around-small" size="4">
+                    <lightning:button aura:id="search" class="marginCss" label="Search" name="search" variant="brand" onclick="{!c.onSearch}" />
+                    <lightning:button aura:id="reset" class="marginCss" label="Reset" name="reset" variant="brand" onclick="{!c.resetSearchOptions}" />
+                </lightning:layoutItem>
+            </lightning:layout>
+        </aura:if>
+
+        <div class="{!v.isSearchBtnClicked ? 'search-result' : 'slds-hide'}">
+
+            <div class="slds-var-p-around_small">
+                <lightning:layout>
+                    <lightning:layoutItem size="2">
+                        <aura:if isTrue="{!!v.recordId}">
+                            <div style="padding:  0rem 1rem;">
+                                <lightning:select name="patient" label="Patient" value="{!v.selectedFilterOption.patient}" onchange="{!c.filterCalls}">
+                                    <aura:iteration items="{!v.filterOption.patients}" var="patient">
+                                        <option value="{!patient.value}" text="{!patient.label}" />
+                                    </aura:iteration>
+                                </lightning:select>
+                            </div>
+                        </aura:if>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="2">
+                        <div style="padding:  0rem 1rem;">
+                            <lightning:select name="caller" label="Person Spoken To" value="{!v.selectedFilterOption.caller}" onchange="{!c.filterCalls}">
+                                <aura:iteration items="{!v.filterOption.callers}" var="caller">
+                                    <option value="{!caller.value}" text="{!caller.label}" />
+                                </aura:iteration>
+                            </lightning:select>
+                        </div>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="3">
+                        <!-- <aura:if isTrue="{!v.isSelectedAll}" > -->
+                        <div style="padding:  0rem 1rem;">
+                            <!-- <lightning:select name="arcuser" label="ARC User" value="{!v.selectedFilterOption.ARCUser}" onchange="{!c.filterCalls}"> -->
+                            <!-- <ui:menu>  -->
+                            <!-- <label onclick="{!c.toggleShowUsers}" >ARC User</label> -->
+                            <lightning:checkboxGroup name="arcuser" label="ARC User" value="{!v.selectedFilterOption.ARCUser}" options="{!v.filterOption.ARCUsers}" onchange="{!c.filterCalls}" class="{!v.showFilterOptions.ARCUsers ? '':'slds-hide'}">
+                            </lightning:checkboxGroup>
+
+                            <!-- </ui:menu> -->
+
+                            <!-- <ui:menu>
+                                <ui:menuTriggerLink aura:id="checkboxMenuLabel" label="ARC User"/>
+                                <ui:menuList aura:id="checkboxMenu" class="checkboxMenu">
+                                    <aura:iteration items="{!v.filterOption.ARCUsers}" var="u">
+                                        <ui:checkboxMenuItem label="{!u.label}" value="{!u.value}"/>
+                                    </aura:iteration>
+                                </ui:menuList>
+                            </ui:menu> -->
+                        </div>
+                        <!-- </aura:if> -->
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="2">
+                        <div style="padding: 0rem 1rem;">
+                            <lightning:select name="arcuser" label="Call Status" value="{!v.selectedFilterOption.callStatus}" onchange="{!c.filterCalls}">
+                                <aura:iteration items="{!v.filterOption.callStatuses}" var="callStatus">
+                                    <option value="{!callStatus.value}" text="{!callStatus.label}" />
+                                </aura:iteration>
+                            </lightning:select>
+                        </div>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </div>
+
+
+            <!-- All Columns table -->
+            <aura:if isTrue="{!v.isSelectedAll}">
+                <lightning:layout>
+                    <lightning:layoutItem padding="around-small" size="12">
+                        <table class="slds-table fixed_header slds-table--bordered slds-table--fixed-layout box slds-max-medium-table--stacked-horizontal slds-table_col-bordered">
+                            <thead>
+                                <tr>
+                                    <th data-columnName="callDateTime_dt" class="{! 'slds-text-link_reset ' + (v.sortField == 'callDateTime' ? 'boldCls ' :'')}" onclick="{!c.sortByName}" style="border-left: 1px solid rgb(221, 219, 218);">
+                                        Call Date/Time
+                                        <aura:if isTrue="{!v.sortField=='callDateTime_dt'}">
+                                            <span>
+                                                <aura:if isTrue="{!v.sortAsc}">
+                                                    <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up" />
+                                                    <aura:set attribute="else">
+                                                        <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow up" />
+                                                    </aura:set>
+                                                </aura:if>
+                                            </span>
+                                        </aura:if>
+                                    </th>
+                                    <aura:if isTrue="{!!v.recordId}">
+                                        <th data-columnName="callingPhoneNumber" class="{! 'slds-text-link_reset ' + (v.sortField == 'callingPhoneNumber' ? 'boldCls' :'')}" onclick="{!c.sortByName}">
+                                            Phone Number
+                                            <aura:if isTrue="{!v.sortField=='callingPhoneNumber'}">
+                                                <span>
+                                                    <aura:if isTrue="{!v.sortAsc}">
+                                                        <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up" />
+                                                        <aura:set attribute="else">
+                                                            <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow up" />
+                                                        </aura:set>
+                                                    </aura:if>
+                                                </span>
+                                            </aura:if>
+                                        </th>
+                                    </aura:if>
+                                    <aura:if isTrue="{!!v.recordId}">
+                                        <th data-columnName="accountName" class="{! 'slds-text-link_reset ' + (v.sortField == 'accountName' ? 'boldCls' :'')}" onclick="{!c.sortByName}">
+                                            Patient Name
+                                            <aura:if isTrue="{!v.sortField=='accountName'}">
+                                                <span>
+                                                    <aura:if isTrue="{!v.sortAsc}">
+                                                        <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up" />
+                                                        <aura:set attribute="else">
+                                                            <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow up" />
+                                                        </aura:set>
+                                                    </aura:if>
+                                                </span>
+                                            </aura:if>
+                                        </th>
+                                    </aura:if>
+                                    <th data-columnName="callerName" class="{! 'slds-text-link_reset ' + (v.sortField == 'callerName' ? 'boldCls' :'')}" onclick="{!c.sortByName}">
+                                        Person Spoken To
+                                        <aura:if isTrue="{!v.sortField=='callerName'}">
+                                            <span>
+                                                <aura:if isTrue="{!v.sortAsc}">
+                                                    <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up" />
+                                                    <aura:set attribute="else">
+                                                        <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow up" />
+                                                    </aura:set>
+                                                </aura:if>
+                                            </span>
+                                        </aura:if>
+                                    </th>
+                                    <!-- <th data-columnName="role" class="{! 'slds-text-link_reset ' + (v.sortField == 'role' ? 'boldCls' :'')}" onclick="{!c.sortByName}">
+                                        Caller Role
+                                        <aura:if isTrue="{!v.sortField=='role'}">
+                                            <span>
+                                                <aura:if isTrue="{!v.sortAsc}">
+                                                    <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up"/>
+                                                    <aura:set attribute="else">
+                                                        <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow up"/>
+                                                    </aura:set>
+                                                </aura:if>
+                                            </span>
+                                        </aura:if>
+                                    </th> -->
+                                    <th data-columnName="ARCUserName" class="{! 'slds-text-link_reset ' + (v.sortField == 'ARCUserName' ? 'boldCls' :'')}" onclick="{!c.sortByName}">
+                                        ARC User
+                                        <aura:if isTrue="{!v.sortField=='ARCUserName'}">
+                                            <span>
+                                                <aura:if isTrue="{!v.sortAsc}">
+                                                    <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up" />
+                                                    <aura:set attribute="else">
+                                                        <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow up" />
+                                                    </aura:set>
+                                                </aura:if>
+                                            </span>
+                                        </aura:if>
+                                    </th>
+                                    <th data-columnName="callSubject" class="{! 'slds-text-link_reset ' + (v.sortField == 'callSubject' ? 'boldCls' :'')}" onclick="{!c.sortByName}">
+                                        Subject
+                                        <aura:if isTrue="{!v.sortField=='callSubject'}">
+                                            <span>
+                                                <aura:if isTrue="{!v.sortAsc}">
+                                                    <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up" />
+                                                    <aura:set attribute="else">
+                                                        <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow up" />
+                                                    </aura:set>
+                                                </aura:if>
+                                            </span>
+                                        </aura:if>
+                                    </th>
+                                    <th data-columnName="callStatus" class="{! 'slds-text-link_reset ' + (v.sortField == 'callStatus' ? 'boldCls' :'')}" onclick="{!c.sortByName}">
+                                        Call Status
+                                        <aura:if isTrue="{!v.sortField=='callStatus'}">
+                                            <span>
+                                                <aura:if isTrue="{!v.sortAsc}">
+                                                    <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up" />
+                                                    <aura:set attribute="else">
+                                                        <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow up" />
+                                                    </aura:set>
+                                                </aura:if>
+                                            </span>
+                                        </aura:if>
+                                    </th>
+                                    <th data-columnName="callNotes" class="{! 'slds-text-link_reset ' + (v.sortField == 'callNotes' ? 'boldCls' :'' )}" style="border-right: 1px solid rgb(221, 219, 218);">
+                                        Notes
+                                        <!-- <aura:if isTrue="{!v.sortField=='callNotes'}">
+                                            <span>
+                                                <aura:if isTrue="{!v.sortAsc}">
+                                                    <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up"/>
+                                                    <aura:set attribute="else">
+                                                        <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow up"/>
+                                                    </aura:set>
+                                                </aura:if>
+                                            </span>
+                                        </aura:if> -->
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <aura:if isTrue="{!empty(v.rowsToDisplay)}">
+                                    <tr>
+                                        <td colspan="9" class="slds-text-align_center">
+                                            No records to display
+                                        </td>
+                                    </tr>
+                                </aura:if>
+
+                                <aura:iteration items="{!v.rowsToDisplay}" var="note" indexVar="index">
+                                    <tr>
+                                        <td class="slds-truncate" title="{!note.callDateTime}" style="border-left: 1px solid rgb(221, 219, 218);" data-index="{!index}" data-id="{!note.noteId}" data-rtName="{!note.noteRecordtypeName}" onclick="{!c.populateRecordToLogACall}">
+                                            <a data-index="{!index}" data-id="{!note.noteId}" data-rtName="{!note.noteRecordtypeName}" onclick="{!c.populateRecordToLogACall}">
+                                                {!note.callDateTime}
+                                            </a>
+                                        </td>
+                                        <aura:if isTrue="{!!v.recordId}">
+                                            <td class="slds-truncate">
+                                                <span title="{!note.callingPhoneNumber}">{!note.callingPhoneNumber} </span>
+                                            </td>
+                                        </aura:if>
+                                        <aura:if isTrue="{!!v.recordId}">
+                                            <td class="slds-truncate">
+                                                <span title="{!note.accountName}"> {!note.accountName} </span>
+                                            </td>
+                                        </aura:if>
+                                        <td class="slds-truncate">
+                                            <span title="{!note.callerName}"> {!note.callerName} </span>
+                                        </td>
+                                        <!-- <td class="slds-truncate">
+                                            <span title="{!note.role}"> {!note.role} </span>
+                                        </td> -->
+                                        <td class="slds-truncate">
+                                            <span title="{!note.ARCUserName}">
+                                                <!-- class="{!(v.formFactor == 'LARGE' ? 'showCustomPopover' + index: '')}" -->
+                                                {!note.ARCUserName}
+                                            </span>
+                                        </td>
+                                        <td class="slds-truncate">
+                                            <span title="{!note.callSubject}"> {!note.callSubject} </span>
+                                        </td>
+                                        <td class="slds-truncate">
+                                            <span title="{!note.callStatus}"> {!note.callStatus} </span>
+                                        </td>
+                                        <td class="slds-hyphenate " style="border-right: 1px solid rgb(221, 219, 218);">
+                                            <!-- <span aura:id="notesView" data-index="{!index}"
+                                                    data-title="{!note.callNotes}" tab-index="0"
+                                                    class="{!(v.formFactor != 'LARGE' ?
+                                                                'callNotesFix setWrapToCallNotes showCustomPopover'+ index
+                                                                : 'callNotesFix setWrapToCallNotes showCustomPopover'+ index)}"
+                                                    onmouseenter ="{!c.handleMouseOverColumn}"
+                                                    onmouseleave="{!c.handleMouseLeaveColumn}" >
+                                                {!note.callNotes}
+                                            </span> -->
+                                            <div aura:id="notesView" data-index="{!index}" data-title="{!note.richCallNotes}" class="{!'callNotesFix setWrapToCallNotes showCustomPopover'+ index}" onmouseenter="{!c.handleMouseOverColumn}" onmouseleave="{!c.handleMouseLeaveColumn}">
+                                                <lightning:formattedRichText value="{!note.richCallNotes}" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </aura:iteration>
+                            </tbody>
+                        </table>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </aura:if>
+
+            <!-- Notes View table -->
+            <aura:if isTrue="{!!v.isSelectedAll}">
+                <lightning:layout>
+                    <lightning:layoutItem padding="around-small" size="12">
+                        <table class="slds-table fixed_header slds-table--bordered slds-table--fixed-layout box slds-max-medium-table--stacked-horizontal slds-table_col-bordered notesViewTable">
+                            <thead>
+                                <tr>
+                                    <th data-columnName="callDateTime_dt" class="{! 'slds-text-link_reset ' + (v.sortField == 'callDateTime' ? 'boldCls ' :'')}" onclick="{!c.sortByName}" style="border-left: 1px solid rgb(221, 219, 218); width: 10%;">
+                                        Call Date/Time
+                                        <aura:if isTrue="{!v.sortField=='callDateTime_dt'}">
+                                            <span>
+                                                <aura:if isTrue="{!v.sortAsc}">
+                                                    <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up" />
+                                                    <aura:set attribute="else">
+                                                        <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow up" />
+                                                    </aura:set>
+                                                </aura:if>
+                                            </span>
+                                        </aura:if>
+                                    </th>
+                                    <aura:if isTrue="{!!v.recordId}">
+                                        <th data-columnName="accountName" class="{! 'slds-text-link_reset ' + (v.sortField == 'accountName' ? 'boldCls' :'')}" onclick="{!c.sortByName}" style=" width: 15%;">
+                                            Patient Name
+                                            <aura:if isTrue="{!v.sortField=='accountName'}">
+                                                <span>
+                                                    <aura:if isTrue="{!v.sortAsc}">
+                                                        <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up" />
+                                                        <aura:set attribute="else">
+                                                            <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow up" />
+                                                        </aura:set>
+                                                    </aura:if>
+                                                </span>
+                                            </aura:if>
+                                        </th>
+                                    </aura:if>
+                                    <!-- <th data-columnName="callerName" class="{! 'slds-text-link_reset ' + (v.sortField == 'callerName' ? 'boldCls' :'')}" onclick="{!c.sortByName}" style=" width: 15%;">
+                                        Person Spoken To
+                                        <aura:if isTrue="{!v.sortField=='callerName'}">
+                                            <span>
+                                                <aura:if isTrue="{!v.sortAsc}">
+                                                    <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up"/>
+                                                    <aura:set attribute="else">
+                                                        <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow up"/>
+                                                    </aura:set>
+                                                </aura:if>
+                                            </span>
+                                        </aura:if>
+                                    </th> -->
+                                    <th data-columnName="callNotes" style="border-right: 1px solid rgb(221, 219, 218);">
+                                        <!-- onclick="{!c.sortByName}" -->
+                                        Notes
+
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <aura:if isTrue="{!empty(v.rowsToDisplay)}">
+                                    <tr>
+                                        <td colspan="9" class="slds-text-align_center">
+                                            No records to display
+                                        </td>
+                                    </tr>
+                                </aura:if>
+
+                                <aura:iteration items="{!v.rowsToDisplay}" var="note" indexVar="index">
+                                    <tr>
+                                        <td class="slds-cell-wrap slds-clearfix" title="{!note.callDateTime}" style="border-left: 1px solid rgb(221, 219, 218);" data-index="{!index}" data-id="{!note.noteId}" data-rtName="{!note.noteRecordtypeName}" onclick="{!c.populateRecordToLogACall}">
+                                            <a>
+                                                <!-- {!note.callDateTime} -->
+                                                {!note.callDate_short}
+                                                <br />
+                                                {!note.callTime_short}
+                                            </a>
+                                            <aura:if isTrue="{!note.isAutosaved}">
+                                                <lightning:icon class="slds-float_right" iconName="standard:note" size="small" alternativeText="Autosaved" title="Autosaved" />
+                                            </aura:if>
+                                        </td>
+                                        <aura:if isTrue="{!!v.recordId}">
+                                            <td class="slds-truncate">
+                                                <span title="{!note.accountName}"> {!note.accountName} </span>
+                                            </td>
+                                        </aura:if>
+                                        <!-- <td class="slds-truncate"> -->
+                                        <!--                                         <td class="slds-cell-wrap">
+                                             <span title="{!note.callerName}">
+                                                {!note.callerName}
+                                            </span>
+                                        </td> -->
+                                        <td id="longNotes" class="slds-hyphenate " style="border-right: 1px solid rgb(221, 219, 218);">
+
+                                            <strong>{!note.ARCUserName} </strong>
+                                            <aura:if isTrue="{!note.callerName}">
+                                                &nbsp;spoke to:&nbsp;<strong>{!note.callerName}</strong>
+                                            </aura:if>
+                                            <aura:if isTrue="{!note.callSubject}">
+                                                <br />
+                                                <strong>Subject:</strong>&nbsp; {!note.callSubject}<br />
+                                            </aura:if>
+                                            <aura:if isTrue="{!note.callerAffect}">
+                                                <strong>Caller Affect and Presentation:</strong>&nbsp; {!note.callerAffect}<br />
+                                            </aura:if>
+
+                                            <!-- <span aura:id="notesView" data-index="{!index}" data-title="{!note.callNotes}" class="setWrapToCallNotes slds-p-top_small"
+                                            onmouseover ="{!c.handleShowPopover}" onmouseout="{!c.handleMouseLeave}" > {!note.callNotes} </span> -->
+                                            <div aura:id="notesView" data-index="{!index}" data-title="{!note.callNotes}" class="setWrapToCallNotes  ">
+                                                <lightning:formattedRichText value="{!note.richCallNotes}" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </aura:iteration>
+                            </tbody>
+                        </table>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </aura:if>
+
+            <aura:if isTrue="{!!empty(v.rowsToDisplay)}">
+                <lightning:layout>
+                    <lightning:layoutItem size="3" padding="around-small">
+                        Displaying {!v.rowsToDisplay.length} of {!v.returnCount} matching records.
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="6">
+                        <c:pagination currentPage="{!v.currentPage}" max="{!v.maxPage}" />
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </aura:if>
+        </div>
+    </div>
+
+    <lightning:navigation aura:id="navService" />
+
+</aura:component>

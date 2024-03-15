@@ -1,0 +1,20 @@
+<aura:component >
+    <aura:attribute name="field" type="Object" default="{}" access="public" />
+    <aura:attribute name="record" type="sobject" default="{'sobjectType':'sobject'}" access="public" />
+    <aura:attribute name="value" type="String" default="" access="public" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    
+    <aura:if isTrue="{!(v.field.type == 'DATETIME')}">
+        <ui:outputDateTime aura:id="oDateTime" value="{!v.value}"  />
+    </aura:if>
+    
+    <aura:if isTrue="{!(v.field.type == 'DATE')}">
+        <ui:outputDate aura:id="oDateTime" value="{!v.value}"  />
+    </aura:if>
+    
+    <aura:if isTrue="{! and(v.field.type != 'DATE', v.field.type != 'DATETIME')}">
+        {!v.value}
+    </aura:if>
+    
+</aura:component>

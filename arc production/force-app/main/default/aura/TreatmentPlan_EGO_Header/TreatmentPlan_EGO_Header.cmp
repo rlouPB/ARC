@@ -1,0 +1,143 @@
+<aura:component controller="TreatmentPlanEGOCtl" extends="c:ApexService">
+    <aura:attribute name="showCancelModal" type="Boolean" default="false"/>
+    <aura:attribute name="showFinalizeModal" type="Boolean" default="false"/>
+    <aura:attribute name="isDirty" type="Boolean" default="false"/>
+    <aura:attribute name="conductEGO" type="Boolean" default="false"/>
+    <aura:attribute name="loading" type="Boolean" description="Control of UI components such as disabling buttons when loading."/>
+    <aura:attribute name="treatmentPlan" type="Object" access="public" description="Treatment Plan object that contains patient info, goal and other info."/>
+    
+    <aura:registerEvent name="closeModalEvent" type="c:closeModal" />
+    <aura:registerEvent name="EGOActionEvent" type="c:EGOActionEvent" />
+    <aura:registerEvent name="SaveEGOEvent" type="c:SaveEGOEvent" />
+
+    <lightning:card class="slds-var-p-around_small">
+        <lightning:layout multipleRows="true">
+            <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                <aura:unescapedHtml value="{!v.treatmentPlan.currentTreatmentPlan.Account.Photo__c}"/>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                <label for="Patient" class="slds-form-element__label">Patient</label>
+                <!-- <div id="Patient"><a href="{!'/'+v.treatmentPlan.patientId}" target="_blank">{!v.treatmentPlan.patientName}</a></div> -->
+                <div id="Patient">
+                    <c:recordLink recordId="{!v.treatmentPlan.patientId}" recordName="{!v.treatmentPlan.patientName}" />
+                </div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+            <div class="header-column">
+                <p class="field-title" title="Psychotherapist"><b>Psychotherapist</b></p>
+                <!-- <p>{!v.treatmentPlan.therapist.User__r.Name}</p> -->
+                <p>{!v.treatmentPlan.currentTreatmentPlan.Admission__r.Psychotherapist__r.Professional_Name__c}</p>
+            </div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                <div class="header-column">
+                    <p class="field-title" title="Program"><b>Program</b></p>
+                    <p>{!v.treatmentPlan.ego.Program__c}</p>
+                </div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                <div class="header-column">
+                    <p class="field-title" title="Team"><b>Team</b></p>
+                    <p>{!v.treatmentPlan.currentTreatmentPlan.Admission__r.Team__c}</p>
+                </div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+            <div class="header-column">
+                <p class="field-title" title="Admission Date"><b>Admission Date</b></p>
+                <p><lightning:formattedDateTime value="{!v.treatmentPlan.currentTreatmentPlan.Admission__r.Admit_Date__c}" 
+                                                month="2-digit" day="2-digit" year="numeric" timeZone="UTC" /></p>
+            </div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+            <!--
+            <div class="header-column">
+                <p class="field-title" title="Patient"><b>Date</b></p>
+                <p><lightning:formattedDateTime value="{!v.treatmentPlan.todayDate}" 
+                                                month="2-digit" day="2-digit" year="numeric" timeZone="UTC" /></p>
+            </div>
+            -->
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                <div class="header-column">
+                    <p class="field-title" title="Finalized By"><b>Finalized By</b></p>
+                    <p>{!v.treatmentPlan.ego.Finalized_By__c}</p>
+                </div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                <div class="header-column">
+                    <p class="field-title" title="Finalized Date/Time"><b>Finalized Date/Time</b></p>
+                    <p><lightning:formattedDateTime value="{!v.treatmentPlan.ego.Finalized_Date_Time__c}" 
+                        month="2-digit" day="2-digit" year="numeric" hour="numeric" minute="numeric" timeZoneName="short" timeZone="America/New_York" /></p>
+                </div>
+            </lightning:layoutItem>
+            <aura:if isTrue="{!v.conductEGO}">
+                <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                    <lightning:button class="slds-button_stretch" variant="brand" 
+                    label="Save and Close" 
+                    onclick="{!c.saveEGO}" 
+                    disabled="{!v.loading}"/>
+                </lightning:layoutItem>
+                <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                    <lightning:button class="slds-button_stretch" variant="brand" 
+                    label="{!if(v.treatmentPlan.isEGOR==true,'Finalize EGO-R','Finalize EGO')}" 
+                    onclick="{!c.finalizeEGO}" 
+                    disabled="{!v.loading}"/>
+                </lightning:layoutItem>
+                <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                    <lightning:button class="slds-button_stretch" variant="brand" 
+                    label="Cancel" 
+                    onclick="{!c.cancelEdit}" 
+                    disabled="{!v.loading}"/>
+                </lightning:layoutItem>
+            </aura:if>
+            <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                <lightning:button class="slds-button_stretch" variant="brand" 
+                label="Print" 
+                onclick="{!c.printEgo}" 
+                disabled="{!v.loading}"/>
+            </lightning:layoutItem>
+        </lightning:layout>
+    </lightning:card>
+    
+    <aura:if isTrue="{!v.showCancelModal}">
+        <c:sldsModal instanceName="cancelEGO">
+            <aura:set attribute="header">
+                
+            </aura:set>
+            <aura:set attribute="content">
+                <div class="slds-p-horizontal--small">
+                    Are you sure  you want to cancel? Any unsaved changes will be lost.
+                </div>
+            </aura:set>
+            <aura:set attribute="footer">
+                <lightning:button label="Discard Changes" variant="destructive" onclick="{!c.handleDiscardChanges}"/>
+                <lightning:button label="{!if(v.treatmentPlan.isEGOR==true,'Go back to EGO-R','Go back to EGO')}" 
+                variant="neutral" 
+                onclick="{!c.handleBackToEGO}"/>
+            </aura:set>
+        </c:sldsModal>
+    </aura:if>
+    <aura:if isTrue="{!v.showFinalizeModal}">
+        <c:sldsModal instanceName="finalizeEGO">
+            <aura:set attribute="header">
+                
+            </aura:set>
+            <aura:set attribute="content">
+                <div class="slds-p-horizontal--small">
+                    <aura:if isTrue="{!v.treatmentPlan.isEGOR}">
+                        Are you sure you want to Finalize this EGO-R?
+                        <aura:set attribute="else">
+                            Are you sure you want to Finalize this EGO?
+                        </aura:set>
+                    </aura:if>
+                </div>
+            </aura:set>
+            <aura:set attribute="footer">
+                <lightning:button label="Finalize" variant="destructive" onclick="{!c.handleConfirmFinalizeEGO}"/>
+                <lightning:button label="{!if(v.treatmentPlan.isEGOR==true,'Go back to EGO-R','Go back to EGO')}" 
+                variant="neutral" 
+                onclick="{!c.handleBackToDraftTreatmentPlan}"/>
+            </aura:set>
+        </c:sldsModal>
+    </aura:if>
+</aura:component>

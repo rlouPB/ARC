@@ -1,0 +1,10 @@
+<aura:event
+	type="COMPONENT"
+	description="When Mark Section Complete button is clicked.">
+	<aura:attribute
+		name="instanceName"
+		type="String"/>
+	<aura:attribute
+		name="action"
+		type="String"/>
+</aura:event>

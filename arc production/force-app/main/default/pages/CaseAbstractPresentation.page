@@ -1,0 +1,33 @@
+<apex:page sidebar="false" applyHtmlTag="true" applyBodyTag="false" standardController="Case_Abstract__c" extensions="CaseAbstractPresentationController" action="{!init}">
+
+<head>
+        <style type="text/css" media="print">
+            
+            .button-group {
+                margin: 20px;
+                float: right;
+            }
+        </style>
+</head>
+
+<body>
+    <div class="header">
+	</div>
+    <apex:form >
+        <div class="button-group" style="margin:20px; float:right; font-size: 1.5em">
+            <apex:commandButton action="{!backToCaseAbstract}" value="Back to Case Abstract"/>
+            <apex:commandButton action="{!savePdf}" value="Save Presentation"/>
+        </div>
+        <br/>
+        <apex:iframe src="data:application/pdf;base64,{!paramValue}" id="theFrame" ></apex:iframe>
+        
+    </apex:form>
+</body>
+<script>
+    window.onload=function()      
+    {        
+        document.getElementById('theFrame').height = window.innerHeight-70;
+    };
+
+  </script>
+</apex:page>

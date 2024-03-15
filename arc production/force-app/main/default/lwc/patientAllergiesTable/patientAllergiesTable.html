@@ -1,0 +1,83 @@
+<template>
+
+    <template if:true='{showAllergySearchModal}'>
+        <c-script-Sure-allergy-search 
+        onmodalclosed={closeAllergySearchModal}
+        onselectedallergy={openAllerFormModal}
+        onotherallergy={handleotherallergy}></c-script-Sure-allergy-search>
+    </template>
+
+
+    <template if:true={showAllergyFormModal}>
+        <c-script-sure-allergy-form 
+        oncloseallergyformmodal={closeAllergyFormModal} 
+        oncloseformopensearch={closeFormOpenSearch} 
+        allergyname={selectedAllergy}
+        accountid={accountid}
+        patientid={externalpatientid}
+        allergytoedit={allergyToEdit}
+        irisonly={irisOnly}></c-script-sure-allergy-form>
+    </template>
+
+    <div class="slds-grid slds-wrap slds-p-left_medium slds-p-right_medium">
+        <div class="slds-col slds-size_3-of-12">
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col">
+                    <div class="slds-form-element">
+                        <span style="float: left;">
+                            <h1 style="font-size: 18px; font-weight: 600;">
+                                <lightning-icon icon-name="standard:account" size="small" alternative-text="All Allergies" class="slds-m-right_small"></lightning-icon>
+                                All Allergies
+                            </h1>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="slds-col slds-size_4-of-12">
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col">
+                    <div class="slds-form-element">
+                        <span style="float: left;">
+                            <lightning-radio-group
+                          options={options}
+                          value={allergyFilter}
+                          type="button"
+                          onchange={handleAllergyFilter}></lightning-radio-group>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="slds-col slds-size_5-of-12">
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col">
+                    <div class="slds-form-element">
+                        <span style="float: right;">
+                            <lightning-button variant="neutral" label="New" title="New Allergy" onclick={openAllergySearchModal}></lightning-button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <template if:false={isallergyData}>
+        <p>No Allergies Recorded</p>
+    </template>
+    
+
+    <template if:true={isallergyData}>
+        <div style="margin-top: 20px;">
+            <lightning-datatable
+                        key-field="id"
+                        data={allergyData}
+                        columns={allergyColumns}
+                        hide-checkbox-column
+                        onrowaction={handleRowAction}>
+            </lightning-datatable>
+        </div>
+    </template>
+    
+    
+</template>

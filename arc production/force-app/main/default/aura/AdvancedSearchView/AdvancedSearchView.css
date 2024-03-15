@@ -1,0 +1,9 @@
+.THIS {
+}
+.THIS .borderClass{
+    border: 1px solid #dddbda;
+}
+.THIS .logCallSpinner{
+    z-index: 1 !important;
+    position: fixed;
+}

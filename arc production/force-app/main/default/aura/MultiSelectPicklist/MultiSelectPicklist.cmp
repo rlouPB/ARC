@@ -1,0 +1,26 @@
+<aura:component controller="MultiSelectPicklistCtl">
+	<aura:attribute name="class" type="String"/>
+	<aura:attribute name="name" type="String" default="selectOptions"/>
+	<aura:attribute name="label" type="String" default="Select Options"/>
+	<aura:attribute name="objectName" type="String"/>
+	<aura:attribute name="fieldName" type="String"/>
+	<aura:attribute name="availableOptions" type="List"/>
+	<aura:attribute name="selectedOptions" type="List"/>
+	<aura:attribute name="selectedOptionsString" type="String" description="Semi-colon delimited options list."/>
+	<aura:attribute name="requiredOptions" type="List"/>
+	<aura:attribute name="sourceLabel" type="String" default="Available Options"/>
+	<aura:attribute name="selectedLabel" type="String" default="Selected Options"/>
+	<aura:attribute name="min" type="Integer" default="0"/>
+	<aura:attribute name="max" type="Integer" default="10"/>
+	<aura:attribute name="variant" type="String" default="standard"/>
+	<aura:attribute name="disableReordering" type="Boolean" default="true"/>
+
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+
+	<lightning:dualListbox aura:id="selectOptions" class="{!v.class}" name="{!v.name}" label="{!v.label}"
+		sourceLabel="{!v.sourceLabel}" selectedLabel="{!v.selectedLabel}" options="{!v.availableOptions}"
+		value="{!v.selectedOptions}" requiredOptions="{!v.requiredOptions}" min="{!v.min}" 
+		max="{!v.max}" variant="{!v.variant}" onchange="{!c.handleChange}" 
+		disableReordering="{!v.disableReordering}"/>
+
+</aura:component>

@@ -1,0 +1,11 @@
+.THIS {
+    background-color : white;
+}
+.THIS .warning .slds-theme_warning, 
+.THIS .warning .slds-theme--warning {
+    background-color: rgb(255, 255, 255);
+    color: rgb(22, 50, 92);
+}
+.THIS .mergeSpinner{
+    position: fixed;
+}

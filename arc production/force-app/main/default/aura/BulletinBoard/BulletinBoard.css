@@ -1,0 +1,40 @@
+.THIS .outer-card {
+	background-color: inherit;
+}
+
+.THIS force-list-view-manager-status-info {
+	display: none;
+}
+
+.THIS .scrollable-section {
+	height: 65vh;
+	grid-column-gap: 10px;
+}
+
+.THIS .slds-card {
+	border: 1px solid rgb(198, 198, 198);
+	background-color: rgb(243, 243, 243);
+}
+
+.THIS .slds-card__header {
+	padding: 0.1rem 0.1rem 0;
+	padding-left: 0.5rem;
+	margin-bottom: 0.25rem;
+}
+
+.THIS div.slds-card__body {
+	margin-bottom: 0.25rem;
+}
+
+.THIS .section {
+	margin-bottom: 10px;
+}
+
+.THIS .rich-text,
+.THIS .section-item {
+	background-color: white;
+}
+
+.THIS .bulletin-board-label {
+	font-size: 0.9rem;
+}

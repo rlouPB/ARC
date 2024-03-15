@@ -1,0 +1,25 @@
+.THIS {
+  background-color: white !important;
+}
+
+.THIS .lightningInputRichText .slds-rich-text-editor {
+  min-height: 20vh;
+  max-height: 80vh;
+}
+
+.THIS .slds-rich-text-area__content {
+  max-height: 100%;
+}
+
+.THIS .lightningInputRichText div.slds-rich-text-editor {
+  overflow-y: auto;
+}
+
+.THIS .customRequired {
+  font-weight: t(fontWeightRegular);
+}
+
+.THIS .customRequired a:not(.display),
+.THIS .customRequired input {
+  border: 1px solid red;
+}

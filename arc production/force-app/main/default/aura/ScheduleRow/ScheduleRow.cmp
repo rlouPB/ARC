@@ -1,0 +1,96 @@
+<aura:component controller="Scheduling">
+    <aura:attribute name="recordId" type="String"/>
+    <aura:attribute name="days" type="List" default="[]"/>
+    <aura:attribute name="startDateTime" type="Datetime"/>
+    <aura:attribute name="endDateTime" type="Datetime"/>
+    <aura:attribute name="totalWidth" type="Integer"/>
+    <aura:attribute name="isHeader" type="Boolean" default="false"/>
+    <aura:attribute name="type" type="String"/>
+    <aura:attribute name="showMeetingDetails" type="Boolean" default="true"/>
+    <aura:attribute name="overlay" type="Aura.Component"/>
+    <aura:attribute name="modalPromise" type="Aura.Action"/>
+    <aura:attribute name="isPopoverOpen" type="Boolean" default="false"/>
+    <aura:attribute name="popoverTop" type="Integer"/>
+    <aura:attribute name="popoverLeft" type="Integer"/>
+    <aura:attribute name="hoverBlockSubject" type="String"/>
+	<aura:attribute name="hoverBlockStartDateTime" type="String"/>
+    <aura:attribute name="hoverBlockEndDateTime" type="String"/>
+    <aura:attribute name="hoverBlockDescription" type="String"/>
+    
+    <lightning:overlayLibrary aura:id="overlayLib"/>
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler name="change" value="{!v.recordId}" action="{!c.handleRecordIdChanged}"/>
+
+    <aura:method name="updateRow" action="{!c.handleUpdateRow}"/>
+
+    <div class="wrapper">
+        <aura:if isTrue="{!v.isPopoverOpen}">
+            <div class="popover-container">
+                <div class="popover" style="{!'top: ' + v.popoverTop + 'px; left: ' + v.popoverLeft + 'px;'}">
+                    <section class="slds-popover slds-nubbin_left-top slds-popover_medium" role="dialog">
+                        <header class="slds-popover__header">
+                            <h2 class="slds-text-heading_small">{!v.hoverBlockSubject}</h2>
+                        </header>
+                        <div class="slds-popover__body">
+                            <p><strong>Start: &nbsp;</strong>{!v.hoverBlockStartDateTime}</p>
+                            <p><strong>End: &nbsp;&nbsp;&nbsp;</strong>{!v.hoverBlockEndDateTime}</p>
+                            <aura:if isTrue="{!and(not(v.hoverBlock.isFree), v.showMeetingDetails, 
+                                not(empty(v.hoverBlockDescription)))}">
+                                <lightning:formattedRichText value="{!v.hoverBlockDescription}"/>
+                            </aura:if>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </aura:if>
+
+        <div style="{!'width: ' + v.totalWidth + 'px;'}">
+            <aura:iteration items="{!v.days}" var="day">
+                <div class="container">
+                    <aura:if isTrue="{!v.isHeader}">
+                        <div class="date-header">
+                            <strong>
+                                <lightning:formattedDateTime value="{!day.dateOfDay}" 
+                                    year="numeric" month="numeric" day="numeric" timeZone="UTC"/>
+                            </strong>
+                        </div>
+                    </aura:if>
+                    
+                    <div class="block-container">
+                        <aura:iteration items="{!day.blocks}" var="block">
+                            <div style="{!'width: ' + block.width + '%'}" class="{!if(and(block.isFree, 
+                                and(not(v.isHeader), not(v.type == 'Group'))), 'free-block', '') + 
+                                if(and(not(block.isFree), and(not(v.isHeader), not(v.type == 'Group'))), 
+                                'busy-block', '') + if(and(v.isHeader, not(v.type == 'Group')), 
+                                'header-block', '') + ' slds-truncate'}">
+                                <aura:if isTrue="{!v.isHeader}">
+                                    <strong><lightning:formattedDateTime value="{!block.startDateTime}" hour="numeric" timeZoneName="short" timeZone="America/New_York"/></strong>
+                                </aura:if>
+                                <aura:if isTrue="{!and(not(block.isFree), not(v.type == 'Group'))}">
+                                    <aura:if isTrue="{!v.showMeetingDetails}">
+                                        <div id="{!'block' + recordId + block.startDateTime}" data-startDateTime="{!block.startDateTime}" 
+                                            data-endDateTime="{!block.endDateTime}" data-subject="{!block.meeting.Subject__c}"
+                                            data-description="{!block.meeting.Description__c}" onmouseenter="{!c.handleShowPopover}" 
+                                            onmouseleave="{!c.handleHidePopover}">
+                                            <p class="subject"><strong>{!block.meeting.Subject__c}</strong></p>
+                                        </div>
+                                        <aura:set attribute="else">
+                                            <div id="{!'block' + recordId + block.startDateTime}" data-startDateTime="{!block.startDateTime}" 
+                                                data-endDateTime="{!block.endDateTime}" data-subject="Busy" 
+                                                onmouseenter="{!c.handleShowPopover}" 
+                                                onmouseleave="{!c.handleHidePopover}">
+                                                <p class="subject"><strong>Busy</strong></p>
+                                            </div>
+                                        </aura:set>
+                                    </aura:if>
+                                </aura:if>
+                            </div>
+                        </aura:iteration>
+                    </div>
+                    
+                </div>
+            </aura:iteration>
+        </div>
+    </div>
+</aura:component>

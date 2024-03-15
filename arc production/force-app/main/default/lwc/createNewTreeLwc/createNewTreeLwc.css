@@ -1,0 +1,24 @@
+:host{
+    background-color:yellow !important;
+}
+.slds-tree {
+    font-weight: bold !important;
+}
+[role='group'] {
+    font-weight: normal !important;;
+}
+.slds-template__container {
+    overflow-y: hidden!important;
+    padding: .75rem;
+}
+.tree {
+    font-size: 14px;
+    max-height: 55vh;
+    overflow: auto;
+}
+.slds-tree__item{
+    width: 275%;
+}
+span {
+    background-color: blue !important;
+}

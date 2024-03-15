@@ -1,0 +1,63 @@
+<!-- sldsValidatorIgnore -->
+<template>
+	<article class="slds-card slds-card_boundary">
+		<template if:true={loading}>
+			<lightning-spinner alternative-text="loading" title="Loading..." size="large"></lightning-spinner>
+		</template>
+		<template if:false={loading}>
+			<div class="slds-page-header slds-page-header_joined slds-page-header_bleed slds-shrink-none slds-is-relative">
+				<header class="slds-media slds-media_center slds-has-flexi-truncate">
+					<div class="slds-media__figure">
+						<span class="slds-icon_container" title="Package Lines">
+							<lightning-icon icon-name="standard:custom" size="small"></lightning-icon>
+							<span class="slds-assistive-text">Package Lines</span>
+						</span>
+					</div>
+					<div class="slds-media__body slds-align-middle">
+						<h2 class="slds-card__header-title">
+							<a onclick={navigateToPackageLines} class="slds-card__header-link" title="Package Lines">
+								<span class="slds-truncate">Package Lines ({dataLength})</span>
+							</a>
+						</h2>
+					</div>
+					<div class="slds-no-flex">
+						<template if:true={dataLength}>
+							<lightning-button-icon icon-name="utility:refresh" variant="border-filled" alternative-text="Refresh List" class="" title="Refresh List" onclick={load}></lightning-button-icon>
+						</template>
+					</div>
+					<!-- <template if:true={dataLength}>
+						<div class="">{dataLength} items • sorted by {sortedBy}</div>
+					</template> -->
+				</header>
+			</div>
+
+			<div class="slds-card__body" style="margin-top: 0;">
+				<template if:true={dataLength}>
+					<template if:true={data}>
+						<lightning-datatable key-field="Id"
+											 data={data}
+											 class="slds-table slds-table_bordered slds-table_edit"
+											 columns={columns}
+											 default-sort-direction={defaultSortDirection}
+											 draft-values={fldsItemValues}
+											 hide-checkbox-column
+											 onsave={saveHandleAction}
+											 onsort={onHandleSort}
+											 show-row-number-column
+											 sorted-by={sortedBy}
+											 sorted-direction={sortDirection}>
+						</lightning-datatable>
+					</template>
+				</template>
+			</div>
+
+			<template if:true={dataLength}>
+				<footer class="slds-card__footer" data-id="footer">
+					<a class="slds-card__footer-action" onclick={navigateToPackageLines}>View All
+						<span class="slds-assistive-text">Package Lines</span>
+					</a>
+				</footer>
+			</template>
+		</template>
+	</article>
+</template>

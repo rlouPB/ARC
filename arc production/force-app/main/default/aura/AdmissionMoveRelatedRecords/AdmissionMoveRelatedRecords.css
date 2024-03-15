@@ -1,0 +1,35 @@
+.THIS .modal-window {
+    width: 80%;
+    max-width: none;
+}
+
+.THIS .modal-body {
+    min-height: 300px;
+}
+
+.THIS .recordList, .THIS .recordCell
+{
+	border: 1px solid rgb(221, 219, 218);
+	/*border-bottom-color: rgb(128, 128, 128);
+	border-left-color: rgb(128, 128, 128);
+	border-right-color: rgb(128, 128, 128);
+	border-top-color: rgb(128, 128, 128);
+	border-width: 5px;*/
+}
+
+.THIS  .recordCell
+{
+	height: 100%;
+}
+.THIS  .fromIcon
+{
+	background-color: red;
+}
+.THIS  .toIcon
+{
+	background-color: green;
+}
+.THIS input.uiInput--checkbox input[type=checkbox]:checked
+{
+	background-color: white !important;
+}

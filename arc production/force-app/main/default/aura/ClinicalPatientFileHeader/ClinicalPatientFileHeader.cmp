@@ -1,0 +1,71 @@
+<aura:component controller="UserHomeApexController" implements="flexipage:availableForRecordHome,force:hasRecordId">
+	<aura:attribute name="accountRecord" type="Map" access="public" Description="Holds Account Record" />
+	<!-- <aura:attribute name="isRecordLoaded" type="Boolean" access="public" default="false" Description="True when records are ready"/> -->
+	<aura:attribute name="recordFields" type="List" access="public" default="[]" />
+	<aura:attribute name="programStatus" type="String"/>
+	<aura:attribute name="showClinicalPatientFile" type="Boolean" default="false" />
+	<aura:attribute name="cpMessage" type="String" default="Loading. . ." />
+	<aura:handler name="init" value="{!this}" action="{!c.init}" />
+	<!-- Getting Account Record -->
+	<!-- <force:recordData aura:id="recordLoader" recordId="{!v.recordId}" targetFields="{!v.accountRecord}" fields="Photo_Document_Id__c" layoutType="FULL" recordUpdated="{!c.handleRecordUpdated}" /> -->
+	<c:customRecordData recordId="{!v.recordId}" autoRefresh="true" target="{!v.accountRecord}" selectFields="Photo_Document_Id__c,Current_Admission__r.Stage__c,Current_Admission__r.Discharge_Date__c,Patient_Contact__r.Deceased__c"></c:customRecordData>
+	<div class="headerWrapper">
+		<aura:if isTrue="{!v.showClinicalPatientFile}">
+			<aura:if isTrue="{!v.accountRecord}">
+				<lightning:layout>
+					<aura:if isTrue="{!v.accountRecord.Patient_Contact__r.Deceased__c}">	
+						<fieldset class="clsFieldset" >
+							<legend class="clsLegend">Deceased</legend>
+							<div style="width:100%">
+							<lightning:layoutItem size="2">
+								<c:photoComponent parentRecordId="{!v.recordId}" photoIdField="{!v.accountRecord.Photo_Document_Id__c}" height="120" width="120" />
+							</lightning:layoutItem>
+							<lightning:layoutItem size="10" >
+								<lightning:recordViewForm recordId="{!v.recordId}" objectApiName="Account">
+									<lightning:layout multipleRows="true">
+										<aura:iteration items="{!v.recordFields}" var="item">
+											<lightning:layoutItem size="6">
+												<label class="slds-form-element__label">{!item.label}</label>
+												<lightning:outputField variant="label-hidden" fieldName="{!item.apiName}" />
+											</lightning:layoutItem>
+										</aura:iteration>
+									</lightning:layout>
+								</lightning:recordViewForm>
+							</lightning:layoutItem>
+						</div>
+						</fieldset>
+						
+						<aura:set attribute="else">
+							<lightning:layoutItem size="2">
+								<c:photoComponent parentRecordId="{!v.recordId}" photoIdField="{!v.accountRecord.Photo_Document_Id__c}" height="120" width="120" />
+							</lightning:layoutItem>
+							<lightning:layoutItem size="6">
+								<lightning:recordViewForm recordId="{!v.recordId}" objectApiName="Account">
+									<lightning:layout multipleRows="true">
+										<aura:iteration items="{!v.recordFields}" var="item">
+											<lightning:layoutItem size="6">
+												<label class="slds-form-element__label"><b>{!item.label}</b></label>									
+												<lightning:outputField variant="label-hidden" fieldName="{!item.apiName}" />
+												<!-- <aura:if isTrue="{!and(item.secondLine != null, item.secondLine != '')}">
+													<lightning:outputField variant="label-hidden" fieldName="{!item.secondLine}" />	
+												</aura:if>									 -->
+												<aura:if isTrue="{!item.addOn}">
+													<lightning:outputField variant="label-hidden" fieldName="{!item.addOn}" />	
+												</aura:if>									
+											</lightning:layoutItem>
+										</aura:iteration>
+									</lightning:layout>
+								</lightning:recordViewForm>
+							</lightning:layoutItem>
+						</aura:set>
+					</aura:if>
+				</lightning:layout>
+			</aura:if>
+			<aura:set attribute="else">
+				<div style="text-align: center;">
+                	<p>{!v.cpMessage}</p>
+				</div>
+            </aura:set>
+        </aura:if>
+	</div>
+</aura:component>

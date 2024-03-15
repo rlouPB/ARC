@@ -1,0 +1,8 @@
+<aura:component implements="flexipage:availableForAllPageTypes,force:hasRecordId" extends="c:ApexService" controller="PatientTitleSetterCls">
+    <aura:attribute name="patient" type="Account" />
+    <aura:attribute name="title" type="String" default="Lightning Experience" />
+    <aura:attribute name="currentUrl" type="String" default="" />
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:handler name="render" value="{!this}" action="{!c.onRender}" />
+    <aura:handler event="aura:locationChange" action="{!c.onLocationChange}" />
+</aura:component>

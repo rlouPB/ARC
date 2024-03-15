@@ -1,0 +1,33 @@
+<aura:component controller="PicklistCtl">
+    <aura:attribute name="class" type="String"/>
+    <aura:attribute name="name" type="String" default="picklist"/>
+    <aura:attribute name="label" type="String" default=""/>
+    <aura:attribute name="objectName" type="String"/>
+    <aura:attribute name="fieldName" type="String"/>
+    <aura:attribute name="options" type="List"/>
+    <aura:attribute name="selectedValue" type="String"/>
+    <aura:attribute name="required" type="Boolean"/>
+    <aura:attribute name="variant" type="String" default="standard"/>
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+
+    <!-- <lightning:select name="{!v.name}" label="{!v.label}" value="{!v.selectedValue}" 
+        variant="{!v.variant}"
+        class="{! v.required ? 'customRequired' : ''}">
+        <aura:if isTrue="{!!v.required}">
+            <option text="n" value="" />
+        </aura:if>
+        <aura:iteration items="{!v.options}" var="option">
+            <option text="{!option.label}" value="{!option.value}" selected="{!option.selected}"/>
+        </aura:iteration>
+    </lightning:select> -->
+
+	<!-- <lightning:radioGroup label="" value="{!v.selectedValue}" type="radio" options="{!v.options}">
+	</lightning:radioGroup> -->
+	<div class="{! v.required ? 'customRequired' : ''}">
+		<lightning:radioGroup label="" 
+							options="{!v.options}"
+							value="{!v.selectedValue}"
+								type="radio" />
+	</div>
+</aura:component>

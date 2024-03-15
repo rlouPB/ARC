@@ -1,0 +1,86 @@
+<aura:component controller="NoteViewTreatmentPlanCtl" extends="c:NoteItemPlugin">
+    <aura:attribute name="showSpinner" type="Boolean" default="false" access="private" />
+
+    <aura:attribute name="treatmentPlanId" type="String" description="Id of Case/Treatment Plan if no Note passed" />
+    <aura:attribute name="currentTreatmentPlan" type="Map" description="Current Treatment Plan inner class in NoteViewTreatmentPlanCtl that contains the treatment plan, goals, and objectives"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    
+    <lightning:spinner aura:id="mySpinner" variant="brand" size="medium" class="{!v.showSpinner ? 'slds-show' : 'slds-hide'}"/>
+    <div class="slds-box slds-p-vertical_none slds-m-vertical_none">
+        <aura:if isTrue="{!empty(v.currentTreatmentPlan)}">
+            There is no current Treatment Plan with this Patient
+            <aura:set attribute="else">
+                <lightning:layout multipleRows="true">
+                    <lightning:layoutItem size="12" class="slds-p-vertical_none slds-m-vertical_none">
+                        <!-- <lightning:card class="slds-p-vertical_none slds-m-vertical_none"> -->
+                            <lightning:layout>
+                                <lightning:layoutItem size="12" class="slds-p-vertical_none slds-m-vertical_none">
+                                        <lightning:layoutItem size="12" class="slds-p-vertical_none slds-m-vertical_none">
+                                            <label for="Overall_Goal" class="slds-form-element__label">Overall Goal</label>
+                                            <div id="Overall_Goal">
+                                                <p><lightning:formattedText class="Goal-Objective-Value" linkify="true" value="{!v.currentTreatmentPlan.treatmentPlanObj.Goal__c}" /></p>
+                                            </div>
+                                        </lightning:layoutItem>
+                                </lightning:layoutItem>
+                            </lightning:layout>
+                        <!-- </lightning:card> -->
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="12">
+                        <div class="slds-box slds-p-vertical_xxx-small slds-m-vertical_xxx-small">
+                            <lightning:layout multipleRows="true">
+                                <lightning:layoutItem size="12" class="slds-p-vertical_none slds-m-vertical_none">
+                                    <div class="slds-text-heading_medium slds-align_absolute-center"><b>Goals and Objectives</b></div>
+                                </lightning:layoutItem>
+                                <lightning:layoutItem size="12" smallDeviceSize="12" largeDeviceSize="4" class="slds-p-vertical_none slds-m-vertical_none slds-p-left_small">
+                                    <div class="slds-form-element__label">Goal</div>
+                                </lightning:layoutItem>
+                                <lightning:layoutItem size="12"  smallDeviceSize="12" largeDeviceSize="8" class="slds-p-vertical_none slds-m-vertical_none">
+                                    <div class="slds-form-element__label">Objectives</div>
+                                </lightning:layoutItem>
+                                
+                                <lightning:layoutItem size="12" class="slds-p-vertical_none slds-m-vertical_none">
+                                    <div class="slds-scrollable goalList" >
+                                        <aura:iteration items="{!v.currentTreatmentPlan.goalList}" var="goal">
+                                            <lightning:card class="slds-p-vertical_xxx-small slds-m-vertical_xxx-small">
+                                                <lightning:layout multipleRows="true">
+                                                    <lightning:layoutItem size="12" smallDeviceSize="12" largeDeviceSize="4" class="slds-p-vertical_none slds-m-vertical_none">
+                                                        <b><lightning:formattedText class="Goal-Objective-Value" linkify="true" value="{!goal.goalObj.Label__c}" /></b>
+                                                    </lightning:layoutItem>
+                                                    <lightning:layoutItem size="12"  smallDeviceSize="12" largeDeviceSize="8" class="slds-p-vertical_none slds-m-vertical_none slds-p-left_small">
+                                                        <ul>
+                                                        <aura:iteration items="{!goal.objectiveList}" var="objective">
+                                                            <li>
+                                                                <lightning:formattedText class="Goal-Objective-Value" linkify="true" value="{!objective.Label__c}" />
+                                                            </li>
+                                                        </aura:iteration>
+                                                        </ul>
+                                                    </lightning:layoutItem>
+                                                </lightning:layout>
+                                            </lightning:card>
+                                        </aura:iteration>
+                                    </div>
+                                </lightning:layoutItem>
+                            </lightning:layout>
+                        </div>
+                    </lightning:layoutItem>
+                    <aura:if isTrue="{!not(empty(v.currentTreatmentPlan.treatmentPlanObj.Admission__r.Medical_Care_Plan__c))}">  
+                        <lightning:layoutItem size="12">
+                            <div class="slds-box slds-p-vertical_xxx-small slds-m-vertical_xxx-small">
+                                <lightning:layout multipleRows="true">
+                                    <lightning:layoutItem size="12" class="slds-p-vertical_none slds-m-vertical_none">
+                                        <div class="slds-text-heading_medium slds-align_absolute-center slds-m-bottom_medium"><b>Medical Care</b></div>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem size="12" class="slds-p-vertical_none slds-m-vertical_none">
+                                        <aura:unescapedHtml value="{!v.currentTreatmentPlan.treatmentPlanObj.Admission__r.Medical_Care_Plan__c}"/>
+                                    </lightning:layoutItem>
+                                </lightning:layout>
+                            </div>  
+                        </lightning:layoutItem>   
+                    </aura:if>
+                    
+                </lightning:layout>
+            </aura:set>
+        </aura:if>
+    </div>
+</aura:component>

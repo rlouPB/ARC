@@ -1,0 +1,178 @@
+<aura:component controller="UserHomeApexController" implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickActionwithoutheader,lightning:actionOverride">
+    <aura:attribute name="accountRecord" type="Object" access="public" Description="Holds Account Record" />
+    <aura:attribute name="buttonsCollapsed" type="Boolean" default="true" description="if true, show buttons as narrow" />
+    <aura:attribute name="loadingMain" type="Boolean" default="false" description="if true, spinner on large right pane" />
+    <aura:attribute name="loadingTabs" type="Boolean" default="true" description="if true, spinner on left sidebar" />
+    <aura:attribute name="openItemTitle" type="String" default="?" />
+    <aura:attribute name="recordLoadError" type="String" />
+    <aura:attribute name="selectedTabId" type="String" default="patient" description="id of tab to display in main area" />
+    <aura:attribute name="showNursingShiftItems" type="Boolean" />
+    <aura:attribute name="tabs" type="List" default="[]" description="the tabs to be displayed" />
+    <!-- Begin Modified by Roy Lou 12/02/2021 for ARC-1237 -->
+    <aura:attribute name="displayPermissions" type="Map" description="contains Boolean attributes for display permissions" />
+    <!-- End Modified by Roy Lou 12/02/2021 for ARC-1237 -->
+    <aura:attribute name="showClinicalPatientFile" type="Boolean" default="false" />
+    <aura:handler event="force:refreshView" action="{!c.onRefreshView}" />
+    <aura:handler name="change" value="{!v.selectedTabId}" action="{!c.handleDisplayNewTab}" />
+    <aura:handler name="init" value="{!this}" action="{!c.init}" />
+    <lightning:quickActionAPI aura:id="quickActionAPI" />
+    <!-- Getting Account Record -->
+    <force:recordData aura:id="recordLoader" recordId="{!v.recordId}" targetFields="{!v.accountRecord}" fields="Id, Current_Admission__c, Current_Case__c, Patient_Contact__c,Current_Case__c, External_Patient_Id__c" targetError="{!v.recordLoadError}" />
+    <div class="outer-wrapper">
+        <aura:if isTrue="{!v.showClinicalPatientFile}">
+        <div class="slds-grid slds-wrap">
+            <div class="{!'slds-col ' + (v.buttonsCollapsed ? 'slds-size_2-of-12' : 'slds-size_1-of-6')}" id="ButtonContainer">
+                <aura:if isTrue="{!v.loadingTabs}">
+                    <lightning:spinner alternative-text="Loading" size="small" />
+                </aura:if>
+                <aura:iteration items="{!v.tabs}" var="tab" indexVar="idx">
+                    <div class="{!'tab slds-var-p-around_small slds-text-align_center' + (tab.isSelected == true ? ' selected' : ' buttonHand')}" aura-id="tab" data-id="{!idx}" onclick="{!c.handleButtonClick}">
+                        <div class="slds-var-m-around_small slds-text-title_bold" title="{!tab.title}">
+                            {!tab.title}
+                            <br/>
+                        </div>
+                        <aura:if isTrue="{!and(tab.subTitle, tab.subTitle != '')}">
+                            <lightning:formattedRichText value="{!tab.subTitle}" />
+                        </aura:if>
+                    </div>
+                </aura:iteration>
+            </div>
+            <div class="{!'slds-col main-content-wrapper ' + (v.buttonsCollapsed ? 'slds-size_10-of-12' : 'slds-size_5-of-6')}" id="DisplayContainer">
+                <div class="main-content fullheight slds-var-p-around_medium " aura-id="display">
+                    <aura:if isTrue="{!v.loadingMain}">
+                        <lightning:spinner alternative-text="Loading" size="small" />
+                    </aura:if>
+                    <aura:if isTrue="{!v.selectedTabId == 'patient'}">
+                        <lightning:layout multipleRows="true">
+                            <!-- Modified by Roy Lou 12/02/2021 for ARC-1237 to add <aura:if> tag -->
+                            {!v.displayPermissions.FlaggedNote}
+                            <aura:if isTrue="{!v.displayPermissions.flaggedNotesLwc}">
+                                <div style="margin-bottom: 30px; width: 100%;" class="slds-card_boundary my-card">
+                                    <!-- Flagged Notes & Alerts -->
+                                    <lightning:layoutItem size="12" >
+                                        <lightning:card  >
+                                            <c:flaggedNotesLwc recordId="{!v.recordId}"></c:flaggedNotesLwc>
+                                        </lightning:card>
+                                    </lightning:layoutItem>
+                                </div>
+                            </aura:if>
+                            <div style="margin-bottom: 30px; width: 100%;" class="slds-card_boundary my-card">
+                                <!-- Related Contacts -->
+                                <lightning:layoutItem size="12">
+                                    <lightning:card>
+                                        <c:ClinicalPatientDataTable accntId="{!v.recordId}" />
+                                    </lightning:card>
+                                </lightning:layoutItem>
+                            </div>
+                            <!-- Modified by Roy Lou 12/02/2021 for ARC-1237 to add <aura:if> tag -->
+                            <aura:if isTrue="{!v.displayPermissions.ListAssignedClinicians}">
+                                <div style="margin-bottom: 30px; width: 100%;" class="slds-card_boundary my-card">
+                                    <!-- Assigned Clinicians -->
+                                    <lightning:layoutItem size="12">
+                                        <lightning:card>
+                                            <c:ListAssignedClinicians recordId="{!v.recordId}" />
+                                        </lightning:card>
+                                    </lightning:layoutItem>
+                                </div>
+                            </aura:if>
+                            <!-- Modified by Roy Lou 12/02/2021 for ARC-1237 to add <aura:if> tag -->
+                            <aura:if isTrue="{!v.displayPermissions.patientDiagnoses}">
+                                <div style="margin-bottom: 30px; width: 100%;" class="slds-card_boundary my-card">
+                                    <!-- Patient Diagnoses -->
+                                    <lightning:layoutItem size="12">
+                                        <lightning:card>
+                                            <c:patientDiagnoses aura:id="patientDiagnoses" patientId="{!v.recordId}" />
+                                        </lightning:card>
+                                    </lightning:layoutItem>
+                                </div>
+                            </aura:if>
+                            <!-- Modified by Roy Lou 12/02/2021 for ARC-1237 to add <aura:if> tag -->
+                            <!-- Modified by Dave Solsberry 05/22/2022 for ARC-1671 to relocate Patient Allergies below Patient Diagnoses -->
+                            <aura:if isTrue="{!v.displayPermissions.patientAllergiesTable}">
+                                <div style="margin-bottom: 30px; width: 100%;" class="slds-card_boundary my-card">
+                                    <!-- All Allergies -->
+                                    <lightning:layoutItem size="12">
+                                        <lightning:card>
+                                            <c:patientAllergiesTable externalpatientid="{!v.accountRecord.External_Patient_Id__c}" accountid="{!v.recordId}" />
+                                        </lightning:card>
+                                    </lightning:layoutItem>
+                                </div>
+                            </aura:if>
+                            <!-- Modified by Dave Solsberry 05/22/2022 for ARC-1671, add Dietary Restrictions section -->
+                            <!-- <aura:if isTrue="{!v.displayPermissions.patientAllergiesTable}"> -->
+                            <div style="margin-bottom: 30px; width: 100%;" class="slds-card_boundary my-card">
+                                <!-- Dietary Restrictions -->
+                                <lightning:layoutItem size="12">
+                                    <lightning:card title="Dietary Restrictions" iconName="standard:work_plan">
+                                        <c:patientDietaryRestrictionsLwc objectApiName="Account" recordId="{!v.recordId}" />
+                                    </lightning:card>
+                                </lightning:layoutItem>
+                            </div>
+                            <!-- </aura:if> -->
+                        </lightning:layout>
+                    </aura:if>
+                    <aura:if isTrue="{!v.selectedTabId == 'treatmentPlan'}">
+                        <aura:if isTrue="{!v.accountRecord.Current_Case__c}">
+                            <c:recordLink recordId="{!v.accountRecord.Current_Case__c}" recordName="Open Current Treatment Plan"></c:recordLink>
+                        </aura:if>
+                        <c:NoteViewTreatmentPlan treatmentPlanId="{!v.accountRecord.Current_Case__c}" />
+                    </aura:if>
+                    <aura:if isTrue="{!v.selectedTabId == 'medications'}">
+                        <c:medicationsContainer recordId="{!v.recordId}" externalpatientid="{!v.accountRecord.External_Patient_Id__c}" />
+                    </aura:if>
+                    <aura:if isTrue="{!v.selectedTabId == 'createnew'}">
+                        <c:CreateNew recordId="{!v.recordId}" />
+                    </aura:if>
+                    <aura:if isTrue="{!v.selectedTabId == 'treatmentHistory'}">
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12">
+                                <div class="slds-var-m-bottom_small">
+                                    <h1 style="font-size: 18px; font-weight: 600;">
+                                        <lightning:icon iconName="standard:channel_program_history" size="small" alternativeText="Treatment History" class="slds-var-m-right_small" /> Treatment History
+                                    </h1>
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12">
+                                <c:ViewTreatmentHistory recordId="{!v.recordId}" context="ViewTreatmentHistory" />
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </aura:if>
+                    <aura:if isTrue="{!v.selectedTabId == 'drafts'}">
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12">
+                                <div class="slds-var-m-bottom_small">
+                                    <h1 style="font-size: 18px; font-weight: 600;">
+                                        <lightning:icon iconName="action:log_event" size="small" alternativeText="Unfinalized Drafts" class="slds-var-m-right_small" /> Unfinalized Drafts
+                                    </h1>
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12">
+                                <c:ViewTreatmentHistory recordId="{!v.recordId}" context="PatientDrafts" />
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </aura:if>
+                    <aura:if isTrue="{!v.selectedTabId == 'openItems'}">
+                        <c:viewOutstandingItemsLwc aura:id="openItems" patientId="{!v.recordId}" />
+                    </aura:if>
+                    <aura:if isTrue="{!v.selectedTabId == 'preAdmission'}">
+                        <c:CallSearch title="Admission Call Log" recordId="{!v.recordId}"/>
+                        <c:admissionScreening recordId="{!v.recordId}" />
+                    </aura:if>
+                    <aura:if isTrue="{!v.selectedTabId == 'correspondence'}">
+                        <CMTD:EnhancedRelatedList objectAPIName="Task" displayType="List" relatedListName="Correspondence" title="Correspondence" hideOnNoRecord="false" parentId="{!v.recordId}" parentObjectIdField="Id" parentField="WhatId" newRecord="Standard" showHeader="true"
+                        />
+                    </aura:if>
+                    <aura:if isTrue="{!v.selectedTabId == 'shiftItems'}">
+                        <!-- <c:nursingShiftItemsByPatientLwc recordId="{!v.recordId}" /> -->
+                        <c:nursingShiftItemsByShiftLwc columnArrangement="NursingPatientShiftItems" recordId="{!v.recordId}" showReload="true" showAddNew="true" isFromPatientAccount="true" showOnlyMyItems="false"></c:nursingShiftItemsByShiftLwc>
+                    </aura:if>
+                    <!-- JN Removed for deployment with IOP Hotfix 211201. When putting back in, add Tab in JS
+					<aura:if isTrue="{!v.selectedTabId == 'requirements'}">
+							<c:AdmissionRequirementManagement recordId="{!v.recordId}" />
+					</aura:if> -->
+                </div>
+            </div>
+        </div>
+        </aura:if>
+    </div>
+</aura:component>

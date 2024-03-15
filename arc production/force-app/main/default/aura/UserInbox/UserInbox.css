@@ -1,0 +1,48 @@
+.THIS {
+  --slds-c-card-header-spacing-block-start: 1rem;
+  --slds-c-card-header-spacing-block-end: 1rem;
+  --slds-c-card-footer-text-align: right;
+  --slds-c-card-footer-spacing-block-start: 0.4rem;
+  --slds-c-card-footer-spacing-block-end: 0.5rem;
+}
+
+/* .THIS .c-container {
+  width: 48.5rem;
+} */
+
+.THIS .c-display-inline-flex {
+  display: inline-flex;
+}
+
+.THIS .c-family {
+  color: cyan;
+}
+
+.THIS .c-patient {
+  color: slateblue;
+}
+
+.THIS .display-contents {
+  display: contents;
+}
+
+.THIS .footer-bold {
+  font-weight: bold;
+}
+
+.THIS .slds-card__body {
+  margin-bottom: 0;
+  margin-top: 0;
+}
+
+.THIS .slds-card__header.slds-grid {
+  margin-bottom: 0;
+}
+
+.THIS .slds-table_header-fixed_container.c-container-body {
+  padding-top: 0;
+}
+
+.THIS legend {
+  display: none;
+}

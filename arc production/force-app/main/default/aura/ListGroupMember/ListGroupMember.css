@@ -1,0 +1,28 @@
+.THIS .slds-form-element__control{
+    padding-left: 0;
+    clear: none;
+}
+
+.THIS .table-test tbody td button {
+	background:none!important;
+     border:none; 
+     padding:0!important;
+    
+    /*optional*/
+    font-family:arial,sans-serif; /*input has OS specific font-family*/
+     color:#069;
+     text-decoration:underline;
+     cursor:pointer;
+}
+.THIS .table-test tbody td {
+	font-size : 12px!important;
+}
+.THIS .testClass button{
+	display : none;
+}
+.THIS .testClassDisabled button{
+	color : gray!important;
+}
+/* .THIS .table-test thead th span { 
+	
+} */

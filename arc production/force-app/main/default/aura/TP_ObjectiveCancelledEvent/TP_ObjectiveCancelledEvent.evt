@@ -1,0 +1,3 @@
+<aura:event type="COMPONENT" description="New objective is being cancelled or removed.">
+    <aura:attribute name="objectiveIndex" type="Integer"/>
+</aura:event>

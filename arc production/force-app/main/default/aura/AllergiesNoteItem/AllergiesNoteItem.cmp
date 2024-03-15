@@ -1,0 +1,19 @@
+<aura:component extends="c:NoteItemPlugin">
+    <aura:attribute name="account" type="Account" />
+
+    <aura:if isTrue="{!v.theNote.patientNote.Account__c}">
+        <force:recordData recordId="{!v.theNote.patientNote.Account__c}" fields="External_Patient_Id__c" targetFields="{!v.account}" ></force:recordData>
+    </aura:if>
+    
+    <article class="slds-card slds-card_boundary">
+        <div style="padding:10px">
+            <aura:if isTrue="{!v.account}">
+                <c:patientAllergiesTable externalpatientid="{!v.account.External_Patient_Id__c}"
+                    accountid="{!v.theNote.patientNote.Account__c}"></c:patientAllergiesTable>
+                <aura:set attribute="else">
+                    <lightning:spinner />
+                </aura:set>
+            </aura:if>
+        </div>
+    </article>
+</aura:component>

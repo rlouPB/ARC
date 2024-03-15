@@ -1,0 +1,38 @@
+<aura:component >
+    <aura:attribute name="caseTeamMember" type="CaseTeamMember" access="global"/>
+    <aura:attribute name="selectedRecord" type="Object" default="{isRecord: false}" access="public" description="Use,for store SELECTED sObject Record"/>
+	<aura:attribute name="caseTeamMembersRoles" type="CaseTeamRole[]" access="global"/>
+    <aura:attribute name="rowNumber" type="String"/>
+    <aura:attribute name="TeamMemberLookupFilter" type="List" default="[]"/>
+
+    <aura:handler name="change" value="{!v.caseTeamMember.TeamRoleId}" action="{!c.roleChanged}"/>
+    <aura:registerEvent name="CaseTeamRelatedListRoleChanged" type="c:CaseTeamRelatedListRoleChanged"/>
+
+
+	
+
+			<tr>
+                
+                <td style="padding-left:20px;">
+                	<lightning:select name="TeamRole" label="" aura:id="teamRole" disabled="false" value="{!v.caseTeamMember.TeamRoleId}">
+                      <aura:iteration items="{!v.caseTeamMembersRoles}" var="option">
+                          <option text="{!option.Name}" value="{!option.Id}" selected="{!option.Id==v.caseTeamMember.TeamRoleId}"/>
+                      </aura:iteration>
+                      
+                    </lightning:select>
+                </td>
+                <td>
+                    <c:LookupComponent objectName="User" label="" 
+                                       fieldsToSearch="Name" 
+                                       lookupFieldName="{!v.caseTeamMember.MemberId}" 
+                                       allowFreeText="true" 
+                                       aura:id="memberLookup" 
+                                       filters="{!v.TeamMemberLookupFilter}" 
+                                       selectedRecord="{!v.selectedRecord}" 
+                                       displayField="Name"
+                                       allowPropagation="true"
+                                       instanceName="{!v.rowNumber}"
+                                       displayFieldValue="Id"/>
+                </td>
+            </tr>
+</aura:component>

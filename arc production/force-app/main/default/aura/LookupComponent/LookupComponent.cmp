@@ -1,0 +1,150 @@
+<aura:component controller="LookupComponentController" extends="c:ApexService">   
+    <!--declare attributes--> 
+    <aura:attribute name="instanceName" type="String" default="lookupComponent" access="public" />
+    <aura:attribute name="selectedRecord" type="Object" default="{isRecord: false}" access="public" description="Use,for store SELECTED sObject Record"/>
+    
+    <aura:attribute name="externalFieldPill" type="Boolean" default="false" access="public" />
+
+    <aura:attribute name="Message" type="String" default="" access="public" description="Use,for show inside lookup menu"/>
+    <aura:attribute name="lookupFieldName" type="String" default="" access="public" description="text to display in search box"/>
+    <!-- <aura:attribute name="type" type="String" default="" access="public" /> -->
+    <!-- <aura:attribute name="patientId" type="String" default="" access="public" /> -->
+    <aura:attribute name="label" type="String" default="" access="public" />
+    <aura:attribute name="labelHidden" type="Boolean" access="public" />
+    <aura:attribute name="displayHoverText" type="Boolean" access="public" description="Display the targeted record.label as a title attribute, making it a hover text" />
+    <aura:attribute name="displayField" type="String" default="" access="public" 
+            description="What field on queried object to use for display label in pill, in dropdown, and also the v.selectedRecord.label. Usually the Name field from the selected object, e.g. 'Owner.Name'. "/>
+    <aura:attribute name="displayFieldValue" type="String" default="" access="public" 
+            description="What field on queried object to use for value in pill in dropdown, and also the v.selectedRecord.value. Usually the lookup field itself, e.g. 'OwnerId'"/>
+    
+    <aura:attribute name="SearchKeyWord" type="String" default="" access="public" description="Use,for store search keyword"/>
+    
+    <aura:attribute name="objectName" type="String" default="" access="public" description="Use,for store Object API name"/>
+    <aura:attribute name="fieldsToSearch" type="String" default="" access="public" />
+    <aura:attribute name="orderByClause" type="String" default="" access="public" description="Literal text that follows 'ORDER BY' in query. E.g. 'CreatedDate DESC' blank will be unsorted"/>
+    
+    <aura:attribute name="additionalOptions" type="List" default="[]" access="public" description="actions/picklist values to display below query results"/>
+    <aura:attribute name="allowFreeText" type="Boolean" default="false" access="public" description="if true, will save search text even if user did not select a dropdown record"/>
+    <aura:attribute name="fillPillOnSelect" type="Boolean" default="true" access="public" description="If true, show pill. If false, show editable text"/>
+    <aura:attribute name="required" type="Boolean" default="false" access="public" />
+    <aura:attribute name="filters" type="List" default="[]" access="public" />
+    <aura:attribute name="hideDropdownOnFocus" type="Boolean" default="false"/>
+    <aura:attribute name="splitSearchTextBySeperator" type="Boolean" default="false" access="public" />
+    <aura:attribute name="minimumSearchTextLength" type="Integer" default="1" access="public" description="How many characters must be in search text before doing a query"/>
+    <aura:attribute name="specialSearchOptions" type="String" default="" access="public" description="For enhanced FirstName,LastName search use 'FirstLast|Starting'"/>
+    <aura:attribute name="maxQuickSearchRows" type="Integer" default="5" access="public" description="Rows to return on quick search"/>
+    
+    <aura:attribute name="listOfSearchRecords" type="List" access="public" description="list of quick search results, same object format as selectedRecord ('label', 'value', 'isRecord')"/>
+    
+    <aura:attribute name="validationError" type="Map" default="{message: '', show: false}" access="public" />
+
+    <aura:attribute name="allowPropagation" type="Boolean" default="false"/>
+    <aura:attribute name="loading" type="Boolean" default="true" access="public" description="Boolean for show/hide spinner"/>
+
+    <!--handler-->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler name="render" value="{!this}" action="{!c.postRender}"/>
+    
+    <aura:registerEvent name="removedItemEvent" type="c:removedItemEvent"/>
+	
+    <!--declare events handlers-->  
+    <aura:handler name="selectedItemEvent" event="c:selectedItemEvent" action="{!c.handleSelectedItemEvent}"/>
+    <aura:handler name="closeModalView" event="c:closeModal" action="{!c.handleCloseModal}" />
+    
+    <aura:method name="setSelectedRecord" action="{!c.setSelectedRecordHandler}" description="sets received object as the current lookup value">
+        <aura:attribute name="SelectedRecord" type="Map" default="{isRecord: false}"/>
+    </aura:method>
+    <aura:method name="closePill" action="{!c.clear}" description="close pill">
+    </aura:method>
+    <aura:method name="setLookupFieldName" action="{!c.setLookupFieldNameHandler}">
+        <aura:attribute name="lookupFieldName" type="String" default=""/>
+    </aura:method>
+    <aura:method name="runSearch" action="{!c.handleRunSearch}"/>
+                 
+    <div class="">
+        <div aura:id="searchRes" class="{!'slds-form-element slds-lookup slds-is-close '}" data-select="single">
+            <aura:if isTrue="{!and( v.validationError.show, v.labelHidden)}">
+                <label class="slds-form-element__label" for="lookup-348">
+                    <span style="color: red; margin-left: 20px;">
+                        {!v.validationError.message}
+                    </span>
+                </label>
+            </aura:if>            
+            <aura:if isTrue="{!!v.labelHidden}">
+                <label class="slds-form-element__label" for="lookup-348"> 
+                    {!v.label}   
+                    <aura:if isTrue="{!v.validationError.show}">
+                        <span style="color: red; margin-left: 20px;">
+                            {!v.validationError.message}
+                        </span>
+                    </aura:if>                 
+                </label>                
+            </aura:if>
+            <div  class="{!'slds-form-element__control ' + (v.required ? 'customRequired' : '')}">
+                <div class="slds-input-has-icon slds-input-has-icon_right">
+                    <lightning:icon id="searchIcon" aura:id="searchIcon" class="slds-input__icon slds-show slds-show" iconName="utility:search" size="x-small" alternativeText="search"/>                     
+                    <div aura:id="lookup-pill" class="slds-pill_container slds-hide ">
+                        <span style="width:-webkit-fill-available;" class="slds-pill">
+                            <span class="slds-pill__label">
+                                {!v.selectedRecord.label}  
+                            </span>
+
+                            <lightning:buttonIcon iconName="utility:close" variant="bare" alternativeText="remove" onclick="{!c.clear}"/>
+                            <span class="slds-assistive-text">Remove</span>
+
+                        </span>
+                    </div>
+                    <aura:renderIf isTrue="{!!v.selectedRecord.isRecord}">
+                        <div id="lookupField" aura:id="lookupField" >
+                            <aura:if isTrue="{!v.hideDropdownOnFocus}">
+                                    <ui:inputText aura:id="searchTextInput" 
+                                            updateOn="keyup" blur="{!c.onBlurHandler}" 
+                                            keyup="{!c.keyPressController}" class="slds-lookup__search-input slds-input " value="{!v.SearchKeyWord}" placeholder="search.."/>
+                                <aura:set attribute="else">
+                                    <ui:inputText aura:id="searchTextInput" 
+                                            updateOn="keyup" blur="{!c.onBlurHandler}" 
+                                            focus="{!c.keyPressController}" 
+                                            keyup="{!c.keyPressController}" class="slds-lookup__search-input slds-input " value="{!v.SearchKeyWord}" placeholder="search.."/>
+                                </aura:set>
+                            </aura:if>
+                        </div>   
+                    </aura:renderIf>
+                </div>
+            </div>
+            <!--This part is for Display typehead lookup result List-->  
+            <div class="slds-lookup__menu slds" id="lookup-348">
+                <div class="{!(v.Message == '' ? 'slds-hide' : 'slds-show slds-lookup__item_label slds-text-body_small')}">{!v.Message}</div>
+                <center> 
+                    <aura:if isTrue="{!v.loading}">
+                        <div class="spinnerHolder">
+                            <lightning:spinner alternativeText="Loading" variant="brand" size="Small"/><!--ui:spinner aura:id="spinner"/--> 
+                        </div>
+                    </aura:if>
+                </center>
+                <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+                    <aura:iteration items="{!v.listOfSearchRecords}" var="singleRec">
+                        <div title="{!v.displayHoverText? singleRec.label : ''}">
+                            <c:LookupResultComponent instanceName="{!v.instanceName}" obj="{!singleRec}" />
+                        </div>
+                    </aura:iteration>
+                <!-- {!v.additionalOptions} -->
+                </ul>
+                <aura:if isTrue="{!!empty(v.additionalOptions)}">
+                    <div class="slds-top borderTop">
+                        <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+                            <aura:iteration items="{!v.additionalOptions}" var="option">
+                                <div title="{!v.displayHoverText? option.label : ''}">
+                                    <c:LookupResultComponent instanceName="{!v.instanceName}" obj="{!option}" />
+                                </div>
+                            </aura:iteration>
+                        </ul>
+                    </div>
+                </aura:if>
+            </div>
+        </div>
+    </div>
+    
+    <div aura:id="optionComponent">
+    	<!-- Additional option component -->
+    </div>
+</aura:component>

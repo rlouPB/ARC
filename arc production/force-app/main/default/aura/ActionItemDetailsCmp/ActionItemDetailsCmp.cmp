@@ -1,0 +1,19 @@
+<aura:component extends="c:ApexService" implements="force:hasRecordId,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome">
+    <aura:attribute name="record" type="Action_Item__c" />
+    <aura:attribute name="showManageInterventionsModal" type="Boolean" />
+    
+    <aura:handler event="c:closeModal" name="closeModalEvent" action="{!c.handleCloseModal}"/>
+    
+    <force:recordData aura:id="recordLoader" recordId="{!v.recordId}" fields="Treatment_Plan__c,Action_Item__c,Description__c,Status__c,Completed_Date__c,CreatedDate" targetFields="{!v.record}" />
+
+    <div class="slds-card" >
+        <aura:if isTrue="{!v.record}">
+            <lightning:card title="Interventions">
+                <body class="slds-p-horizontal_small">
+                    <c:ManageInterventions showLinks="true" treatmentPlanId="{!v.record.Treatment_Plan__c}" showManageButton="true" showAllCurrentToggle="true" showOnlyToAllowedDiciplines="true"/>
+                </body>
+            </lightning:card>
+        </aura:if>
+    </div>
+
+</aura:component>

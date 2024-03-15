@@ -1,0 +1,41 @@
+<template>
+    <lightning-card >
+        <h3 slot="title">
+            <lightning-icon icon-name="standard:account" size="small" alternative-text="Prescriptions" class="slds-m-right_small"></lightning-icon>
+            Orders to Process
+        </h3> 
+
+        <lightning-button-group slot="actions">
+            <lightning-button-icon icon-name="utility:refresh" title="refresh" onclick={refreshTable}></lightning-button-icon>
+        </lightning-button-group>
+       
+       <div style="text-align: center;">
+           <lightning-layout>
+                <lightning-layout-item size="1"></lightning-layout-item>
+                <lightning-layout-item size="6">
+                    <lightning-layout>
+
+                        <lightning-layout-item size="10">
+                        </lightning-layout-item>
+
+                        <lightning-layout-item size="4">
+                            <lightning-button-group style="padding-top:3px;">
+                                <lightning-button variant="neutral" label="Mark as Complete" onclick={onMarkAsCompleteClickHandler}></lightning-button>
+                            </lightning-button-group>
+                        </lightning-layout-item>
+
+                    </lightning-layout>
+               </lightning-layout-item>
+           </lightning-layout>
+           
+       </div>
+    
+        <div style="margin-top: 20px;">
+            <div class="slds-p-left_medium">
+                <c-pharmacy-orders-to-process-table-lwc account-id={recordId} onaction={onActionHandler}></c-pharmacy-orders-to-process-table-lwc>
+            </div>           
+        </div>
+        <lightning-spinner if:true={showSpinner}></lightning-spinner>
+    </lightning-card>
+
+</template>

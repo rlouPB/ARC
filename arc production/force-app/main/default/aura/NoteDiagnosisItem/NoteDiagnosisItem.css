@@ -1,0 +1,16 @@
+.THIS .bold{
+    font-weight: bold;
+}
+
+.THIS .hover:hover{
+     background-color: aqua;
+}
+
+.THIS .buttons{
+    width:100%;
+}
+
+.THIS .mark{
+    color:white;
+    background-color: tomato;
+}

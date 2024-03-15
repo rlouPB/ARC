@@ -1,0 +1,154 @@
+<aura:component >
+    <aura:attribute name="edit" type="Boolean" default="false" />
+    <aura:attribute name="treatmentStatus" type="String"/>
+    <aura:attribute name="newTargetDate" type="Date"/>
+    <aura:attribute name="goalStatus" type="String"/>
+    <aura:attribute name="objective" type="Object"/>
+    <aura:attribute name="selfIndex" type="Integer"/>
+    <aura:attribute name="isObjectiveDisable" type="Boolean" default="true" />
+	<aura:attribute name="isDirty" type="Boolean" default="false"/>
+	<aura:attribute name="showCancelModal" type="Boolean" default="false"/>
+    
+    
+    <aura:handler name="change" value="{!v.goalStatus}" action="{!c.onGoalStatusChanged}"/>
+    
+    <!-- Register Event -->
+    <aura:registerEvent name="closeModalEvent" type="c:closeModal" />
+    <aura:registerEvent name="objectiveCancelEvent" type="c:TreatmentPlanObjectiveCancelEvent"/>
+    
+    <!-- View Draft / Current Treatment Plan -->
+    <aura:if isTrue="{!v.edit==false}">
+        <lightning:layoutItem size="{!if(v.treatmentStatus == 'Draft', 5, 6)}" class="slds-var-p-around_xx-small slds-border_top">
+            {!v.objective.objectiveObj.Label__c}
+        </lightning:layoutItem>
+        <lightning:layoutItem size="2" class="slds-var-p-around_xx-small slds-border_top">
+            <lightning:formattedDateTime value="{!v.objective.objectiveObj.Date_Added__c}" month="2-digit" day="2-digit" year="numeric" timeZone="UTC"/>
+        </lightning:layoutItem>
+        <lightning:layoutItem size="2" class="slds-var-p-around_xx-small slds-border_top">
+            <lightning:formattedDateTime value="{!v.objective.objectiveObj.Continued_From_Objective__r.Target_Date__c}" month="2-digit" day="2-digit" year="numeric" timeZone="UTC"/>
+        </lightning:layoutItem>
+        <lightning:layoutItem size="2" class="slds-var-p-around_xx-small slds-border_top">
+            <lightning:formattedDateTime value="{!v.objective.objectiveObj.Target_Date__c}" month="2-digit" day="2-digit" year="numeric" timeZone="UTC"/>
+        </lightning:layoutItem>
+        <aura:if isTrue="{!v.treatmentStatus == 'Draft'}">
+            <lightning:layoutItem size="1" class="slds-var-p-around_xx-small slds-border_top">
+                {!v.objective.objectiveObj.Status__c}
+            </lightning:layoutItem>
+        </aura:if>
+        <aura:set attribute="else">
+            
+            <!-- Edit Draft Treatment Plan -->
+            <div class="wrapper" onchange="{!c.handleIsDirty}">
+                <lightning:layout multipleRows="true">
+                    <lightning:layoutItem size="4" class="slds-p-around_xxx-small">
+                        <aura:if isTrue="{!and(v.objective.objectiveObj.Id!=null,or(v.objective.status=='Met',v.objective.status=='Discontinued'))}">
+                            {!v.objective.objectiveObj.Label__c}
+                            <aura:set attribute="else">
+                                <lightning:layout>
+                                    <lightning:layoutItem size="11">
+                                        <div class="objective">
+                                            <lightning:textarea aura:id="objectiveLabel" name="ObjectiveLabel" value="{!v.objective.objectiveObj.Label__c}" maxlength="5000" disabled="{!and(not(empty(v.objective.objectiveObj.Id)),v.isObjectiveDisable)}"/>
+                                        </div>
+                                        <aura:if isTrue="{!v.objective.isLabelEmpty}">
+                                            <div aura:id="objectiveErrorMessage" class="slds-form-element__help objectiveError">Please enter an objective</div>
+                                        </aura:if>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem size="1">
+                                        <aura:if isTrue="{!and(not(empty(v.objective.objectiveObj.Id)),v.isObjectiveDisable)}">
+                                            <label for="{!v.objective.objectiveObj.Id+'_Edit_Icon'}" class="slds-form-element__label"></label>
+                                            <div id="{!v.objective.objectiveObj.Id+'_Edit_Icon'}">
+                                                <lightning:buttonIcon iconName="utility:edit" variant="bare" title="" onclick="{!c.handleOnClickEditObjective}"/>
+                                            </div>
+                                        </aura:if>
+                                    </lightning:layoutItem>
+                                </lightning:layout>
+                            </aura:set>
+                        </aura:if>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="8" class="slds-p-around_xxx-small">
+                        <lightning:layout>
+                            <lightning:layoutItem size="2" class="slds-p-around_xx-small">
+                                <label for="{!v.objective.objectiveObj.Id+'Date_Added_Label'}" class="slds-form-element__label"></label>
+                                <div id="{!v.objective.objectiveObj.Id+'Date_Added_Label'}">
+                                    <lightning:formattedDateTime value="{!v.objective.objectiveObj.Date_Added__c}" 
+                                                                 month="2-digit" day="2-digit" year="numeric" timeZone="UTC"/>
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="2s" class="slds-p-around_xxx-small">
+                                <aura:if isTrue="{!not(empty(v.objective.objectiveObj.Continued_From_Objective__c))}">
+                                    <label for="{!v.objective.objectiveObj.Id+'_Previous_Target_Date_Label'}" class="slds-form-element__label"></label>
+                                    <div id="{!v.objective.objectiveObj.Id+'_Previous_Target_Date_Label'}">
+                                        <lightning:formattedDateTime value="{!v.objective.objectiveObj.Continued_From_Objective__r.Target_Date__c}" 
+                                                                     month="2-digit" day="2-digit" year="numeric" timeZone="UTC"/>
+                                    </div>
+                                </aura:if>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="3" class="slds-p-around_xxx-small">
+                                <lightning:input type="date" value="{!v.objective.objectiveObj.Target_Date__c}" dateStyle="short"/>
+                                <!-- <aura:if isTrue="{!v.objective.objectiveObj.Status__c=='Continue'}">
+                                    <lightning:input type="date" value="{!v.objective.objectiveObj.Target_Date__c}" dateStyle="short"/>
+                                </aura:if> -->
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="2" class="slds-p-around_xxx-small">
+                                <!-- ARC-843 
+								Commented out as per ARC-843 that only when Treatment Plan is finalized would be read-only.
+
+                                <aura:if isTrue="{!or(v.objective.status=='Met',v.objective.status=='Discontinued')}">
+                                    {!v.objective.objectiveObj.Status__c}
+-->
+                                    <!--<aura:set attribute="else">-->
+                                        <lightning:select name="{!v.objective.objectiveObj.Id+'_Status'}" value="{!v.objective.objectiveObj.Status__c}" onchange="{!c.onStatusChanged}">
+                                            <option value="Continue">Continue</option>
+                                            <option value="Met">Met</option>
+                                            <option value="Discontinued">Discontinued</option>
+                                        </lightning:select>
+                                    <!--</aura:set>
+                                </aura:if>-->
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="3" class="slds-p-around_xxx-small">
+                                <lightning:layout>
+                                    <lightning:layoutItem size="11">
+                                        <aura:renderIf isTrue="{!and(v.objective.objectiveObj.Id!=null,v.objective.objectiveObj.Met_Discontinued_Date__c!=null)}">
+                                            <label for="{!v.objective.objectiveObj.Id+'_Met_Discontinued_Date'}" class="slds-form-element__label"></label>
+                                            <div id="{!v.objective.objectiveObj.Id+'_Met_Discontinued_Date'}">
+                                                <lightning:formattedDateTime value="{!v.objective.objectiveObj.Met_Discontinued_Date__c}" 
+                                                                             month="2-digit" day="2-digit" year="numeric" timeZone="UTC"/>
+                                            </div>
+                                        </aura:renderIf>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem size="1">
+                                        <aura:if isTrue="{!empty(v.objective.objectiveObj.Id)}">
+                                            <div class="cancel-icon-middle">
+                                                <label for="{!v.objective.objectiveObj.Id+'_Cancel_Icon'}" class="slds-form-element__label"></label>
+                                                <div id="{!v.objective.objectiveObj.Id+'_Cancel_Icon'}">
+                                                    <lightning:buttonIcon iconName="utility:close" variant="bare" title="Remove" onclick="{!c.handleOnClickCancelObjective}"/>
+                                                </div>
+                                            </div>
+                                        </aura:if>
+                                    </lightning:layoutItem>
+                                </lightning:layout>
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </div>
+        </aura:set>
+    </aura:if>
+    
+    <aura:if isTrue="{!v.showCancelModal}">
+        <c:sldsModal instanceName="cancelObjective">
+            <aura:set attribute="header">
+                
+            </aura:set>
+            <aura:set attribute="content">
+                <div class="slds-p-horizontal--small">
+                    Are you sure you want to remove this objective?
+                </div>
+            </aura:set>
+            <aura:set attribute="footer">
+                <lightning:button label="Remove" variant="destructive" onclick="{!c.handleDiscardChanges}"/>
+                <lightning:button label="Go back to Objective" variant="neutral" onclick="{!c.handleBackToObjective}"/>
+            </aura:set>
+        </c:sldsModal>
+    </aura:if>
+</aura:component>

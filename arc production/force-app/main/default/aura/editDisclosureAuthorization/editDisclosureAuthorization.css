@@ -1,0 +1,8 @@
+.THIS .slds-form-element {
+	padding-left: 0.5rem;
+	padding-right: 0.5rem;
+}
+.THIS .slds-dueling-list__options ul li .slds-truncate{
+	white-space: pre;
+	font-size: 12px;
+	}

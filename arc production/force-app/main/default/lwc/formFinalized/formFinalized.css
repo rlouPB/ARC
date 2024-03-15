@@ -1,0 +1,12 @@
+article.slds-card {
+	margin-top: -12px;
+	padding-top: 12px;
+	padding-bottom: 12px;
+}
+div.slds-card__body {
+	margin-top: 0px;
+}
+div.slds-card__header {
+	margin-top: 0px;
+	padding-top: 0px;
+}

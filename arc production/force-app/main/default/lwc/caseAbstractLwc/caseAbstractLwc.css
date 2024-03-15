@@ -1,0 +1,29 @@
+.presentationCard {
+
+	max-width: 400px;
+
+
+}
+
+.presentationCard div {
+
+	max-width: 400px;
+
+}
+
+.mainCard {
+
+	min-height: 300px;
+
+}
+.item-section-header {
+	font-size: 1.5em;
+	font-weight: 700;
+}
+
+.arcSpinnerContainer {
+	height: 13rem;
+	background-color: white;
+	border: 1px solid;
+	z-index: 999;
+}

@@ -1,0 +1,16 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId" extends="c:ApexService" access="global">
+    <aura:attribute name="popoverBody" type="String" default="" description="Formatted long text to display"/>
+    <!-- <aura:attribute name="hovering" type="Boolean" default="false" /> -->
+    <!-- <aura:attribute name="onmouseover" type="Boolean" default="false" /> -->
+
+    <aura:registerEvent name="mouseLeaveNotes" type="c:mouseLeave" />
+    <aura:registerEvent name="mouseOverNotes" type="c:mouseLeave" />
+    
+    <div class="slds-scrollable_y" style="max-height: 750px;borders: 2px solid black;" onmouseenter="{!c.handleMouseOver}" onmouseleave="{!c.handleMouseOut}" >
+	    <div class="slds-popover__body " id="theSpecialDiv" >
+	    	<!-- <lightning:formattedText value="{!v.popoverBody}" /> -->
+            <lightning:formattedRichText value="{!v.popoverBody}" />
+	    </div>
+	</div>
+
+</aura:component>

@@ -1,0 +1,131 @@
+<template>
+    <lightning-card>
+        <lightning-button-icon icon-name="utility:refresh" slot="actions" title="reload" onclick={load}></lightning-button-icon>
+        
+        <lightning-spinner if:true={loading}></lightning-spinner>
+
+        <div class="slds-align_absolute-center">
+            <lightning-radio-group type="button" options={modes} value={selectedMode}  onchange={onModeChange}></lightning-radio-group>                        
+        </div>
+
+        <br/>
+
+        <table class="slds-table slds-table_bordered slds-table_fixed-layout" role="grid">
+            <thead>        
+                <tr>
+                    <template for:each={columns} for:item="col" if:true={hasColumns}>                    
+                        <th key={col.name} style={col.style}>
+                            <div onclick={onClickHandler} data-fieldname={col.name} class="slds-th__action slds-text-link_reset slds-is-sorted slds-is-sorted_asc">
+                                {col.label}
+                                <template if:true={col.sorted}>
+                                    <template if:false={col.isDESC}>
+                                        <lightning-icon data-fieldname={col.name} icon-name="utility:arrowup" size="xx-small"></lightning-icon>
+                                    </template>
+                                    <template if:true={col.isDESC}>
+                                        <lightning-icon data-fieldname={col.name} icon-name="utility:arrowdown" size="xx-small"></lightning-icon>
+                                    </template>
+                                </template>
+                            </div>
+                        </th>
+                    </template>
+                    <th>
+                        <div class="slds-th__action slds-text-link_reset slds-is-sorted slds-is-sorted_asc">
+                            Actions
+                        </div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <template if:true={hasPagedData}>
+                    <template for:each={pagedData} for:item="item" >
+                        <tr key={item.Id} >
+                            <template for:each={item.fields} for:item="field">
+                                <td key={field.name} class={field.tdClass}> 
+                                    <div class="slds-p-horizontal_x-small">
+                                        <template if:true={field.isName}>
+                                            <c-record-link record-id={item.record.Id} record-name={field.value}></c-record-link>
+                                        </template>
+                                        <template if:true={field.isLookup}>
+                                            <c-record-link record-id={field.valueId} record-name={field.value}></c-record-link>
+                                        </template>
+                                        <template if:true={field.isDate}>        
+                                            <lightning-formatted-date-time value={field.value} year="numeric" month="2-digit" day="2-digit"></lightning-formatted-date-time>
+                                        </template>
+                                        <template if:true={field.isText}>{field.value}</template>
+                                    </div>              
+                                </td>
+                            </template>
+                            <td>
+                                <div class="slds-p-horizontal_x-small">
+                                    <div class="slds-button-group" role="group">
+                                        
+                                        <a  href={item.link} 
+                                            data-id={item.record.Id} 
+                                            class="slds-button slds-button_brand slds-m-left_x-small" 
+                                            onclick={onDetailsClickHandler}>{item.detailButtonText}</a>
+
+                                        <lightning-button 
+                                            if:true={item.showClose}                                            
+                                            data-id={item.record.Id}
+                                            label="Close" 
+                                            name={item.record.Id}
+                                            onclick={onCloseItemHandler}
+                                            style="display: block;">
+                                        </lightning-button> 
+                                        
+                                        <lightning-button 
+                                            if:true={item.showReassign}
+                                            data-id={item.record.Id}
+                                            label="Reassign" 
+                                            name={item.record.Id}
+                                            onclick={onReasignHandler}
+                                            style="display: block;">
+                                        </lightning-button>       
+
+                                        <lightning-button 
+                                            if:true={item.showCancel}
+                                            data-id={item.record.Id}
+                                            label="Cancel" 
+                                            name={item.record.Id}
+                                            onclick={onCancelHandler}
+                                            style="display: block;">
+                                        </lightning-button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </template>
+                </template>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th colspan={columnsSize}>
+                        <c-paginator-lwc class="paginator" values={currentData} onpagechanged={pageChangedHandler}></c-paginator-lwc>
+                    </th>
+                </tr>
+                <tr if:true={showAdd}>
+                    <td>
+                        <lightning-button label="Add New" variant="brand" onclick={openModal}></lightning-button>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+        <template if:true={showModal} >
+            <c-modal-lwc header="New Shift Item" size="small" show-footer="true" onclose={closeBtnHandler}>            
+                <iframe src={iframeSrc} width="100%" height="500"></iframe>
+                <div slot="footer">                
+                    <lightning-button class="slds-p-left_x-small" label="Close"  onclick={closeBtnHandler}></lightning-button>
+                </div>
+            </c-modal-lwc>
+        </template>
+        <template if:true={showReassignModal} >
+            <c-modal-lwc header="Reassign Shift Item" size="small" show-footer="true" onclose={onReassignClose}>            
+                <iframe src={iframeReassignSrc} width="100%" height="500" ></iframe>
+                <div slot="footer">                
+                    <lightning-button class="slds-p-left_x-small" label="Close"  onclick={onReassignClose}></lightning-button>
+                </div>
+            </c-modal-lwc>
+        </template>
+    </lightning-card>
+    <c-modal-popup-lwc class="popup"></c-modal-popup-lwc>
+</template>

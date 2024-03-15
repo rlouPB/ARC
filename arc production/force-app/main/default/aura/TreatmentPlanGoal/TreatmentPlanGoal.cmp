@@ -1,0 +1,256 @@
+<aura:component>
+    <aura:attribute name="domainNumber" type="Integer"/>
+    <aura:attribute name="treatmentStatus" type="String"/>
+    <aura:attribute name="egoDate" type="Date"/>
+    <aura:attribute name="newTargetDate" type="Date"/>
+    <aura:attribute name="goal" type="Object"/>
+    <aura:attribute name="goalCounter" type="Integer"/>
+    <aura:attribute name="isFirstDraftTreatmentPlan" type="Boolean" default="false"/>
+    <aura:attribute name="edit" type= "boolean" default="{}"/>
+    <aura:attribute name="isGoalDisable" type="Boolean" default="true" />
+	<aura:attribute name="isDirty" type="Boolean" default="false"/>
+	<aura:attribute name="showCancelModal" type="Boolean" default="false"/>
+    
+    <!-- Handler -->
+    <aura:handler name="init" value="{! this }" action="{! c.doInit }"/>
+    
+    <!-- Register Event -->
+    <aura:registerEvent name="closeModalEvent" type="c:closeModal" />
+    <aura:registerEvent name="goalCancelEvent" type="c:TreatmentPlanGoalCancelEvent"/>
+    
+    <aura:if isTrue ="{!and(v.edit,v.treatmentStatus=='Draft')}">
+        <div class="wrapper" onchange="{!c.handleIsDirty}">
+            <div class="slds-box c-lightgrey" style="display: flex;">
+                <!-- Edit Mode for Draft ONLY -->
+                <div style="width: 98%;">
+                    <lightning:layout multipleRows="true">
+                        <lightning:layoutItem size="4">
+                            <!--
+                            <label for="{!v.goal.goalObj.Id +'_Goal'}" class="slds-form-element__label slds-text-heading_small">
+                                <b>Goal {!v.domainNumber+'.'+(v.goalCounter+1)}</b>
+                            </label>-->
+                            <div class="goal">
+                                <lightning:textarea aura:id="goalLabel" 
+                                                    name="goalLabel" 
+                                                    label="Goal"
+                                                    value="{!v.goal.goalObj.Label__c}" 
+                                                    maxlength="5000" 
+                                                    disabled="{!and(not(empty(v.goal.goalObj.Id)),v.isGoalDisable)}"/>
+                                <aura:if isTrue="{!v.goal.isLabelEmpty}">
+                                    <div aura:id="emptyGoalErrorMessage" class="slds-form-element__help entryError">
+                                        Please enter a goal
+                                    </div>
+                                </aura:if>
+                            </div>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="1">
+                            <div><label for="{!v.goal.goalObj.Id +'_Edit_Icon'}" class="slds-form-element__label">&nbsp;</label></div>
+                            <aura:if isTrue="{!and(not(empty(v.goal.goalObj.Id)),v.isGoalDisable)}">
+                                <label for="{!v.goal.goalObj.Id +'_Edit_Icon'}" class="slds-form-element__label">&nbsp;</label>
+                                <div id="{!v.goal.goalObj.Id +'_Edit_Icon'}" class="slds-form-element__control slds-grow">
+                                    <lightning:buttonIcon iconName="utility:edit" variant="bare" title="" onclick="{!c.handleOnClickEditGoal}"/>
+                                </div>
+                            </aura:if>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="5">
+                            <lightning:layout multipleRows="true">
+                                <lightning:layoutItem size="3">
+                                    <label for="{!v.goal.goalObj.Id+'_Date_Added'}" class="slds-form-element__label">Date Added</label>
+                                    <div id="{!v.goal.goalObj.Id+'_Date_Added'}">
+                                        <lightning:formattedDateTime type="date-local" value="{!v.goal.goalObj.Date_Added__c}" month="2-digit" day="2-digit" year="numeric" timeZone="UTC"/>
+                                    </div>
+                                </lightning:layoutItem>
+                                <lightning:layoutItem size="5">
+                                    <aura:if isTrue="{!not(empty(v.goal.goalObj.Continued_From_Goal__c))}">
+                                        <label for="{!v.goal.goalObj.Id+'_Previous_Target_Date'}" class="slds-form-element__label">Previous Target Date</label>
+                                        <div id="{!v.goal.goalObj.Id+'_Previous_Target_Date'}">
+                                            <lightning:formattedDateTime type="date-local" value="{!v.goal.goalObj.Continued_From_Goal__r.Target_Date__c}" month="2-digit" day="2-digit" year="numeric" timeZone="UTC"/>
+                                        </div>
+                                    </aura:if>
+                                </lightning:layoutItem>
+                                <lightning:layoutItem size="4">
+                                    <lightning:select name="{!v.goal.goalObj.Id+'_Status'}" label="Goal Status" value="{!v.goal.goalObj.Status__c}" onchange="{!c.onGoalStatusChanged}">
+                                        <option value="Continue Goal">Continue Goal</option>
+                                        <option value="Goal Met">Goal Met</option>
+                                        <option value="Discontinued">Discontinued</option>
+                                    </lightning:select>
+                                </lightning:layoutItem>
+                            </lightning:layout>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                    <lightning:layout>
+                        <aura:if isTrue="{!and(v.goal.goalObj.Id!=null,or(v.goal.goalObj.Status__c=='Goal Met',v.goal.goalObj.Status__c=='Discontinued'))}">
+                            <lightning:layoutItem size="3" padding="around-small">
+                                <div id="{!v.goal.goalObj.Id+'_Met_Discontinued_Date'}">
+                                    <lightning:input type="date" label="Met/Discontinued Date" value="{!v.goal.goalObj.Met_Discontinued_Date__c}" dateStyle="short" timeZone="UTC"/>
+                                </div>
+                            </lightning:layoutItem>
+                        </aura:if>
+                            
+                        <aura:if isTrue="{!v.goal.goalObj.Id!=null}">
+                            
+                            <aura:renderIf isTrue="{!not(v.isFirstDraftTreatmentPlan)}">
+                                <aura:if isTrue="{!not(empty(v.goal.goalObj.Continued_From_Goal__c))}">
+                                    <lightning:layoutItem size="4" padding="around-small">
+                                        <lightning:textarea name="{!v.goal.goalObj.Id+'_Comments'}" 
+                                                            readonly="true" 
+                                                            label="Patient Goal Comments" 
+                                                            variant="standard" 
+                                                            value="{!v.goal.comments}" 
+                                                            maxlength="5000"/>
+                                    </lightning:layoutItem>
+                                </aura:if>
+                                <lightning:layoutItem size="4" padding="around-small">
+                                    <lightning:textarea name="{!v.goal.goalObj.Id+'_Team_Goal_Comments'}" 
+                                            label="Team Goal Comments" value="{!v.goal.goalObj.Team_Goal_Comments__c}" />
+                                </lightning:layoutItem>
+                                <aura:set attribute="else">
+                                    <lightning:layoutItem size="3" padding="around-small">
+                                        &nbsp;
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem size="5" padding="around-small">
+                                        <lightning:textarea name="{!v.goal.goalObj.Id+'_Team_Goal_Comments'}" label="Team Goal Comments" value="{!v.goal.goalObj.Team_Goal_Comments__c}" 
+                                                />
+                                    </lightning:layoutItem>
+                                </aura:set>
+                            </aura:renderIf>
+                            
+                        </aura:if>
+                    </lightning:layout>
+                    <lightning:layout multipleRows="true">
+                        <lightning:layoutItem size="12" class="slds-p-around_xx-small">
+                            <div class="slds-box c-indent">
+                                <c:TreatmentPlanObjectives edit="{!v.edit}" 
+                                                           objectives="{!v.goal.objectives}" 
+                                                           goalStatus="{!v.goal.goalObj.Status__c}" 
+                                                           treatmentStatus="{!v.treatmentStatus}" 
+                                                           newTargetDate="{!v.newTargetDate}"/>
+                            </div>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                </div>
+                <div class="slds-align-top cancel-icon-middle">
+                    <aura:if isTrue="{!empty(v.goal.goalObj.Id)}">
+                        <div id="{!v.goal.goalObj.Id+'_Cancel_Icon'}">
+                            <lightning:buttonIcon
+                                    size="large"
+                                    iconName="utility:close"
+                                    title="Remove Goal"
+                                    alternativeText="Remove Goal"
+                                    onclick="{!c.handleOnClickCancelGoal}" />
+                        </div>
+                    </aura:if>
+                </div>
+            </div>
+        </div>
+        <aura:set attribute="else">
+            <!-- View Current / Draft Treatment Plan Goal -->
+            <div class="slds-box c-lightgrey">
+                <lightning:layout multipleRows="true">
+                    <lightning:layoutItem size="5" class="slds-var-p-left_small">
+                        <!--
+                        <label for="{!v.goal.goalObj.Id +'_Goal'}" class="slds-form-element__label slds-text-heading_small">
+                            <b>
+                                Goal {!v.domainNumber+'.'+(v.goalCounter+1)}
+                            </b>
+                        </label>-->
+                        <label for="{!v.goal.goalObj.Id+'_Date_Added'}" class="slds-form-element__label">Goal</label>
+                        <!--<div id="{!v.goal.goalObj.Id+'_Goal_Label'}" class="slds-text-heading_small slds-form-element__label">-->
+                        <div><b><lightning:formattedText value="{!v.goal.goalObj.Label__c}"/></b></div>
+                        <!--</div>-->
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="6">
+                        <lightning:layout multipleRows="false">
+                            <lightning:layoutItem size="{!if(v.treatmentStatus == 'Draft', 3, 4)}" class="slds-p-around_xxx-small">
+                                <label for="{!v.goal.goalObj.Id+'_Date_Added'}" class="slds-form-element__label">Date Added</label>
+                                <div id="{!v.goal.goalObj.Id+'_Date_Added'}">
+                                    <!-- <ui:outputDate value="{!v.goal.goalObj.Date_Added__c}" format="MM/dd/yyyy" /> -->
+                                    <lightning:formattedDateTime value="{!v.goal.goalObj.Date_Added__c}" month="2-digit" day="2-digit" year="numeric" timeZone="UTC"/>
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="{!if(v.treatmentStatus == 'Draft', 3, 4)}" class="slds-p-around_xxx-small">
+                                <aura:if isTrue="{!not(empty(v.goal.goalObj.Continued_From_Goal__c))}">
+                                    <div id="{!v.goal.goalObj.Id+'_New_Target_Date'}">
+                                        <label for="{!v.goal.goalObj.Id+'_Previous_Target_Date'}" class="slds-form-element__label">Previous Target Date</label>
+                                        <!-- <ui:outputDate value="{!v.goal.goalObj.Continued_From_Goal__r.Target_Date__c}" format="MM/dd/yyyy" /> -->
+                                        <lightning:formattedDateTime value="{!v.goal.goalObj.Continued_From_Goal__r.Target_Date__c}" month="2-digit" day="2-digit" year="numeric" timeZone="UTC"/>
+                                    </div>
+                                </aura:if>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="{!if(v.treatmentStatus == 'Draft', 3, 4)}" class="slds-p-around_xxx-small">
+                                <label for="{!v.goal.goalObj.Id+'_New_Target_Date'}" class="slds-form-element__label">New Target Date</label>
+                                <div id="{!v.goal.goalObj.Id+'_New_Target_Date'}">
+                                    <!-- <ui:outputDate value="{!v.goal.goalObj.Target_Date__c}" format="MM/dd/yyyy" /> -->
+                                    <lightning:formattedDateTime value="{!v.goal.goalObj.Target_Date__c}" month="2-digit" day="2-digit" year="numeric" timeZone="UTC"/>
+                                </div>
+                            </lightning:layoutItem>
+                            <aura:if isTrue="{!v.treatmentStatus == 'Draft'}">
+                                <lightning:layoutItem size="3" class="slds-p-around_xxx-small">
+                                    <label for="{!v.goal.goalObj.Id+'_Status'}" class="slds-form-element__label">Goal Status</label>
+                                    <div id="{!v.goal.goalObj.Id+'_Status'}">
+                                        {!v.goal.goalObj.Status__c}
+                                    </div>
+                                </lightning:layoutItem>
+                            </aura:if>
+                        </lightning:layout>
+                    </lightning:layoutItem>
+                </lightning:layout>
+                <lightning:layout multipleRows="true">
+                    <aura:if isTrue="{!and(v.goal.goalObj.Id!=null,or(v.goal.goalObj.Status__c=='Goal Met',v.goal.goalObj.Status__c=='Discontinued'))}">
+                        <lightning:layoutItem size="{!if(v.treatmentStatus == 'Draft', 3, 4)}" class="slds-p-around_xxx-small" padding="around-small">
+                            <label for="{!v.goal.goalObj.Id+'_Met_Discontinued_Date'}" class="slds-form-element__label">Met/Discontinued Date</label>
+                            <div id="{!v.goal.goalObj.Id+'_Met_Discontinued_Date'}">
+                                <lightning:formattedDateTime value="{!v.goal.goalObj.Met_Discontinued_Date__c}" month="2-digit" day="2-digit" year="numeric" timeZone="UTC"/>
+                            </div>
+                        </lightning:layoutItem>
+                    </aura:if>
+                    <!-- goal comments -->
+                    <aura:if isTrue="{!v.treatmentStatus != 'Active'}">
+                        <lightning:layoutItem size="4" padding="around-small" class="slds-p-right_large">
+                            <!-- As per ARC-978 change, do NOT display Goal and Team Comments on current treatment plan -->
+                            <!-- As per ARC-978 change, Goal Comments should not be display if there is no EGO -->
+                            <aura:if isTrue="{!and(not(empty(v.goal.goalObj.EGO__c)),not(empty(v.goal.goalObj.Continued_From_Goal__c)))}">
+                                <lightning:textarea name="{!v.goal.goalObj.Id+'_Comments'}" 
+                                                    readonly="true" 
+                                                    label="Patient Goal Comments" 
+                                                    variant="standard" 
+                                                    value="{!v.goal.comments}" 
+                                                    maxlength="5000"/>
+                            </aura:if>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="4" padding="around-small">
+                            <lightning:textarea name="{!v.goal.goalObj.Id+'_Team_Goal_Comments'}" readonly="true" label="Team Goal Comments" value="{!v.goal.goalObj.Team_Goal_Comments__c}"/>
+                        </lightning:layoutItem>
+                    </aura:if>
+                    <!-- objectives -->
+                    <lightning:layoutItem size="12" padding="around-small">
+                        <div class="slds-box c-indent">
+                            <c:TreatmentPlanObjectives edit="{!v.edit}" 
+                                                       objectives="{!v.goal.objectives}" 
+                                                       goalStatus="{!v.goal.goalObj.Status__c}" 
+                                                       treatmentStatus="{!v.treatmentStatus}" 
+                                                       newTargetDate="{!v.newTargetDate}"/>
+                        </div>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </div>
+        </aura:set>
+    </aura:if>
+    
+    <aura:if isTrue="{!v.showCancelModal}">
+        <c:sldsModal instanceName="cancelGoal">
+            <aura:set attribute="header">
+                
+            </aura:set>
+            <aura:set attribute="content">
+                <div class="slds-p-horizontal--small">
+                    Are you sure you want to remove this goal and any related objectives?
+                </div>
+            </aura:set>
+            <aura:set attribute="footer">
+                <lightning:button label="Remove" variant="destructive" onclick="{!c.handleDiscardChanges}"/>
+                <lightning:button label="Go back to Goal" variant="neutral" onclick="{!c.handleBackToGoal}"/>
+            </aura:set>
+        </c:sldsModal>
+    </aura:if>
+</aura:component>

@@ -1,0 +1,1 @@
+<aura:event type="APPLICATION" description="When Draft Treatment Plan is saved" />

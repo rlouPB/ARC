@@ -1,0 +1,1 @@
+<aura:event type="APPLICATION" description="Finalize EGO"></aura:event>

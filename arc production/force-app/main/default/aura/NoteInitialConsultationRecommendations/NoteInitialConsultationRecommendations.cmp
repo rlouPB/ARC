@@ -1,0 +1,20 @@
+<aura:component extends="c:NoteItemPlugin">
+	<aura:attribute name="options" type="List" default="[]"/>
+	<aura:attribute name="value" type="List" default="[]"/>
+    <aura:attribute name="isLoading" type="Boolean" default="true"/>
+
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+
+	<aura:handler name="change" value="{!v.value}" 
+		action="{!c.handleRecommendationsChanged}"/>
+
+	<c:MultiSelectCheckbox label="" objectName="Patient_Note__c" 
+		fieldName="Recommendations__c" 
+		options="{!v.options}" value="{!v.value}"/>
+	
+	<lightning:inputRichText class="slds-m-top_medium" label="Comments" 
+		value="{!v.theNote.patientNote.Comments__c}" 
+		onblur="{!c.handleRecommendationsChanged}"
+		disabledCategories="FORMAT_FONT,ALIGN_TEXT,INSERT_CONTENT,REMOVE_FORMATTING"/>
+	
+</aura:component>

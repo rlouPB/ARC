@@ -1,0 +1,241 @@
+<aura:component controller="PatientNoteCtl" extends="c:ApexService" implements="force:hasRecordId,flexipage:availableForAllPageTypes,lightning:actionOverride,lightning:isUrlAddressable">
+    <aura:attribute name="patientNote" type="Map" />
+    <aura:attribute name="currentUser" type="Map" />
+    <aura:attribute name="showSpinner" type="Boolean" default="true" />
+    <aura:attribute name="parameters" type="Map" />
+    <aura:attribute name="defaultGroup" type="Map" />
+    <aura:attribute name="requiresCoSign" type="Boolean" default="true" />
+    <aura:attribute name="canFinalize" type="Boolean" default="true" />
+    <aura:attribute name="canSeeCompleteButton" type="Boolean" default="false" />
+    <aura:attribute name="isButtonDisabled" type="Boolean" default="true" />
+    <aura:attribute name="isSaveDisabled" type="Boolean" default="false" description="disable save while currently saving" />
+    <aura:attribute name="isValid" type="Boolean" default="true" description="will be set to false if validation is triggered and it fails" />
+    <aura:attribute name="readOnly" type="Boolean" default="false" />
+    <aura:attribute name="status" type="String" />
+    <aura:attribute name="snapshotHtml" type="String" default="testing html" />
+    <aura:attribute name="pictureSrc" type="String" default="" Description="Picture source" />
+    <aura:attribute name="showConfirmationModal" type="Boolean" default="false" />
+    <aura:attribute name="showReOpenConfirmationModal" type="Boolean" default="false" />
+    <aura:attribute name="showErrorMessage" type="Boolean" default="false" />
+    <aura:attribute name="ASMessage" type="String" default="" description="binds to child Autosave component to display autosave status" />
+    <aura:attribute name="firstChange" type="Boolean" default="true" description="PatientNoteItem fires note change right when loaded, need to ignore this." />
+    <aura:attribute name="isCollapsed" type="Boolean" />
+    <aura:attribute name="sidebarParams" type="Map[]" />
+    <aura:attribute name="patientNoteFields" type="Map[]" />
+    <aura:attribute name="buttonLabel" type="String" default="" />
+    <aura:attribute name="NoteType" type="String" default="" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler name="noteChanged" event="c:NoteChangedEvent" action="{!c.handleNoteChanged}" />
+    <aura:handler name="autosaveNowEvent" event="c:autosaveNow" action="{!c.handleAutoSaveNote}" />
+
+    <!-- LMS PROPERTIES  -->
+    <aura:attribute name="messageValue" type="String" />
+    <aura:attribute name="messageRecieved" type="String" />
+    <lightning:messageChannel
+                              type="PatientNoteToScriptSureDatatableMessageChannel__c"
+                              aura:id="SampleMessageChannel"
+                              onMessage="{!c.handleMessage}"
+                              scope="APPLICATION" />
+
+    <lightning:notificationsLibrary aura:id="notifLib" />
+
+    <c:Autosave autosaveMessage="{!v.ASMessage}" instanceName="PatientNote" aura:id="autosaveComp" />
+
+    <div class="wrapper">
+        <aura:if isTrue="{!v.showSpinner}">
+            <lightning:spinner alternative-text="Loading" size="small" />
+            <aura:set attribute="else">
+                <lightning:layout multipleRows="true">
+                    <lightning:layoutItem class="{!v.isCollapsed?'':'slds-var-p-right_large'}" size="{!v.isCollapsed?11:9}">
+                        <lightning:card class="slds-card_boundary">
+                            <!-- Header -->
+                            <lightning:layout class="slds-border_bottom">
+                                <lightning:layoutItem size="3">
+                                </lightning:layoutItem>
+                                <lightning:layoutItem size="7">
+                                    <div style="font-weight: bold;" class="slds-text-heading_large">{!v.patientNote.noteDefinition.Note_Label__c}</div>
+                                </lightning:layoutItem>
+                                <lightning:layoutItem size="2">
+                                    <lightning:layout multipleRows="true">
+                                        <lightning:layoutItem size="12">
+                                            <div class="slds-form-element slds-form-element_readonly riggsNoBorder">
+                                                <label class="slds-form-element__label">Status</label>
+                                                <div class="slds-form-element__control">{!v.status}</div>
+                                            </div>
+                                        </lightning:layoutItem>
+
+                                        <aura:if isTrue="{!not(empty(v.patientNote.noteDefinition.Parameters__c.header.fieldNames))}">
+                                            <aura:iteration items="{!v.patientNote.noteDefinition.Parameters__c.header.fieldNames}" var="field">
+                                                <lightning:layoutItem size="12">
+                                                    <div class="slds-form-element slds-form-element_readonly">
+                                                        <label class="slds-form-element__label">{!field.label}</label>
+                                                        <div class="slds-form-element__control">{!field.value}</div>
+                                                    </div>
+                                                </lightning:layoutItem>
+                                            </aura:iteration>
+                                        </aura:if>
+                                    </lightning:layout>
+                                </lightning:layoutItem>
+                            </lightning:layout>
+                            <div class="slds-scrollable_y">
+                                <aura:if isTrue="{!and(v.status != 'Finalized', v.status != 'Cancelled')}">
+                                    <aura:iteration items="{!v.patientNote.noteItems}" var="noteItem" indexVar="idx">
+                                        <lightning:card class="patient-note-item slds-card__body_inner">
+                                            <c:PatientNoteItem recordId="{!v.recordId}" noteItem="{!noteItem}" patientNote="{!v.patientNote}" readOnly="{!v.readOnly}" instanceName="{!idx}" />
+                                        </lightning:card>
+                                    </aura:iteration>
+                                </aura:if>
+                                <aura:if isTrue="{!v.status == 'Finalized'}">
+                                    <div class="slds-form-element__control snapshotHtml">
+                                        <aura:unescapedHtml value="{!v.snapshotHtml}" />
+                                    </div>
+                                </aura:if>
+                                <!-- <aura:if isTrue="{!or(
+                                    not(empty(v.patientNote.patientNote.Finalized_By__r.Professional_Name__c)),
+                                    not(empty(v.patientNote.patientNote.Completed_By__r.Professional_Name__c))
+                                )}"> -->
+                                <aura:if isTrue="{!and(v.patientNote.patientNote.Completed_Date_Time__c != null, v.patientNote.patientNote.Status__c == 'Completed')}">
+                                    <lightning:card class="footer slds-card__body_inner">
+                                        <lightning:layoutItem size="12">
+                                            <lightning:layout multipleRows="true">
+                                                <lightning:layoutItem size="6" class="slds-text-align_left">
+                                                    <strong>Completed By:</strong>
+                                                </lightning:layoutItem>
+                                                <lightning:layoutItem size="6" class="slds-text-align_left slds-var-p-left_medium">
+                                                    <lightning:formattedText value="{!v.patientNote.patientNote.Completed_By_Professional_Name__c}" />
+                                                </lightning:layoutItem>
+                                                <lightning:layoutItem size="6" class="slds-text-align_left">
+                                                    <strong>Completed Date/Time:</strong>
+                                                </lightning:layoutItem>
+                                                <lightning:layoutItem size="6" class="slds-text-align_left slds-var-p-left_medium">
+                                                    <lightning:formattedDateTime value="{!v.patientNote.patientNote.Completed_Date_Time__c}" year="numeric" month="numeric" day="numeric" hour="2-digit" minute="2-digit" timeZoneName="short" timeZone="America/New_York" />
+                                                </lightning:layoutItem>
+                                            </lightning:layout>
+                                        </lightning:layoutItem>
+                                    </lightning:card>
+
+                                </aura:if>
+                                <!-- <aura:if isTrue="{!or(
+                                    not(empty(v.patientNote.patientNote.Finalized_By_Professional_Name__c)),
+                                    not(empty(v.patientNote.patientNote.Completed_By_Professional_Name__c))
+                                )}">
+                                    <lightning:card class="footer slds-card__body_inner">
+                                    </lightning:card> -->
+                                <!-- </aura:if> -->
+                            </div>
+                        </lightning:card>
+
+                        <aura:if isTrue="{!v.patientNote.numOfSnapshots > 1}">
+                            <lightning:card class="slds-card_boundary">
+                                <c:dynamicListView showNewButton="false" tableTitle="History" sObjectName="Snapshot__c" sObjectLookupIDField="Patient_Note__c" fieldSetName="History_List_View"
+                                                   additionalWhereClause="Patient_Note__r.Status__c='Finalized'" includeName="true" iconName="standard:care_request_reviewer"
+                                                   showMyRecordsOnly="false" recordId="{!v.recordId}" />
+                                <br />
+                            </lightning:card>
+                        </aura:if>
+                    </lightning:layoutItem>
+
+                    <lightning:layoutItem size="{!v.isCollapsed?1:3}">
+                        <c:PatientSidebar isCollapsed="{!v.isCollapsed}" patientAccountId="{!v.patientNote.patientNote.Account__c}" recordId="{!v.recordId}" parameters="{!v.sidebarParams}">
+                            <aura:set attribute="footer">
+                                <lightning:layoutItem size="12" padding="horizontal-large">
+                                    {!v.ASMessage}
+                                </lightning:layoutItem>
+                                <aura:if isTrue="{!or((v.patientNote.patientNote.Status__c == 'Finalized'),(v.patientNote.patientNote.Status__c == 'Completed'))}">
+                                    <lightning:layoutItem size="12" padding="horizontal-large">
+                                        <lightning:button class="slds-button_stretch slds-var-m-top_xx-small" variant="brand" label="Send as Message"  onclick="{!c.handleStandardMessage}" />
+                                    </lightning:layoutItem>
+                                </aura:if>
+                                <aura:if isTrue="{!or((v.patientNote.patientNote.Status__c == 'Finalized'),(v.patientNote.patientNote.Status__c == 'Completed'))}">
+                                    <lightning:layoutItem size="12" padding="horizontal-large">
+                                        <lightning:button class="slds-button_stretch slds-var-m-top_xx-small" variant="brand" label="Send Alert"  onclick="{!c.handleAlert}" />
+                                    </lightning:layoutItem>
+                                </aura:if>
+                                <aura:if isTrue="{!not(or(
+                                                    and(
+                                                        not(and(
+                                                                v.status == 'Completed', 
+                                                                v.patientNote.isAuthSigner)
+                                                            ),
+                                                        not(v.patientNote.canReOpenNote)
+                                                    ), 
+                                                    v.status == 'Draft'
+                                                    ))}">
+                                    <lightning:layoutItem size="12" padding="horizontal-large">
+                                        <lightning:button class="slds-button_stretch slds-var-m-top_xx-small" variant="brand" label="Re-Open" onclick="{!c.reopen}"  />
+                                    </lightning:layoutItem>
+                                </aura:if>
+                                <aura:if isTrue="{!not(v.patientNote.patientNote.Status__c == 'Cancelled')}">
+                                    <lightning:layoutItem size="12" padding="horizontal-large">
+                                        <aura:if isTrue="{!not(v.readOnly)}">
+                                            <lightning:button class="slds-button_stretch slds-var-m-top_xx-small" variant="brand" label="Save" onclick="{!c.handleSaveNote}" disabled="{!v.isSaveDisabled}"/>
+                                        </aura:if>
+                                    </lightning:layoutItem>
+                                </aura:if>
+                                <lightning:layoutItem size="12" padding="horizontal-large">
+                                    <aura:if isTrue="{!and(v.canSeeCompleteButton, v.patientNote.patientNote.Status__c == 'Draft')}">
+                                        <lightning:button class="slds-button_stretch slds-var-m-top_xx-small" variant="brand" label="Complete Note" onclick="{!c.completeNote}" disabled="{!v.isSaveDisabled}" />
+                                    </aura:if>
+                                </lightning:layoutItem>
+                                <aura:if isTrue="{!and(v.canFinalize, or(v.patientNote.patientNote.Status__c == 'Draft', v.patientNote.patientNote.Status__c == 'Completed'))}">
+                                    <lightning:layoutItem size="12" padding="horizontal-large">
+                                        <lightning:button class="slds-button_stretch slds-var-m-top_xx-small" variant="brand" label="Finalize Note" onclick="{!c.finalizeNote}"  disabled="{!v.isSaveDisabled}" />
+                                    </lightning:layoutItem>
+                                </aura:if>
+                                <aura:if isTrue="{!(v.patientNote.patientNote.Status__c == 'Draft')}">
+                                    <lightning:layoutItem size="12" padding="horizontal-large">
+                                        <lightning:button class="slds-button_stretch slds-var-m-top_xx-small" variant="brand" label="Discard Note" title="Discard Note" onclick="{!c.cancelNote}" />
+                                    </lightning:layoutItem>
+                                </aura:if>
+                                <aura:if isTrue="{!(v.patientNote.patientNote.Status__c == 'Finalized')}">
+                                    <lightning:layoutItem size="12" padding="horizontal-large">
+                                        <lightning:button class="slds-button_stretch slds-var-m-top_xx-small" variant="brand" label="Print" onclick="{!c.handlePrint}" />
+                                    </lightning:layoutItem>
+                                </aura:if>
+                            </aura:set>
+                        </c:PatientSidebar>
+                    </lightning:layoutItem>
+
+                </lightning:layout>
+            </aura:set>
+        </aura:if>
+    </div>
+
+    <aura:if isTrue="{!v.showConfirmationModal}">
+        <c:sldsModal instanceName="editCurrentVersion">
+            <aura:set attribute="header"></aura:set>
+            <aura:set attribute="content">
+                <div class="slds-var-p-horizontal_small">
+                    This Patient Note has been changed in a different session. To avoid overwriting changes, please edit the current version.
+                </div>
+            </aura:set>
+            <aura:set attribute="footer">
+                <lightning:button label="Open Current Version in New Tab" variant="neutral" onclick="{!c.handleOpenNewTab}" />
+                <lightning:button label="Close" variant="neutral" onclick="{!c.handleCloseConfirmationModal}" />
+            </aura:set>
+        </c:sldsModal>
+    </aura:if>
+    <aura:if isTrue="{!v.showReOpenConfirmationModal}">
+        <c:sldsModal instanceName="editCurrentVersion">
+            <aura:set attribute="header"></aura:set>
+            <aura:set attribute="content">
+                <div class="slds-var-p-horizontal_small">
+                    Are you sure you want to Re-open the Patient Note?
+                </div>
+            </aura:set>
+            <aura:set attribute="footer">
+                <lightning:button variant="neutral"
+                                  label="Do Not Re-Open"
+                                  title="Do Not Re-Open"
+                                  onclick="{! c.closeReOpenModelConfirm }" />
+                <lightning:button variant="brand"
+                                  label="Re-Open Patient Note for Editing"
+                                  title="Re-Open Patient Note for Editing"
+                                  onclick="{!c.reopen}" />
+            </aura:set>
+        </c:sldsModal>
+    </aura:if>
+    <c:modalPopupLwc aura:id="popup" labelforokbtn="{!v.buttonLabel}" labelforcancelbtn="Go back to Patient Note" />
+    <lightning:overlayLibrary aura:id="overlayLib" />
+</aura:component>

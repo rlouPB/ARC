@@ -1,0 +1,99 @@
+<aura:component controller="DischargeSectionCtl" extends="c:DischargeSection">
+        
+    <!-- handler -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler name="dischargeSectionActionEvent" event="c:DischargeSectionActionEvent" action="{!c.handleSectionActionEvent}"/>
+    <aura:handler name="referralChanged" event="c:DischargeDispositionReferralChanged" action="{!c.handleReferralChanged}"/>
+
+    <!-- Register Events -->
+    
+    <lightning:card>
+        <c:DischargeDispositionReferrals aura:id="Psychopharmacology"
+                                         mode="individual" 
+                                         isLoading="{!v.isLoading}"
+                                         grouping="Psychopharmacology"
+                                         referralList="{!v.referralListMap.Psychopharmacology}"
+                                         removeReferralList="{!v.dischargeSection.removeReferralList}" 
+                                         dischargeStatus="{!v.dischargeDisposition.dischargeDispositionObj.Status__c}" 
+                                         dischargeDispositionId="{!v.dischargeSection.dischargeSectionObj.Discharge_Disposition__c}" 
+                                         section="{!v.dischargeSection}"
+                                         isEditable="{!v.isEditable}"
+                                         />
+        <lightning:layout multipleRows="true">
+            <lightning:layoutItem size="12">
+                <lightning:input type="checkbox" label="No separate referral required for this discipline"
+                    checked="{!v.dischargeSection.dischargeSectionObj.No_Separate_Referral_Required__c}" 
+                    disabled="{!not(v.isEditable)}"/>
+                
+            </lightning:layoutItem>
+            
+            <lightning:layoutItem size="8">
+                &nbsp;
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12">&nbsp;</lightning:layoutItem>
+            <lightning:layoutItem size="3">
+                <label for="CommentsLabel" class="slds-form-element__label"></label>
+                <div id="CommentsLabel">Comments</div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="9">
+                <aura:if isTrue="{!v.isEditable}">
+                    <lightning:InputRichText value="{!v.dischargeSection.dischargeSectionObj.No_Separate_Referral_Required_Comments__c}" 
+                                             disabledCategories="FORMAT_FONT,ALIGN_TEXT,INSERT_CONTENT,REMOVE_FORMATTING"
+                                             disabled="{!not(v.isEditable)}"
+                                             />
+                    <aura:set attribute="else">
+                        <label for="Comments" class="slds-form-element__label"></label>
+                        <div id="Comments"><lightning:formattedRichText value="{!v.dischargeSection.dischargeSectionObj.No_Separate_Referral_Required_Comments__c}"/></div>
+                    </aura:set>
+                </aura:if>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12">&nbsp;</lightning:layoutItem>
+            <lightning:layoutItem size="3">
+                <label for="Comments" class="slds-form-element__label"></label>
+                <div id="Comments">Drug Allergies</div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="9">
+                <aura:if isTrue="{!v.isEditable}">
+                    <lightning:input type="text" value="{!v.dischargeSection.dischargeSectionObj.Drug_Allergies__c}" maxlength="255"
+                                     disabled="{!not(v.isEditable)}"
+                                     />
+                    <aura:set attribute="else">
+                        <label for="DrugAllergies" class="slds-form-element__label"></label>
+                        <div id="DrugAllergies"><lightning:formattedText value="{!v.dischargeSection.dischargeSectionObj.Drug_Allergies__c}"/></div>
+                    </aura:set>
+                </aura:if>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="3">
+                <label for="Comments" class="slds-form-element__label"></label>
+                <div id="Comments">Blood Levels</div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="9">
+                <aura:if isTrue="{!v.isEditable}">
+                    <lightning:input type="text" value="{!v.dischargeSection.dischargeSectionObj.Blood_Levels__c}" maxlength="255"
+                                     disabled="{!not(v.isEditable)}"
+                                     />
+                    <aura:set attribute="else">
+                        <label for="BloodLevels" class="slds-form-element__label"></label>
+                        <div id="BloodLevels"><lightning:formattedText value="{!v.dischargeSection.dischargeSectionObj.Blood_Levels__c}"/></div>
+                    </aura:set>
+                </aura:if>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="3">
+                <label for="Comments" class="slds-form-element__label"></label>
+                <div id="Comments">Additional Instructions</div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="9">
+                <aura:if isTrue="{!v.isEditable}">
+                <lightning:InputRichText value="{!v.dischargeSection.dischargeSectionObj.Additional_Instructions__c}" 
+                                         disabledCategories="FORMAT_FONT,ALIGN_TEXT,INSERT_CONTENT,REMOVE_FORMATTING"
+                                        disabled="{!not(v.isEditable)}"
+                                         />
+                    <aura:set attribute="else">
+                        <label for="AdditionalInstructions" class="slds-form-element__label"></label>
+                        <div id="AdditionalInstructions"><lightning:formattedRichText value="{!v.dischargeSection.dischargeSectionObj.Additional_Instructions__c}"/></div>
+                    </aura:set>
+                </aura:if>
+            </lightning:layoutItem>
+        </lightning:layout>
+    </lightning:card>
+</aura:component>

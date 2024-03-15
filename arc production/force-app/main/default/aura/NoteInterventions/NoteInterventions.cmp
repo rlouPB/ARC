@@ -1,0 +1,20 @@
+<aura:component extends="c:NoteItemPlugin">
+    <aura:attribute name="patientRecord" type="Account" />
+    <aura:attribute name="discipline" type="String" access="global" />
+    <aura:if isTrue="{!v.theNote.patientNote.Account__c}">
+        <force:recordData recordId="{!v.theNote.patientNote.Account__c}" fields="Current_Case__c" targetFields="{!v.patientRecord}" />
+    </aura:if>
+
+    <div class="slds-box">
+        <aura:if isTrue="{!v.patientRecord.Current_Case__c}">
+            <div class="slds-card" >
+                <lightning:card>
+                    <body class="slds-p-horizontal_small">
+                        <c:ManageInterventions showLinks="true" treatmentPlanId="{!v.patientRecord.Current_Case__c}" showManageButton="{!v.theNote.patientNote.Status__c == 'Draft'}" showAllCurrentToggle="true" showOnlyToAllowedDiciplines="true" discipline="{!v.discipline}" />
+                    </body>
+                </lightning:card>
+            </div>
+        </aura:if>
+    </div>
+
+</aura:component>

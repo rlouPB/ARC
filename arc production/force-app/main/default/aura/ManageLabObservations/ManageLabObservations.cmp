@@ -1,0 +1,148 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,force:hasRecordId,lightning:actionOverride,forceCommunity:availableForAllPageTypes"
+				controller="ListLabObservationController" extends="c:ApexService"  >
+	
+	<aura:attribute name="recordId" type="String" />
+	<aura:attribute name="accountRecord" type="Account" />
+    <aura:attribute name="labObservations" type="Lab_Observation__c[]" />
+	<aura:attribute name="admissionID" type="String" />
+	<aura:attribute name="clincianRoles" type="String[]" />
+
+	<aura:attribute name="permissionSetNames" type="String" default="'Clinical'" 
+			description="Single-quoted comma-separated Permission Set Names to include in query. Only applies to PermissionSetAssignment queries. Default selects RiggsClinical." />
+	<aura:attribute name="psetAssignmentFilters" type="List" description="PermissionSetAssignment filter list to pass to lookupComponent. Assembled in this component based on parameters" />
+	<aura:attribute name="label" type="String" description="Label shown on the lookupComponent. For this use, redundant with Note Item title and subtitle"/>
+
+	<aura:attribute name="isModalOpenConfirmation" type="boolean" default="false" />
+	<aura:attribute name="isDataChanged" type="boolean" default="false" />
+	<aura:attribute name="spinnerVisible" type="Boolean" default="false" />
+
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+	<aura:handler name="selectedItemEvent" event="c:selectedItemEvent" action="{!c.addMember}"/>
+	<aura:handler name="removedItemEvent" event="c:removedItemEvent" action="{!c.removeMember}"/>
+
+	<aura:method name="saveLabObservations" action="{!c.upsertLabObservations}" access="PUBLIC" />
+
+	<aura:registerEvent name="closeModalEvent" type="c:closeModal" />
+
+	<lightning:overlayLibrary aura:id="overlayLib"/>
+
+	<force:recordData aura:id="recordLoader"
+						recordId="{!v.recordId}"
+						fields="Name,Current_Case__c"
+						targetFields="{!v.accountRecord}"
+			
+	/>
+
+	<aura:if isTrue="{!v.spinnerVisible}" >
+		<lightning:spinner alternativeText="Loading" />
+	</aura:if>
+	
+	<div class="whole-modal">
+		<!-- <div class="slds-text-heading_medium slds-p-bottom_large" style="text-align: center">
+			<b> Manage Assigned Clinicians </b>
+		</div> -->
+
+		<!--Use aura:if tag to display/hide popup based on isModalOpen value-->  
+		<aura:if isTrue="{!v.isModalOpenConfirmation}">
+			
+			<!-- Modal/Popup Box starts here-->
+			<section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+				<div class="slds-modal__container">
+					<!-- Modal/Popup Box Header Starts here-->
+					<header class="slds-modal__header">
+						<lightning:buttonIcon iconName="utility:close"
+											onclick="{!c.gobackToEditing}"
+											alternativeText="close"
+											variant="bare-inverse"
+											class="slds-modal__close"/>
+						<h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Confirmation</h2>
+					</header>
+					<!--Modal/Popup Box Body Starts here-->
+					<div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+						Are you sure you want to cancel? Any unsaved changes will be lost.
+					</div>
+					<!--Modal/Popup Box Footer Starts here-->
+					<footer class="slds-modal__footer">
+						<lightning:button variant="neutral"
+										label="Discard Changes"
+										title="Discard Changes"
+										onclick="{!c.closeManageCliniciansModal}" />
+						<lightning:button variant="brand"
+										label="Go Back to Editing"
+										title="Go Back to Editing"
+										onclick="{!c.gobackToEditing}" />
+					</footer>
+				</div>
+			</section>
+			<div class="slds-backdrop slds-backdrop_open"></div>
+		</aura:if>
+
+		<lightning:layout multipleRows="true" verticalAlign="end">
+            <lightning:layoutItem size="4" padding="horizontal-small">
+				<span  style="font-weight: bold">
+					Test
+				</span>
+			</lightning:layoutItem>
+			<lightning:layoutItem size="2" padding="horizontal-small">
+				<span  style="font-weight: bold">
+					Test Code
+				</span>
+			</lightning:layoutItem>
+            <lightning:layoutItem size="2" padding="horizontal-small">
+				<span style="font-weight: bold">
+					Test Name
+				</span>
+			</lightning:layoutItem>
+			<lightning:layoutItem size="2" padding="horizontal-small">
+				<span style="font-weight: bold">
+					Query
+				</span>
+			</lightning:layoutItem>
+			<lightning:layoutItem size="2" padding="horizontal-small">
+				<span style="font-weight: bold">
+					Answer
+				</span>
+			</lightning:layoutItem>
+			<aura:iteration items="{!v.labObservations}" indexVar="index" var="labObservation">
+                <aura:if isTrue="{!!labObservation.isDeleted}">
+					<lightning:layoutItem size="4" padding="horizontal-small">
+						<c:LookupComponent objectName="Compendium_Entry__c" 
+											fieldsToSearch="Name,Test_Name__c" 
+											allowFreeText="true" 
+											aura:id="selectCompendiumEntry" 
+											selectedRecord="{!labObservation.LookupObject}"
+											displayField="Search_Field__c"
+											allowPropagation="true"
+											maxQuickSearchRows="10"
+											instanceName="{!index}"
+											displayFieldValue="Id" />
+					</lightning:layoutItem>
+                    <lightning:layoutItem size="2" padding="horizontal-small">
+						{!labObservation.Compendium_Entry__r.Name}
+					</lightning:layoutItem>
+                    <lightning:layoutItem size="2" padding="horizontal-small">
+						{!labObservation.Compendium_Entry__r.Test_Name__c}
+					</lightning:layoutItem>
+                    <lightning:layoutItem size="2" padding="horizontal-small">
+						{!labObservation.Compendium_Entry__r.Query__c}
+					</lightning:layoutItem>
+					<lightning:layoutItem size="2" padding="horizontal-small">
+						<aura:if isTrue="{!labObservation.Compendium_Entry__r.Query_Type__c == 'Yes/No'}">
+							<lightning:input type="checkbox" name="answer" checked="{!labObservation.Query_Answer__c}" />
+							<aura:set attribute="else">
+								<aura:if isTrue="{!labObservation.Compendium_Entry__r.Query_Type__c}">
+									<lightning:input type="text" name="comment" value="{!labObservation.Query_Answer__c}" />
+								</aura:if>
+							</aura:set>
+						</aura:if>
+
+					</lightning:layoutItem>
+                </aura:if>
+			</aura:iteration>
+		</lightning:layout>
+		
+		<div class="add-height" style="height: 20px;"></div>
+
+	</div>
+	
+</aura:component>

@@ -1,0 +1,28 @@
+<aura:component>
+    <aura:attribute name="field" type="Map"/>
+    <aura:if isTrue="{!v.field}">
+        <div class="slds-form-element slds-form-element_readonly">
+            <label class="slds-form-element__label">{!v.field.label}</label>
+            <div class="slds-form-element__control">
+                <aura:if isTrue="{!or(v.field.type == 'DATETIME',v.field.type == 'DATE')}">
+                    <lightning:formattedDateTime value="{!v.field.value}" month="2-digit" day="2-digit" year="numeric" timeZone="UTC" />                    
+                </aura:if>
+                <aura:if isTrue="{!v.field.type == 'INTEGER'}">
+                    <lightning:formattedNumber value="{!v.field.value}" maximumFractionDigits="0"/>
+                </aura:if>
+                <aura:if isTrue="{!v.field.type == 'DOUBLE'}">
+                    <lightning:formattedNumber value="{!v.field.value}"/>
+                </aura:if>
+                <aura:if isTrue="{!v.field.type == 'CURRENCY'}">
+                    <lightning:formattedNumber value="{!v.field.value}" style="currency" currencyCode="USD"/>
+                </aura:if>
+                <aura:if isTrue="{!v.field.type == 'HTML'}">
+                    <aura:unescapedHtml value="{!v.field.value}"/>
+                </aura:if>
+                <aura:if isTrue="{!or(!v.field.type,v.field.type == 'STRING')}">
+                    <div class="slds-form-element__static">{!v.field.value}</div>
+                </aura:if>
+            </div>
+        </div>
+    </aura:if>
+</aura:component>

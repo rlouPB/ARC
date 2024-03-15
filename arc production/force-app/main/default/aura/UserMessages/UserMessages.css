@@ -1,0 +1,107 @@
+.THIS {
+  color: #333;
+  font-weight: 300;
+}
+
+.THIS .selectable {
+  cursor: pointer !important;
+}
+
+.THIS .pointer {
+  cursor: default;
+}
+
+.THIS .arcNoSortHover {
+  cursor: default;
+}
+
+.THIS .unread {
+  color: #000;
+  font-weight: 700;
+}
+.THIS .buttons {
+  font-weight: normal;
+}
+.THIS .family {
+  background-color: #d98a5e;
+}
+.THIS .patient {
+  background-color: #5e8ab4;
+}
+.THIS .staff {
+  background-color: #9caf88;
+}
+
+.THIS #selected {
+  background: #efefef;
+}
+
+.THIS th {
+  cursor: pointer;
+}
+
+.THIS th.sent-col2 {
+  cursor: default;
+}
+
+.THIS .heading {
+  background: none !important;
+}
+
+.THIS.slds-table--header-fixed thead th {
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+}
+
+.THIS .subject-link {
+  text-decoration: underline;
+}
+
+.THIS .slds-table_header-fixed_container {
+  padding-top: 1.5rem;
+}
+
+.THIS lightning-icon {
+  min-width: 4.3rem;
+  text-align: center;
+}
+
+.THIS lightning-icon::after {
+  color: white;
+  content: "  " attr(title);
+  font-size: smaller;
+  font-weight: normal;
+}
+
+.THIS .no-data {
+  display: table-cell;
+  text-indent: 1rem;
+  height: 3rem;
+  padding-left: 1rem;
+}
+
+.THIS .no-data-row {
+  display: table-row;
+}
+
+.THIS {
+  border-bottom: 0;
+}
+
+.THIS .truncate-to {
+  max-width: 80%;
+}
+
+/* .THIS .sent-col1 {
+	width: 8.4rem;
+} */
+.THIS .sent-col2 {
+  max-width: 16.75rem;
+}
+.THIS .usrMsgCol3 {
+  width: 23.8rem;
+}
+/*
+.THIS .sent-col4 {
+	width: 15.65rem;
+} */

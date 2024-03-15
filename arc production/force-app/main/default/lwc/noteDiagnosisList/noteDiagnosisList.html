@@ -1,0 +1,22 @@
+<template>
+    <template for:each={diagnoses} for:item="diganosis" for:index="idx">  
+        <lightning-layout title="Mark For Delete" key={diganosis.Id}>
+            {diagnosis.className}
+            <lightning-layout-item size="5">
+                <div style="margin-left: 15px;">{diganosis.Clinical_Code__Description__c}</div>
+            </lightning-layout-item>
+            <lightning-layout-item size="1" >{diganosis.Clinical_Code__Name}</lightning-layout-item>
+            <lightning-layout-item size="4" >{diganosis.Additional_Specifiers__c}</lightning-layout-item>
+            <lightning-layout-item size="2" >
+                <template if:true={isComorbid}>
+                    <template if:true={diganosis.Marked_for_Delete__c}>
+                        <lightning-button label="Cancel Delete" onclick={onCancelDelete}></lightning-button>
+                    </template>
+                    <template if:false={diganosis.Marked_for_Delete__c}>
+                        <lightning-button label="Mark For Delete" onclick={onMarkForDelete}></lightning-button>
+                    </template>
+                </template>
+            </lightning-layout-item>
+        </lightning-layout>
+    </template>     
+</template>

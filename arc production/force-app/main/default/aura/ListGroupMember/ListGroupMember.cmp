@@ -1,0 +1,113 @@
+<aura:component controller="ListGroupMemberController" implements="force:hasRecordId,force:appHostable,flexipage:availableForAllPageTypes" access="global">
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:attribute name="recordId" type="Id" access="global" />
+    <aura:attribute name="group" type="Group__c" access="global" />
+    <aura:attribute name="staffGroupMembers" type="Staff_Group_Member__c[]" access="global" />
+    <aura:attribute name="patientGroupMembers" type="Patient_Group_Member__c[]" access="global" />
+    <aura:attribute name="patientObject" type="Patient_Group_Member__c" access="public" default="{'sobjectType': 'Patient_Group_Member__c'}" />
+    <aura:attribute name="staffObject" type="Staff_Group_Member__c" access="public" default="{'sobjectType': 'Staff_Group_Member__c'}" />
+    <aura:registerEvent name="appEvent" type="c:AddGroupMemberEvent" />
+    <aura:handler name="render" value="{!this}" action="{!c.onRender}" />
+    <aura:attribute name="ButtonDisabled" type="Boolean" default="false" />
+
+    <aura:handler event="c:refreshPatient" action="{!c.doInit}" />
+    <!-- attributes -->
+    <aura:attribute name="hasAccessToEdit" type="Boolean" default="false" />
+    <aura:attribute name="noEditAccessError" type="String" />
+    <aura:attribute name="dataStaff" type="Object" />
+    <aura:attribute name="dataPatient" type="Object" />
+    <aura:attribute name="columns" type="List" />
+    <aura:attribute name="sortBy" type="String" />
+    <aura:attribute name="sortDirection" type="String" />
+    <aura:attribute name="columnsStaff" type="List" />
+    <aura:attribute name="sortByStaff" type="String" />
+    <aura:attribute name="sortDirectionStaff" type="String" />
+
+    <aura:attribute name="options" type="List" default="[
+                                                        {'label': 'Active', 'value': 'Active'},
+                                                        {'label': 'All', 'value': 'All'}
+                                                        ]" />
+    <lightning:overlayLibrary aura:id="overlayLib2" />
+
+    <aura:attribute name="patientCheckBox" type="String" default="Active" />
+    <aura:attribute name="staffCheckBox" type="String" default="Active" />
+    <div class="slds-box slds-theme_default">
+        <aura:if isTrue="{!or(v.group.Primary_Function__c == 'Patient',v.group.Primary_Function__c == null)}">
+            <div class="slds-grid slds-wrap">
+                <div class="slds-col slds-size_1-of-1">
+                    <div class="slds-grid slds-gutters">
+                        <div class="slds-col">
+                            <div class="slds-form-element">
+                                <span style="float: left;">
+                                    <h1 style="font-size: 18px; font-weight: 600;"> Patient Members</h1>
+                                </span>
+                                <span style="float: right;">
+                                    <div class="slds-var-p-bottom_small">
+                                        <lightning:radioGroup name="radioButtonGroup" label="" options="{! v.options }" value="{! v.patientCheckBox }" type="button" onchange="{!c.patientRadioChanged}" />
+                                    </div>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="slds-col">
+                            <c:MainComponentForAddGroupMember selectedUser="Patient" ButtonName="Add Patient" group="{!v.group}" ButtonDisabled="{!v.ButtonDisabled}" />
+                        </div>
+
+                    </div>
+
+
+                    <!-- <lightning:datatable
+                                     columns="{! v.columns }"
+                                     data="{! v.dataPatient }"
+                                     keyField="id"
+                                     class="table-test"
+                                     sortedBy="{!v.sortBy}"
+
+                                     onrowaction="{! c.handleRowAction }"  onsort="{!c.handleSort}" hideCheckboxColumn="true"/>  -->
+
+                    <c:customDatatableLwc columns="{! v.columns }" data="{! v.dataPatient }" keyField="id" class="table-test" sortedBy="{!v.sortBy}" oncustomlinkbutton="{!c.handleRowAction}" onsort="{!c.handleSort}" hideCheckboxColumn="true"></c:customDatatableLwc>
+                </div>
+
+            </div>
+        </aura:if>
+        <br />
+        <br />
+        <div class="slds-grid slds-wrap">
+
+            <div class="slds-col slds-size_1-of-1">
+                <div class="slds-grid slds-gutters">
+                    <div class="slds-col">
+                        <div class="slds-form-element">
+                            <span style="float: left;">
+                                <h1 style="font-size: 18px;
+                                                                   font-weight: 600;">Staff Members</h1>
+                            </span>
+                            <span style="float: right">
+                                <div class="slds-var-p-bottom_small">
+                                    <lightning:radioGroup name="radioButtonGroupStaff" label="" options="{! v.options }" value="{!v.staffCheckBox }" type="button" onchange="{!c.staffRadioChanged}" />
+                                </div>
+                            </span>
+                        </div>
+
+                    </div>
+                    <div class="slds-col">
+                        <c:MainComponentForAddGroupMember selectedUser="Staff" ButtonName="Add Staff" group="{!v.group}" ButtonDisabled="{!v.ButtonDisabled}" />
+                    </div>
+
+                </div>
+
+                <!-- <lightning:datatable
+                                     columns="{! v.columnsStaff }"
+                                     data="{! v.dataStaff }"
+                                     keyField="id"
+                                     class="table-test"
+                                     sortedBy="{!v.sortByStaff}"
+                                     onrowaction="{!c.handleRowActionStaff}"  onsort="{!c.handleSortStaff}" hideCheckboxColumn="true"/>  -->
+
+                <c:customDatatableLwc columns="{! v.columnsStaff }" data="{! v.dataStaff }" keyField="id" class="table-test" sortedBy="{!v.sortByStaff}" oncustomlinkbutton="{!c.handleRowActionStaff}" onsort="{!c.handleSortStaff}" hideCheckboxColumn="true"></c:customDatatableLwc>
+
+            </div>
+
+        </div>
+    </div>
+</aura:component>

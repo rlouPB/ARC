@@ -1,0 +1,125 @@
+<template>
+    <lightning-card>
+
+        <lightning-layout>
+            <lightning-layout-item size="1"></lightning-layout-item>
+
+            <lightning-layout-item size="10">
+
+                 <lightning-layout>
+
+                     <lightning-layout-item size="4">
+                         <lightning-radio-group
+                             options={modes}
+                             value={selectedMode}
+                             type="button"
+                             onchange={onModeChange}
+                         ></lightning-radio-group>
+                     </lightning-layout-item>
+
+                     <lightning-layout-item size="2">
+                         <lightning-button-group style="padding-top:3px;">
+                             <lightning-button if:true={hasPackageAndPrintButtons} variant="neutral" label="Package & Print" onclick={packageAndPrintClickHandler}></lightning-button>
+                         </lightning-button-group>
+                     </lightning-layout-item>
+                 </lightning-layout>
+            </lightning-layout-item>
+
+            <lightning-layout-item size="3"></lightning-layout-item>
+
+        </lightning-layout>
+        <!--
+        <lightning-button-group slot="actions">
+            <lightning-button-icon icon-name="utility:print"   title="Print"   if:true={showPackageAndPrintButtons}></lightning-button-icon>
+            <lightning-button-icon icon-name="utility:package" title="Package" if:true={showPackageAndPrintButtons}></lightning-button-icon>
+            <lightning-button-icon icon-name="utility:refresh" title="Reload" onclick={load}></lightning-button-icon>
+        </lightning-button-group>     
+        -->   
+       
+        <div class="slds-p-left_large">
+            <lightning-spinner if:true={loading}></lightning-spinner>
+            <!--
+            <div class="slds-align_absolute-center">
+                <lightning-radio-group type="button" options={modes} value={selectedMode}  onchange={onModeChange}></lightning-radio-group>                        
+            </div>
+            -->
+
+            <br/>
+            <template if:true={hasColumns}>
+                <table class="slds-table slds-table_bordered slds-table_fixed-layout" role="grid">
+                    <thead>        
+                        <tr>
+                            <th style="width:50px;">
+                                <lightning-input type="checkbox" class="selectall" title="select all" onchange={selectAll}></lightning-input>
+                            </th>
+                            <template for:each={accessibleColumns} for:item="col" if:true={hasColumns}>                    
+                                <th key={col.name} style={col.style} if:true={col.isAccessible}>
+                                    <div onclick={updateColumnSorting} data-fieldname={col.name} class="slds-th__action slds-text-link_reset slds-is-sorted slds-is-sorted_asc">
+                                        {col.label}
+                                        <template if:true={col.sorted}>
+                                            <template if:false={col.isDESC}>
+                                                <lightning-icon data-fieldname={col.name} icon-name="utility:arrowup" size="xx-small"></lightning-icon>
+                                            </template>
+                                            <template if:true={col.isDESC}>
+                                                <lightning-icon data-fieldname={col.name} icon-name="utility:arrowdown" size="xx-small"></lightning-icon>
+                                            </template>
+                                        </template>
+                                    </div>
+                                </th>                            
+                            </template>
+                        </tr>
+                    </thead>
+                    <tbody>           
+                        <template if:true={hasPagedData}>                            
+                            <template for:each={pagedData} for:item="item" >
+                                <tr key={item.id} class="slds-table-row">
+                                    <td>
+                                        <lightning-input data-rowid={item.id} type="checkbox" title="select" checked={item.selected} onchange={selectRow}></lightning-input>
+                                    </td>
+                                    <template for:each={item.fields} for:item="field">
+                                        <td key={field.name} if:true={field.isFieldAccessible}> 
+                                            <div class="slds-p-horizontal_x-small">
+                                                <template if:true={field.isName}>
+                                                    <c-record-link record-id={item.record.Id} record-name={field.value}></c-record-link>
+                                                </template>
+                                                <template if:true={field.isLookup}>
+                                                    <c-record-link record-id={field.valueId} record-name={field.value}></c-record-link>
+                                                </template>
+                                                <template if:true={field.isDate}>        
+                                                    <lightning-formatted-date-time value={field.value} year="numeric" month="2-digit" day="2-digit"></lightning-formatted-date-time>
+                                                </template>
+                                                <template if:true={field.isHtml}>
+                                                    <lightning-formatted-rich-text value={field.value}></lightning-formatted-rich-text>
+                                                </template>
+                                                <template if:true={field.isAction}>
+                                                    <div style="color:blue; cursor:pointer;" data-rowid={item.id} data-action={field.action} onclick={onRecordActionClickHandler}>{field.value}</div>
+                                                </template>
+                                                <template if:true={field.isText}>{field.value}</template>
+                                            </div>              
+                                        </td>
+                                    </template>
+                                </tr>
+                            </template>
+                        </template>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan={columnsSize}>
+                                <c-paginator-lwc class="paginator" values={dataItems} onpagechanged={pageChangedHandler}></c-paginator-lwc>
+                            </th>
+                        </tr>               
+                    </tfoot>
+                </table>
+            </template>
+        </div>
+    </lightning-card>
+
+    <c-modal-popup-lwc class="popup"></c-modal-popup-lwc>
+
+    <c-modal-lwc size="small" header="Package" if:true={openPackage} onclose={closePackageModal} show-footer show-close >
+        <c-dispensing-prescription-package></c-dispensing-prescription-package>
+        <div slot="footer">
+            <lightning-button variant="brand" label="Save" onclick={packageSaveClickHandler}></lightning-button>            
+        </div>        
+    </c-modal-lwc>
+</template>

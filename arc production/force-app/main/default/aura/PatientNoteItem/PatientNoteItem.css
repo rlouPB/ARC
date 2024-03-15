@@ -1,0 +1,25 @@
+.THIS .title {
+  font-weight: bold;
+}
+
+.THIS .note-item-date {
+  width: 15%;
+  min-width: 10rem;
+}
+
+.THIS .note-item-reference {
+  width: 50%;
+}
+
+.THIS .note-item-reference .slds-form-element__label {
+  display: none;
+}
+
+.THIS .customRequired {
+  font-weight: normal;
+}
+
+.THIS .customRequired a:not(.display),
+.THIS .customRequired input {
+  border: 1px solid red;
+}

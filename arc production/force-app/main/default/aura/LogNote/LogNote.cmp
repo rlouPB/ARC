@@ -1,0 +1,198 @@
+<aura:component extends="c:ApexService" controller="Ctl_LogNote" implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickActionwithoutheader,lightning:actionOverride" access="global">
+
+    <!-- Attributes -->
+    <aura:attribute name="noteRecordtypeName" type="String" default="Admissions Officer Highlight" />
+    <aura:attribute name="ptNoteRecordtypeName" type="String" default="Admissions Officer Highlight" />
+
+    <aura:attribute name="newActivity" type="Basic_Note__c" default="{'sobjectType': 'Basic_Note__c','Subject__c': '', 'Non_starter_Reason__c': '', Call_Status__c: 'Logged' }" access="public" description="Holds a Patient Note Record" />
+    <aura:attribute name="patientNote" type="Map" default="{'sobjectType': 'Basic_Note__c'}" access="public" description="Holds a Patient Note Record" />
+    <aura:attribute name="recordId" type="String" description="Holds a Record Id" />
+
+    <aura:attribute name="formFactor" type="String" access="public" />
+    <aura:attribute name="isShowMsg" type="boolean" default="false" />
+    <!-- <aura:attribute name="selectedPatientRecord" type="Object" access="public" /> -->
+
+
+    <aura:attribute name="loading" type="Boolean" default="true" access="public" />
+    <aura:attribute name="isComponentLoaded" type="Boolean" default="false" access="public" />
+    <aura:attribute name="isNoteLoaded" type="Boolean" default="false" access="public" />
+
+    <aura:attribute name="isSaveDisabled" type="Boolean" default="true" access="public" />
+    <aura:attribute name="noReloadOnSave" type="Boolean" default="false" access="public" />
+    <aura:attribute name="autosaveInterval" type="Integer" default="30000" access="public" description="Auto save interval in milliseconds from first keyup" />
+    <aura:attribute name="autosaveMinimumNoteLength" type="Integer" default="27" access="public" description="Minimum characters in Notes to autosave" />
+    <aura:attribute name="autosaveId" type="Decimal" default="[]" access="public" />
+    <aura:attribute name="isAutosaving" type="Boolean" default="false" access="public" description="true to show autosaving spinner" />
+    <aura:attribute name="isAutosaveComplete" type="Boolean" default="false" access="public" description="true to show autosave complete" />
+
+    <aura:attribute name="requiredFields" type="Map" default="{}" description="fields to validate on page" />
+    <aura:attribute name="Errormsg" type="string" description="Holds a is Error Message" />
+
+    <aura:attribute name="record" type="Object" default="{}" access="public" />
+    <aura:attribute name="showStartNewNoteModal" type="boolean" default="false" description="Holds is show Start New Call Modal " />
+    <aura:attribute name="modalFromCallSearchId" type="String" default="" description="Holds is show Start New Call Modal " />
+    <aura:attribute name="isFromCallSearch" type="Boolean" default="false" description="true if opened by clicking" />
+
+    <aura:attribute name="isShowComponent" type="Boolean" default="true" description="True to show component" />
+
+    <aura:attribute name="lastNowValue" type="String" default="" description="stores value from most recent NOW click" />
+    <aura:attribute name="dateTimeSetByNow" type="Boolean" default="false" description="if true, datetime on page set by Now button, not component datepicker/timepicker" />
+
+    <aura:attribute name="subjectFilter" type="List" default="[]" access="public" />
+
+    <aura:handler name="change" value="{!v.patientNote}" action="{!c.enableSaveButton}" />
+    <aura:handler name="change" value="{!v.newActivity}" action="{!c.handleChangeNote}" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler event="c:onPopulateLogACall" action="{!c.handlePopulateLogANote}" />
+
+    <ltng:require scripts="{!$Resource.momentjs}" afterScriptsLoaded="{!c.doneScriptsLoading}" />
+    <ltng:require scripts="{!$Resource.momentTz}" afterScriptsLoaded="{!c.doneScriptsLoading}" />
+
+    <aura:if isTrue="{!v.isShowComponent}">
+        <div class="slds-m-around-small" style="border:1px solid rgb(217, 219, 221);position:static;">
+
+            <lightning:notificationsLibrary aura:id="notifLib" />
+
+            <aura:if isTrue="{!v.loading}">
+                <div class="" style="position:static;">
+                    <lightning:spinner class="logNoteSpinner" variant="brand" alternativeText="Loading" size="medium" />
+                </div>
+            </aura:if>
+
+            <force:recordData aura:id="forceRecordCmp" layoutType="FULL" recordId="{!v.recordId}" mode="VIEW" fields="Name" targetFields="{!v.record}" />
+
+            <!-- Error Message -->
+            <aura:if isTrue="{!v.isShowMsg}">
+                <div style="color:red;">{!v.errorMessages}</div>
+            </aura:if>
+
+
+            <!-- Screen Size -->
+            <lightning:flexipageRegionInfo width="{!v.formFactor}" />
+            <lightning:layout>
+                <lightning:layoutItem size="6" padding="around-small">
+                    <div class="slds-text-align_right slds-p-around_small">
+                        <aura:if isTrue="{!v.isAutosaving}">
+                            Autosaving...
+                        </aura:if>
+                        <aura:if isTrue="{!and(v.isAutosaveComplete, v.isSaveDisabled)}">
+                            Saved!
+                        </aura:if>
+                        <lightning:button aura:id="savebutton" disabled="{!v.isSaveDisabled}" label="{!(v.newActivity.Id ?'Update': 'Create')}" variant="brand" onclick="{!c.saveActionLogNote}" />
+                    </div>
+                </lightning:layoutItem>
+                <lightning:layoutItem size="6" padding="around-small">
+                    <aura:if isTrue="{!v.recordId}">
+                        <div class="slds-text-align_left slds-p-around_small">
+                            <lightning:button aura:id="startNewNote" label="Start New Note" variant="brand" onclick="{!c.onStartNewNote}" />
+                        </div>
+                    </aura:if>
+                </lightning:layoutItem>
+
+            </lightning:layout>
+            <aura:if isTrue="{!v.showStartNewNoteModal}">
+                <c:sldsModal aura:id="sldsModal" modalSize='small'>
+                    <aura:set attribute="header">
+                        You have unsaved changes in the Note
+                    </aura:set>
+                    <aura:set attribute="content">
+                        <div class="slds-text-align_center">
+                            <lightning:layout multipleRows="true">
+                                <lightning:layoutItem size="12" padding="around-small">
+                                    <lightning:button aura:id="savechanges" class="btnClass" label="{!v.modalFromCallSearchId != '' ? 'Save Changes and Open selected Note' :'Save Changes and start new Note'}" variant="brand" onclick="{!c.onStartNewActionClick}" />
+                                </lightning:layoutItem>
+                                <lightning:layoutItem size="12" padding="around-small">
+                                    <lightning:button aura:id="throwawaychanges" class="btnClass" label="{!v.modalFromCallSearchId != '' ? 'Throw away Changes and Open selected Note'  : 'Throw away Changes and start new Note' }" variant="brand" onclick="{!c.onStartNewActionClick}" />
+                                </lightning:layoutItem>
+                                <lightning:layoutItem size="12" padding="around-small">
+                                    <lightning:button aura:id="cancel" class="btnClass" label="Cancel" variant="brand" onclick="{!c.onStartNewActionClick}" />
+                                </lightning:layoutItem>
+                            </lightning:layout>
+                        </div>
+                    </aura:set>
+                </c:sldsModal>
+            </aura:if>
+
+            <div class="scrolledContent">
+                <!-- Main Section -->
+                <lightning:layout multipleRows="true">
+
+                    <lightning:layoutItem size="12" padding="around-small">
+                        <span class="slds-grid customRequired">
+                            <span class="slds-col slds-size_2-of-5">
+                                <label> <span class="slds-form-element__label">
+                                        <!-- <abbr class="slds-required" title="required">*</abbr> -->
+                                        Date/Time
+                                    </span>
+                                </label> <br></br>
+                                <lightning:button label="Now" variant="brand" onclick="{!c.onNowClick}" />
+                            </span>
+                            <span class="slds-col slds-size_3-of-5">
+                                <force:inputField value="{!v.newActivity.Call_Date_Time__c}" />
+
+                            </span>
+                        </span>
+                    </lightning:layoutItem>
+
+                    <lightning:layoutItem size="6" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6" padding="around-small">
+                        <span>
+                            <aura:if isTrue="{!v.isNoteLoaded}">
+                                <!-- <label> <span class="slds-form-element__label">Subject</span> </label> -->
+                                <span onkeyup="{!c.enableSaveButton}" onblur="{!c.enableSaveButton}" onchange="{!c.enableSaveButton}">
+                                    <!-- <force:inputField  value="{!v.newActivity.Subject__c}"/> -->
+                                    <c:LookupComponent aura:id="subjectLookup" label="Subject" objectName="Custom_Picklist_Value__mdt" fieldsToSearch="Label__c" displayField="Label__c" displayFieldValue="Label__c" lookupFieldName="{!v.newActivity.Subject__c}" splitSearchTextBySeperator="true" allowFreeText="true" minimumSearchTextLength="0" maxQuickSearchRows="10" filters="{!v.subjectFilter}" orderByClause="Order__c ASC NULLS FIRST" fillPillOnSelect="false" />
+                                </span>
+                            </aura:if>
+                        </span>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="6" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6" padding="around-small">
+                        <span class="{!v.requiredFields.Call_Status__c.required ? 'customRequired' : ''}">
+                            <label> <span class="slds-form-element__label">Status</span> </label>
+                            <force:inputField value="{!v.newActivity.Call_Status__c}" class="slds-input" />
+
+
+                        </span>
+                    </lightning:layoutItem>
+
+
+
+                    <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="12" largeDeviceSize="12" padding="around-small">
+                        <span>
+                            <label> <span class="slds-form-element__label">Notes </span> </label>
+                            <span onkeyup="{!c.enableSaveButton}" onblur="{!c.enableSaveButton}" onchange="{!c.enableSaveButton}">
+                                <lightning:inputRichText value="{!v.newActivity.Rich_Text_Notes__c}" disabledCategories="FORMAT_FONT,ALIGN_TEXT,INSERT_CONTENT,REMOVE_FORMATTING" />
+                            </span>
+                        </span>
+                    </lightning:layoutItem>
+
+                </lightning:layout>
+
+                <div class="slds-p-around_small">
+                    <div style="text-align:center;">
+                        <aura:if isTrue="{!v.isAutosaving}">
+                            Autosaving...
+                        </aura:if>
+                        <aura:if isTrue="{!and(v.isAutosaveComplete, v.isSaveDisabled)}">
+                            Saved!
+                        </aura:if>
+                        <lightning:button aura:id="savebutton" disabled="{!v.isSaveDisabled}" label="{!(v.newActivity.Id ?'Update': 'Create')}" variant="brand" onclick="{!c.saveActionLogNote}" />
+                    </div>
+                </div>
+
+                <aura:if isTrue="{!v.newActivity.LastModifiedDate}">
+                    <div>
+                        Last Modified
+                        <lightning:formattedDateTime value="{!v.newActivity.LastModifiedDate}" year="numeric" month="numeric" day="numeric" hour="2-digit" minute="2-digit" timeZoneName="short" timeZone="America/New_York" />
+                        by {!v.newActivity.LastModifiedBy.Name}
+                        <aura:if isTrue="{!v.newActivity.Auto_Saved__c}">
+                            (Autosaved)
+                        </aura:if>
+                        <!-- <lightning:outputField value="{!v.newActivity.LastModifiedBy.Name}" /> -->
+                    </div>
+                </aura:if>
+            </div>
+
+        </div>
+    </aura:if>
+</aura:component>

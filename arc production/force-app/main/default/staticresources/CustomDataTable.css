@@ -1,0 +1,44 @@
+
+/* CSS FOR CUSTOM DATATABLE  */
+.picklist-container,
+.lookup-container{
+    width : 90%;
+    margin: 0 auto;
+}  
+
+.custom-container{
+    top: 0;
+    /*position: absolute;*/
+}
+
+.picklist-container .slds-dropdown,
+.lookup-container .slds-dropdown{
+    position: relative !important;
+    z-index: 99 !important;
+    max-height: 120px;
+    overflow: scroll;
+}
+
+[lightning-combobox_combobox-host]{
+    margin-bottom: 17px;
+}
+
+th.slds-has-focus, td.slds-has-focus{
+    box-shadow: none !important;
+}
+
+
+/* table > tbody > tr  {
+    padding: 20px 0;
+    height: 100px;
+  } */
+
+  .slds-table tbody tr {
+    counter-increment: row-number;
+    height: 30px;
+    /*height: 70px;*/
+}
+
+/* .slds-table_edit thead th:first-child{
+    width: 60px;
+} */

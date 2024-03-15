@@ -1,0 +1,18 @@
+<template>
+	<!-- <lightning-card title="" > -->
+	<article class="slds-card" >
+		<lightning-record-view-form record-id={recordId} object-api-name={objectApiName}>
+			<div class="slds-grid slds-wrap slds-m-left_medium slds-p-top_none finalizedContainer">
+				
+				<div class="slds-col slds-size_3-of-12 slds-text-title_bold">Finalized By</div>
+				<div class="slds-col slds-size_3-of-12"><lightning-output-field field-name="Finalized_By_Professional_Name__c" variant="label-hidden"></lightning-output-field></div>
+				<div class="slds-size_6-of-12"></div>
+
+				<div class="slds-col slds-size_3-of-12 slds-text-title_bold">Finalized Date Time</div>
+				<div class="slds-col slds-size_3-of-12"><lightning-output-field field-name="Finalized_Date_Time__c" variant="label-hidden"></lightning-output-field></div>
+				<div class="slds-size_6-of-12"></div>
+			</div>
+		</lightning-record-view-form> 
+	</article>
+	<!-- </lightning-card> -->
+</template>

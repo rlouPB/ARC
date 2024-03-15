@@ -1,0 +1,9 @@
+<template> 
+    <lightning-card title="Assigned the following Shift Items: ">
+        <lightning-button-icon title="reload" icon-name="utility:refresh" slot="actions" onclick={reloadAll}></lightning-button-icon>
+        <lightning-spinner if:true={loading}></lightning-spinner>        
+        <template for:each={nursingShifts} for:item="item">
+            <c-nursing-shift-items-by-shift-lwc key={item} record-id={item} show-only-my-items show-header></c-nursing-shift-items-by-shift-lwc>
+        </template>        
+    </lightning-card>   
+</template>

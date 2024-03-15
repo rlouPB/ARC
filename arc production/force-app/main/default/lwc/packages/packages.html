@@ -1,0 +1,57 @@
+<template>
+    <lightning-card >
+        <h3 slot="title">
+            <lightning-icon icon-name="standard:account" size="small" alternative-text="Packages" class="slds-m-right_small"></lightning-icon>
+            Packages
+        </h3>
+        
+        <lightning-button-group slot="actions">
+            <lightning-button variant="neutral" label="Clear Dispensing" onclick={clearDispensedClickHandler}></lightning-button>
+            <lightning-button-icon icon-name="utility:refresh" title="refresh" onclick={refreshTable}></lightning-button-icon>
+        </lightning-button-group>
+
+       <div style="text-align: center;">
+           <lightning-layout>
+               <lightning-layout-item size="3"></lightning-layout-item>
+
+               <lightning-layout-item size="6">
+
+                    <lightning-layout>
+
+                        <lightning-layout-item size="4">
+                            <lightning-radio-group
+                                options={modeOptions}
+                                value={mode}
+                                type="button"
+                                onchange={modeChangeHandler}
+                            ></lightning-radio-group>
+                        </lightning-layout-item>
+
+                        <lightning-layout-item size="4">
+                            <lightning-button-group style="padding-top:3px;">
+                                <lightning-button variant="brand-outline" label="Dispense" onclick={dispenseClickHandler} disabled="true" data-id="dispensePackageBtn"></lightning-button>
+                                <lightning-button variant="destructive" label="Finalize" onclick={finalizeClickHandler}></lightning-button>
+                                <lightning-button if:true={hasPackageAndPrintButtons} variant="brand-outline" label="Print" onclick={printClickHandler}></lightning-button>
+                                <lightning-button variant="brand-outline" label="Cancel" onclick={cancelClickHandler}></lightning-button>
+                            </lightning-button-group>
+                        </lightning-layout-item>
+                    </lightning-layout>
+               </lightning-layout-item>
+
+               <lightning-layout-item size="3"></lightning-layout-item>
+
+           </lightning-layout>
+           
+       </div>
+    
+        <div style="margin-top: 20px;">
+            <div class="slds-p-left_medium">
+                <c-dispensing-packages-table account-id={recordId} onaction={onActionHandler} onenabledispensingbutton={enableDispensingButton} ondisabledispensingbutton={disableDispensingButton} ></c-dispensing-packages-table>
+            </div>           
+        </div>
+        <lightning-spinner if:true={showSpinner}></lightning-spinner>
+    </lightning-card>
+
+    <c-modal-popup-lwc class="popup" labelforokbtn="Finalize" labelforcancelbtn="Go Back"></c-modal-popup-lwc>
+    
+</template>

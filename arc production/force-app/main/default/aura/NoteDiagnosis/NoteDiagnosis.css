@@ -1,0 +1,23 @@
+.THIS .mark{
+    color:white;
+    background-color: tomato;
+}
+.THIS .mark:hover{
+    border-width: 1px;
+    color:white;
+    border-style:solid;
+    border-color:black ;
+    border-bottom-color: black;
+}
+.THIS .bold{
+    font-weight: bold;
+}
+
+.THIS .line{
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-color: lightgrey;
+}
+.THIS .hover:hover:not(.mark){
+    background-color: rgb(243, 242, 242);
+}

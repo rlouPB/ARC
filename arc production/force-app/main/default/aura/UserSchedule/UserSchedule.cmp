@@ -1,0 +1,124 @@
+<aura:component controller="Scheduling" implements="flexipage:availableForAllPageTypes">
+    <aura:attribute name="events" type="List" description="A list of events to display on the calendar"/>
+    <aura:attribute name="isCalendarLoaded" type="Boolean" default="false"/>
+    <aura:attribute name="userId" type="String"/>
+    <aura:attribute name="user" type="Map"/>
+    <aura:attribute name="viewStartDate" type="Date"/>
+    <aura:attribute name="viewEndDate" type="Date"/>
+    <aura:attribute name="showCreateMeetingModal" type="Boolean" default="false"/>
+	<aura:attribute name="showEditMeetingModal" type="Boolean" default="false"/>
+    <aura:attribute name="showRecurrenceModal" type="Boolean" default="false"/>
+    <aura:attribute name="recurrenceOptions" type="List" default="[
+		{'label': 'Just this one', 'value': 'single'},
+		{'label': 'The entire series', 'value': 'series'}
+	]"/>
+	<aura:attribute name="isRecurrence" type="Boolean" default="false"/>
+	<aura:attribute name="recurrenceSelected" type="String" default="single"/>
+	<aura:attribute name="selectedMeeting" type="String" default=""/>
+	<aura:attribute name="showUserSelect" type="Boolean" default="false"/>
+    <aura:attribute name="selectedUser" type="Map" default="{}"/>
+    <aura:attribute name="userLookupFilter" type="List" default="[]"/>
+	<aura:attribute name="lookupError" type="Map" default="{message: 'error', show: false}"/>
+	<aura:attribute name="isPopoverOpen" type="Boolean" default="false"/>
+	<aura:attribute name="popoverTop" type="Integer"/>
+	<aura:attribute name="popoverLeft" type="Integer"/>
+	<aura:attribute name="hoverEvent" type="Map"/>
+	<aura:attribute name="hoverEventStartDateTime" type="String"/>
+	<aura:attribute name="hoverEventEndDateTime" type="String"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+	<!-- <aura:handler name="change" value="{!v.isCalendarLoaded}" action="{!c.loadEvents}"/> -->
+	
+    <aura:handler name="calendarDateChangedEvent" event="c:CalendarDateChangedEvent" 
+    	action="{!c.handleCalendarDateChangedEvent}"/>
+    <aura:handler name="calendarEventClickedEvent" event="c:CalendarEventClickedEvent"
+    	action="{!c.handleCalendarEventClickedEvent}"/>
+    <aura:handler name="calendarDateChangedEvent" event="c:CalendarDateChangedEvent" 
+    	action="{!c.handleCalendarDateChangedEvent}"/>
+    <aura:handler name="calendarNewMeetingButtonClickedEvent" 
+        event="c:CalendarNewMeetingButtonClickedEvent"
+		action="{!c.handleCalendarNewMeetingButtonClickedEvent}"/>
+	<aura:handler name="calendarEventMouseEnterEvent"
+		event="c:CalendarEventMouseEnterEvent"
+		action="{!c.handleCalendarEventMouseEnterEvent}"/>
+	<aura:handler name="calendarEventMouseExitEvent"
+		event="c:CalendarEventMouseExitEvent"
+		action="{!c.handleCalendarEventMouseExitEvent}"/>
+	<aura:handler name="closeModalEvent" event="c:closeModal" action="{!c.handleCloseModalEvent}"/>
+	<aura:handler name="change" value="{!v.selectedUser}" action="{!c.handleSelectedUserChange}"/>
+	
+	<aura:if isTrue="{!v.isPopoverOpen}">
+		<div class="popover-container">
+			<div class="popover" style="{!'top: ' + v.popoverTop + 'px; left: ' + v.popoverLeft + 'px;'}">
+				<section class="slds-popover slds-nubbin_left-top slds-popover_medium" role="dialog">
+					<header class="slds-popover__header">
+						<h2 class="slds-text-heading_small">{!v.hoverEvent.calendarEvent.title}</h2>
+					</header>
+					<div class="slds-popover__body">
+						<p><strong>Start: &nbsp;</strong>{!v.hoverEventStartDateTime}</p>
+						<p><strong>End: &nbsp;&nbsp;&nbsp;</strong>{!v.hoverEventEndDateTime}</p>
+						<lightning:formattedRichText value="{!v.hoverEvent.calendarEvent.participant.Meeting__r.Description__c}"/>	
+					</div>
+				</section>
+			</div>
+		</div>
+	</aura:if>
+    <div class="user-schedule">
+		<c:Calendar events="{!v.events}" isLoaded="{!v.isCalendarLoaded}" showUserSelect="{!v.showUserSelect}" 
+			selectedUser="{!v.selectedUser}" userLookupFilter="{!v.userLookupFilter}" lookupError="{!v.lookupError}"/>
+	</div>
+    
+    <aura:if isTrue="{!v.showCreateMeetingModal}">
+		<c:sldsModal instanceName="createMeeting">
+			<aura:set attribute="header">
+            	Meeting Details
+            </aura:set>
+            <aura:set attribute="content">
+                <c:EditMeeting aura:id="meetingModal" instanceName="createMeeting" user="{!v.user.user}"/>
+            </aura:set>
+            <aura:set attribute="footer">
+            	<lightning:button label="Create Recurrence" onclick="{!c.handleEditRecurrence}"/>
+            	<lightning:button label="Save" variant="brand" onclick="{!c.handleSave}"/>
+	    		<lightning:button label="Cancel" variant="neutral" onclick="{!c.handleCancel}"/>
+            </aura:set>
+		</c:sldsModal>
+	</aura:if>
+
+	<aura:if isTrue="{!v.showEditMeetingModal}">
+		<c:sldsModal instanceName="editMeeting">
+			<aura:set attribute="header">
+            	Meeting Details
+            </aura:set>
+            <aura:set attribute="content">
+				<c:EditMeeting aura:id="meetingModal" instanceName="editMeeting" recordId="{!v.selectedMeeting}" 
+						recurrenceSelected="{!v.recurrenceSelected}"/>
+            </aura:set>
+            <aura:set attribute="footer">
+            	<lightning:button label="{!if(v.isRecurrence, 'Edit Recurrence', 'Create Recurrence')}" onclick="{!c.handleEditRecurrence}"/>
+            	<lightning:button label="Save" variant="brand" onclick="{!c.handleSave}"/>
+	    		<lightning:button label="Cancel" variant="neutral" onclick="{!c.handleCancel}"/>
+            </aura:set>
+		</c:sldsModal>
+	</aura:if>
+
+	<aura:if isTrue="{!v.showRecurrenceModal}">
+		<c:sldsModal instanceName="recurrence" modalSize="small">
+			<aura:set attribute="header">
+				Open Recurring Meeting
+			</aura:set>
+			<aura:set attribute="content">
+				<lightning:layout class="slds-grid_align-center">
+					<lightning:layoutItem size="6">
+						<div class="slds-p-horizontal--small">This is one meeting in a series. What do you want to open?</div>
+						<lightning:radioGroup name="recurrence" label="" options="{!v.recurrenceOptions}"
+							value="{!v.recurrenceSelected}" type="radio"/>
+					</lightning:layoutItem>
+				</lightning:layout>
+			</aura:set>
+			<aura:set attribute="footer">
+				<lightning:button label="Ok" variant="brand" onclick="{!c.handleRecurrenceOk}"/>
+	    		<lightning:button label="Cancel" variant="neutral" onclick="{!c.handleRecurrenceCancel}"/>
+			</aura:set>
+		</c:sldsModal>
+	</aura:if>
+</aura:component>

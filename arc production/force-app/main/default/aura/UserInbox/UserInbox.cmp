@@ -1,0 +1,306 @@
+<aura:component controller="CreateMessageController" implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickActionwithoutheader,forceCommunity:availableForAllPageTypes,lightning:actionOverride" access="global">
+	<aura:attribute name="alertCurrentPage" type="Integer" default="0" />
+	<aura:attribute name="alertFilter" type="String" default="All" />
+	<aura:attribute name="alertMaxPage" type="Integer" default="0" />
+	<aura:attribute name="alertsUnread" type="Integer" />
+
+	<aura:attribute name="alertSearching" type="Boolean" default="false" />
+	<aura:attribute name="sentMsgSearching" type="Boolean" default="false" />
+	<aura:attribute name="deletedSearching" type="Boolean" default="false" />
+
+	<aura:attribute name="deletedCurrentPage" type="Integer" default="0" />
+	<aura:attribute name="deletedMaxPage" type="Integer" default="0" />
+	<aura:attribute name="disableMessaging" type="Boolean" default="true" />
+	<aura:attribute name="disableNext" type="Boolean" default="false" />
+	<aura:attribute name="disablePrevious" type="Boolean" default="true" />
+	<aura:attribute name="familyMessaging" type="Boolean" default="false" />
+	<aura:attribute name="hidePreview" type="Boolean" default="false" />
+	<aura:attribute name="inboxUnread" type="Integer" />
+	<aura:attribute name="loading" type="Boolean" default="false" />
+	<aura:attribute name="messageCountMap" type="Map" default="{}" />
+	<aura:attribute name="messageFilter" type="String" default="All" />
+	<aura:attribute name="messageProfileFilter" type="String" default="AllTypes" />
+	<aura:attribute name="messageType" type="String" default="Inbox" />
+	<aura:attribute name="currentFrom" type="Integer" default="0" />
+	<aura:attribute name="currentTo" type="Integer" default="0" />
+	<aura:attribute name="offset" type="Integer" default="10" />
+	<aura:attribute name="patientMessaging" type="Boolean" default="false" />
+	<aura:attribute name="previousFrom" type="Integer" default="0" />
+	<aura:attribute name="previousTo" type="Integer" default="0" />
+	<aura:attribute name="previousSelectedTabId" type="String" default="" description="Selected Tab Id before it was the thing it is now" />
+	<aura:attribute name="selectedCount" type="Integer" default="0" />
+	<aura:attribute name="selectedView" type="String" />
+	<aura:attribute name="selectedTabId" type="String" default="inbox" />
+	<aura:attribute name="sentMsgCurrentPage" type="Integer" default="0" />
+	<aura:attribute name="sentMsgMaxPage" type="Integer" default="0" />
+	<aura:attribute name="standardCurrentPage" type="Integer" default="0" />
+	<aura:attribute name="standardMaxPage" type="Integer" default="0" />
+	<aura:attribute name="standardSearching" type="Boolean" default="false" />
+	<aura:registerevent name="utilityBarEvent" type="c:UtilityBarEvent"></aura:registerevent>
+
+	<aura:handler event="c:MessageUnreadEvent" action="{!c.handleUnreadEvent}"></aura:handler>
+	<aura:handler event="c:MessageResetPageEvent" action="{!c.handlePageEvent}"></aura:handler>
+	<aura:handler name="init" value="{! this }" action="{! c.init }" />
+
+  	<lightning:overlayLibrary aura:id="overlayLibUserInbox" />
+  	<lightning:empApi aura:id="empApi" />
+
+  	<lightning:layout horizontalAlign="space">
+		<lightning:layoutItem size="{!v.hidePreview ? 12 : 8}">
+	  		<lightning:card class="slds-card_boundary temp-background slds-no-print">
+				<aura:if isTrue="{! v.loading }">
+					<aura:set attribute="else">
+						<lightning:tabset selectedTabId="{!v.selectedTabId}">
+							<lightning:tab label="{! 'Alerts (' + v.alertsUnread + ')'}" id="alerts" aura:id="alerts" onactive="{!c.activateTab}">
+								<lightning:card class="slds-var-m-horizontal_medium slds-card_boundary" title="Alerts">
+									<aura:set attribute="actions">
+										<div class="c-container">
+											<lightning:layout horizontalAlign="end">
+												<lightning:layoutItem flexibility="auto" class="slds-var-p-left_xx-small">
+													<div id="alert">
+														<lightning:input aura:id="alert-search" name="alert-search" isLoading="{! v.alertSearching }" type="search" variant="label-hidden" placeholder="Search" onchange="{!c.onChangeSearchText}" />
+													</div>
+												</lightning:layoutItem>
+												<lightning:layoutItem flexibility="auto" class="slds-var-p-left_xx-small">
+													<lightning:buttonGroup>
+														<!-- <lightning:button disabled="{! v.alertFilter == 'Unread' }" value="Unread" label="Show Unread" onclick="{!c.updateAlertFilter}" />
+														<lightning:button disabled="{! v.alertFilter == 'All' }" value="All" label="Show All" onclick="{!c.updateAlertFilter}" /> -->
+														<lightning:button disabled="{! v.alertFilter == 'Unread' }" value="Unread" label="Unread" onclick="{!c.updateAlertFilter}" />
+														<lightning:button disabled="{! v.alertFilter == 'All' }" value="All" label="All" onclick="{!c.updateAlertFilter}" />
+													</lightning:buttonGroup>
+												</lightning:layoutItem>
+											</lightning:layout>
+										</div>
+									</aura:set>
+									<div class="slds-table_header-fixed_container c-container-body">
+										<div class="slds-scrollable_y">
+											<c:UserMessages type="Clinical Alert" alertFilter="{!v.alertFilter}" aura:id="alert" hidePreview="{!v.hidePreview}" />
+										</div>
+									</div>
+
+									<aura:set attribute="footer">
+										<lightning:layout verticalAlign="center">
+											<lightning:layoutItem padding="around-xx-small" size="6" />
+											<lightning:layoutItem padding="around-xx-small" size="6">
+												<lightning:layout verticalAlign="center">
+													<lightning:layoutItem padding="around-xx-small" size="10">
+														<aura:if isTrue="{!v.selectedCount > 0}">
+															<div>
+																<ul style="list-style: none outside none">
+																	<li><lightning:formattedNumber value="{!v.currentFrom}"></lightning:formattedNumber> - <lightning:formattedNumber value="{!v.currentTo}"></lightning:formattedNumber> of <lightning:formattedNumber value="{!v.selectedCount}"></lightning:formattedNumber></li>
+																</ul>
+															</div>
+														</aura:if>
+													</lightning:layoutItem>
+													<lightning:layoutItem padding="around-xx-small" size="2">
+														<lightning:buttonGroup>
+															<lightning:buttonIcon value="alert" disabled="{!v.disablePrevious}" onclick="{!c.previous}" iconName="utility:left" variant="border-filled" />
+															<lightning:buttonIcon value="alert" disabled="{!v.disableNext}" onclick="{!c.next}" iconName="utility:right" variant="border-filled" />
+														</lightning:buttonGroup>
+													</lightning:layoutItem>
+												</lightning:layout>
+											</lightning:layoutItem>
+										</lightning:layout>
+									</aura:set>
+								</lightning:card>
+							</lightning:tab>
+
+							<lightning:tab label="{! 'Inbox (' + v.inboxUnread + ')'}" id="inbox" aura:id="inbox" onactive="{!c.activateTab}">
+								<lightning:card class="slds-var-m-horizontal_medium slds-card_boundary" title="Messages">
+									<aura:set attribute="actions">
+										<div class="c-container">
+											<lightning:layout>
+												<lightning:layoutItem flexibility="auto" class="slds-var-p-left_xx-small">
+													<div id="standard">
+														<lightning:input aura:id="standard-search" name="standard-search" isLoading="{! v.standardSearching }" type="search" variant="label-hidden" placeholder="Search" onchange="{!c.onChangeSearchText}" />
+													</div>
+												</lightning:layoutItem>
+
+												<lightning:layoutItem flexibility="auto" class="slds-var-p-left_xx-small">
+													<lightning:buttonGroup >
+														<lightning:button disabled="{! v.messageFilter == 'Unread' }" value="Unread" label="Unread" onclick="{!c.updateMessageFilter}" />
+														<lightning:button disabled="{! v.messageFilter == 'All' }" value="All" label="All" onclick="{!c.updateMessageFilter}" />
+													</lightning:buttonGroup>
+												</lightning:layoutItem>
+
+												<lightning:layoutItem flexibility="auto" class="slds-var-p-left_xx-small">
+													<!--	THE FOLLOWING SECTION HANDLES USERS WHO HAVE PERMISSIONS TO SEND DIRECT MESSAGES TO
+																							CLIENTS AND/OR FAMILIES, AS WELL AS CREATING AND SENDING CUSTOM NOTIFICATIONS	-->
+													<lightning:buttonGroup class="">
+														<lightning:button label="Create Message" value="Staff" onclick="{!c.handleStandardMessage}" />
+													</lightning:buttonGroup>
+												</lightning:layoutItem>
+											</lightning:layout>
+										</div>
+									</aura:set>
+
+									<div class="slds-table_header-fixed_container c-container-body">
+										<div class="slds-scrollable_y">
+											<c:UserMessages type="Standard Message" messageFilter="{!v.messageFilter}" messageProfileFilter="{!v.messageProfileFilter}" aura:id="standard" hidePreview="{!v.hidePreview}" />
+										</div>
+									</div>
+
+									<aura:set attribute="footer">
+										<lightning:layout verticalAlign="center">
+											<lightning:layoutItem padding="around-xx-small" size="6" />
+											<lightning:layoutItem padding="around-xx-small" size="6">
+												<lightning:layout verticalAlign="center">
+													<lightning:layoutItem padding="around-xx-small" size="10">
+														<aura:if isTrue="{!v.selectedCount > 0}">
+															<div>
+																<ul style="list-style: none outside none">
+																	<li>
+																		<lightning:formattedNumber value="{!v.currentFrom}"></lightning:formattedNumber> - <lightning:formattedNumber value="{!v.currentTo}"></lightning:formattedNumber> of <lightning:formattedNumber value="{!v.selectedCount}"></lightning:formattedNumber>
+																	</li>
+																</ul>
+															</div>
+														</aura:if>
+													</lightning:layoutItem>
+													
+													<lightning:layoutItem padding="around-xx-small" size="2">
+														<lightning:buttonGroup class="">
+															<lightning:buttonIcon value="standard" disabled="{!v.disablePrevious}" onclick="{!c.previous}" iconName="utility:left" variant="border-filled" />
+															<lightning:buttonIcon value="standard" disabled="{!v.disableNext}" onclick="{!c.next}" iconName="utility:right" variant="border-filled" />
+														</lightning:buttonGroup>
+													</lightning:layoutItem>
+												</lightning:layout>
+											</lightning:layoutItem>
+										</lightning:layout>
+									</aura:set>
+								</lightning:card>
+							</lightning:tab>
+
+							<lightning:tab label="Sent Messages" id="sent" aura:id="sent" onactive="{!c.activateTab}">
+								<lightning:card class="slds-var-m-horizontal_medium slds-card_boundary" title="Sent">
+									<aura:set attribute="actions">
+										<div class="c-container">
+											<lightning:layout horizontalAlign="spread">
+												<!-- <lightning:layoutItem flexibility="auto" class="slds-var-p-left_xx-small" size="5"> </lightning:layoutItem> -->
+												<lightning:layoutItem flexibility="auto" class="slds-var-p-left_xx-small">
+													<div id="sentMsg">
+														<lightning:input aura:id="sentMsg-search" name="sentMsg-search" isLoading="{! v.sentMsgSearching }" type="search" variant="label-hidden" placeholder="Search" onchange="{!c.onChangeSearchText}" />
+													</div>
+												</lightning:layoutItem>
+												<lightning:layoutItem flexibility="auto" class="slds-var-p-left_xx-small">
+													<lightning:buttonGroup>
+														<lightning:button disabled="{! v.messageProfileFilter == 'Family' }" value="Family" label="Family" onclick="{!c.updateMessageProfileFilter}" />
+														<lightning:button disabled="{! v.messageProfileFilter == 'Patient' }" value="Patient" label="Patient" onclick="{!c.updateMessageProfileFilter}" />
+														<lightning:button disabled="{! v.messageProfileFilter == 'Staff' }" value="Staff" label="Staff" onclick="{!c.updateMessageProfileFilter}" />
+														<lightning:button disabled="{! v.messageProfileFilter == 'AllTypes' }" value="AllTypes" label="All" onclick="{!c.updateMessageProfileFilter}" />
+													</lightning:buttonGroup>
+												</lightning:layoutItem>
+											</lightning:layout>
+										</div>
+									</aura:set>
+									<div class="slds-table_header-fixed_container c-container-body">
+										<div class="slds-scrollable_y">
+											<c:UserMessages type="Sent Messages" messageFilter="{!v.messageFilter}" messageProfileFilter="{!v.messageProfileFilter}" aura:id="sentMsg" hidePreview="{!v.hidePreview}" />
+										</div>
+									</div>
+									<aura:set attribute="footer">
+										<lightning:layout verticalAlign="center">
+											<lightning:layoutItem padding="around-xx-small" size="6"></lightning:layoutItem>
+											<lightning:layoutItem padding="around-xx-small" size="6">
+												<lightning:layout verticalAlign="center">
+													<lightning:layoutItem padding="around-xx-small" size="10">
+														<aura:if isTrue="{!v.selectedCount > 0}">
+															<div>
+																<ul style="list-style: none outside none">
+																	<li>
+																		<lightning:formattedNumber value="{!v.currentFrom}"></lightning:formattedNumber> - <lightning:formattedNumber value="{!v.currentTo}"></lightning:formattedNumber> of <lightning:formattedNumber value="{!v.selectedCount}"></lightning:formattedNumber>
+																	</li>
+																</ul>
+															</div>
+														</aura:if>
+													</lightning:layoutItem>
+													<lightning:layoutItem padding="around-xx-small" size="2">
+														<lightning:buttonGroup class="">
+															<lightning:buttonIcon value="sent" disabled="{!v.disablePrevious}" onclick="{!c.previous}" iconName="utility:left" variant="border-filled" />
+															<lightning:buttonIcon value="sent" disabled="{!v.disableNext}" onclick="{!c.next}" iconName="utility:right" variant="border-filled" />
+														</lightning:buttonGroup>
+													</lightning:layoutItem>
+												</lightning:layout>
+											</lightning:layoutItem>
+										</lightning:layout>
+									</aura:set>
+								</lightning:card>
+							</lightning:tab>
+
+							<lightning:tab label="Recycle Bin" id="recycle" aura:id="recycle" onactive="{!c.activateTab}">
+								<lightning:card class="slds-var-m-horizontal_medium slds-card_boundary" title="Recycle Bin">
+									<aura:set attribute="actions">
+										<div class="c-container">
+											<lightning:layout horizontalAlign="space">
+												<!-- <lightning:layoutItem padding="around-xx-small" size="2"> </lightning:layoutItem> -->
+												<lightning:layoutItem flexibility="auto" class="slds-var-p-left_xx-small">
+													<div id="deleted">
+														<lightning:input aura:id="deleted-search" name="deleted-search" isLoading="{! v.deletedSearching }" type="search" variant="label-hidden" placeholder="Search" onchange="{!c.onChangeSearchText}" />
+													</div>
+												</lightning:layoutItem>
+												<lightning:layoutItem flexibility="auto" class="slds-var-p-left_xx-small">
+													<lightning:buttonGroup class="">
+														<lightning:button disabled="{! v.messageProfileFilter == 'Family' }" value="Family" label="Family" onclick="{!c.updateMessageProfileFilter}" />
+														<lightning:button disabled="{! v.messageProfileFilter == 'Patient' }" value="Patient" label="Patient" onclick="{!c.updateMessageProfileFilter}" />
+														<lightning:button disabled="{! v.messageProfileFilter == 'Staff' }" value="Staff" label="Staff" onclick="{!c.updateMessageProfileFilter}" />
+														<lightning:button disabled="{! v.messageProfileFilter == 'AllTypes' }" value="AllTypes" label="All" onclick="{!c.updateMessageProfileFilter}" />
+													</lightning:buttonGroup>
+												</lightning:layoutItem>
+												<!-- <lightning:layoutItem flexibility="auto" padding="around-xx-small" class="slds-text-align_right slds-var-p-left_xx-small">
+													<lightning:buttonGroup>
+														<lightning:button label="Empty Recycle Bin" onclick="{!c.emptyRecycleBin}" />
+													</lightning:buttonGroup>
+												</lightning:layoutItem> -->
+											</lightning:layout>
+										</div>
+									</aura:set>
+									<div class="slds-table_header-fixed_container c-container-body">
+										<div class="slds-scrollable_y">
+											<c:UserMessages type="Deleted Messages" messageFilter="{!v.messageFilter}" messageProfileFilter="{!v.messageProfileFilter}" aura:id="deleted" hidePreview="{!v.hidePreview}" />
+										</div>
+									</div>
+									<aura:set attribute="footer">
+										<lightning:layout verticalAlign="center">
+											<lightning:layoutItem padding="around-xx-small" size="6"></lightning:layoutItem>
+											<lightning:layoutItem padding="around-xx-small" size="6">
+												<lightning:layout verticalAlign="center">
+													<lightning:layoutItem padding="around-xx-small" size="10">
+														<aura:if isTrue="{!v.selectedCount > 0}">
+															<div>
+																<ul style="list-style: none outside none">
+																	<li>
+																		<lightning:formattedNumber value="{!v.currentFrom}"></lightning:formattedNumber> - <lightning:formattedNumber value="{!v.currentTo}"></lightning:formattedNumber> of <lightning:formattedNumber value="{!v.selectedCount}"></lightning:formattedNumber>
+																	</li>
+																</ul>
+															</div>
+														</aura:if>
+													</lightning:layoutItem>
+													<lightning:layoutItem padding="around-xx-small" size="2">
+														<lightning:buttonGroup class="">
+															<lightning:buttonIcon value="deleted" disabled="{!v.disablePrevious}" onclick="{!c.previous}" iconName="utility:left" variant="border-filled" />
+																<lightning:buttonIcon value="deleted" disabled="{!v.disableNext}" onclick="{!c.next}" iconName="utility:right" variant="border-filled" />
+														</lightning:buttonGroup>
+													</lightning:layoutItem>
+												</lightning:layout>
+											
+											</lightning:layoutItem>
+										</lightning:layout>
+									</aura:set>
+								</lightning:card>
+							</lightning:tab>
+						</lightning:tabset>
+					</aura:set>
+				</aura:if>
+	  		</lightning:card>
+		</lightning:layoutItem>
+
+		<!-- remove 220927 JN, hidePreview is never false
+		<aura:if isTrue="{!!v.hidePreview}">
+		<lightning:layoutItem size="4">
+			<div class="slds-no-print">
+				<c:ViewMessage />
+			</div>
+		</lightning:layoutItem>
+		</aura:if> -->
+  	</lightning:layout>
+
+</aura:component>

@@ -1,0 +1,254 @@
+<aura:component controller="CreateMessageController" implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickActionwithoutheader,lightning:actionOverride,forceCommunity:availableForAllPageTypes" access="global">
+	<aura:attribute name="activeSelect" type="String" default="" />
+	<aura:attribute name="alertFilter" type="String" />
+	<aura:attribute name="allData" type="List" default="[]" />
+	<aura:attribute name="clientId" type="String" default="" />
+	<aura:attribute name="data" type="List" default="[]" />
+	<aura:attribute name="hidePreview" type="Boolean" default="false" />
+	<aura:attribute name="isReply" type="Boolean" default="false" />
+	<aura:attribute name="label" type="String" default="" />
+	<aura:attribute name="loading" type="Boolean" default="false" />
+	<aura:attribute name="messageFilter" type="String" default="All" />
+	<aura:attribute name="messageProfile" type="String" default="AllTypes" />
+	<aura:attribute name="messageProfileFilter" type="String" default="AllTypes" />
+	<aura:attribute name="page" type="Integer" default="0" />
+	<aura:attribute name="searchTerm" type="String" default="" />
+	<aura:attribute name="selected" type="Object" default="{}" />
+	<aura:attribute name="selectedMessageProfile" type="String" default="AllTypes" />
+	<!-- <aura:attribute name="showModal" type="Boolean" default="false" /> -->
+	<aura:attribute name="sortAsc" type="Boolean" default="false" />
+	<aura:attribute name="sortField" type="String" default="CreatedDate" />
+	<aura:attribute name="type" type="String" default="" />
+	<!-- Bound Attributes to send to parent -->
+	<aura:attribute name="unreadAlerts" type="String" default="?" />
+	<aura:attribute name="unreadMessages" type="String" default="?" />
+	<aura:attribute name="modalPromise" type="Aura.Action" />
+
+	<aura:handler name="init" value="{! this }" action="{! c.init }" />
+	<aura:handler event="c:MessageEvent" action="{!c.handleNewCreate}"></aura:handler>
+	<aura:handler event="c:MessageDeleteEvent" action="{!c.handleMessageDelete}"></aura:handler>
+	<aura:handler event="c:MessagePreviewEvent" action="{!c.handlePreviewUpdate}"></aura:handler>
+	<aura:handler event="c:PortalNotificationEvent" action="{!c.handlePortalNotification}"></aura:handler>
+	
+	<aura:registerevent name="messagePreviewEvent" type="c:MessagePreviewEvent"></aura:registerevent>
+	<aura:registerevent name="messageResetPageEvent" type="c:MessageResetPageEvent"></aura:registerevent>
+	<aura:registerevent name="messageUnreadEvent" type="c:MessageUnreadEvent"></aura:registerevent>
+	
+	<aura:method name="emptyBin" action="{!c.emptyBin}" description="Empty Recycle Bin" />
+	<aura:method name="filterMessages" action="{!c.filter}" description="Filter between unread and all messages" />
+	<aura:method name="next" action="{!c.next}" description="Next Page" />
+	<aura:method name="previous" action="{!c.previous}" description="Previous Page" />
+	<aura:method name="reInit" action="{!c.init}" />
+	<aura:method name="reload" action="{!c.reload}" description="Empty Recycle Bin" />
+	<aura:method name="searchInbox" action="{!c.searchInbox}" description="Search Inbox" />
+	
+	<table class="slds-table slds-table_bordered temp-background slds-is-relative">
+		<thead>
+			<tr class="slds-line-height_reset">
+				<aura:if isTrue="{! v.clientId == '' }">
+					<th scope="col" data-column="messageProfile" onclick="{!c.sortByName}">
+						<div class="th1 sent-col1 slds-assistive-text">Message Profile</div>
+					</th>
+
+					<aura:if isTrue="{! v.type != 'Sent Messages' }">
+						<th class="" scope="col" data-column="from" onclick="{!c.sortByName}">
+							<div class="th2 slds-truncate" title="From">
+								From
+								<aura:if isTrue="{!v.sortField == 'from'}">
+									<span>
+										<aura:if isTrue="{!v.sortAsc}">
+											<lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up" />
+											<aura:set attribute="else">
+												<lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow down" />
+											</aura:set>
+										</aura:if>
+									</span>
+								</aura:if>
+							</div>
+						</th>
+					</aura:if>
+
+					<aura:if isTrue="{! v.type == 'Sent Messages' }">
+						<th class="sent-col2" scope="col" data-column="to">
+							<div class="th3 slds-truncate" title="To">
+								To
+							</div>
+						</th>
+					</aura:if>
+
+					<th class="usrMsgCol3" scope="col" data-column="subject" onclick="{!c.sortByName}">
+						<div class="th4" title="Subject">
+							Subject
+							<aura:if isTrue="{!v.sortField == 'subject'}">
+								<span>
+									<aura:if isTrue="{!v.sortAsc}">
+										<lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up" />
+										<aura:set attribute="else">
+											<lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow down" />
+										</aura:set>
+									</aura:if>
+								</span>
+							</aura:if>
+						</div>
+					</th>
+
+					<th class="" scope="col" data-column="sent" onclick="{!c.sortByName}">
+						<div class="th5 sent-col4 slds-truncate" title="Sent">
+							Sent
+							<aura:if isTrue="{!v.sortField == 'sent'}">
+								<span>
+									<aura:if isTrue="{!v.sortAsc}">
+										<lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up" />
+										<aura:set attribute="else">
+											<lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow down" />
+										</aura:set>
+									</aura:if>
+								</span>
+							</aura:if>
+						</div>
+					</th>
+
+					<aura:if isTrue="{! v.type == 'Standard Message' }">
+						<th class="arcNoSortHover" scope="col">
+							<div class="th6 slds-truncate" title="Action"></div>
+						</th>
+					</aura:if>
+
+					<aura:set attribute="else">
+						<th class="" scope="col">
+							<div class="th7 slds-assistive-text">Audience</div>
+						</th>
+
+						<th class="" scope="col" data-column="subject" onclick="{!c.sortByName}">
+							<div class="th8" title="Subject">
+								Subject
+								<aura:if isTrue="{!v.sortField == 'subject'}">
+									<span>
+										<aura:if isTrue="{!v.sortAsc}">
+											<lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up" />
+											<aura:set attribute="else">
+												<lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow down" />
+											</aura:set>
+										</aura:if>
+									</span>
+								</aura:if>
+							</div>
+						</th>
+
+						<th class="" scope="col" data-column="sent" onclick="{!c.sortByName}">
+							<div class="th9 slds-truncate" title="Sent">
+								Sent
+								<aura:if isTrue="{!v.sortField == 'sent'}">
+									<span>
+										<aura:if isTrue="{!v.sortAsc}">
+											<lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up" />
+											<aura:set attribute="else">
+												<lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow down" />
+											</aura:set>
+										</aura:if>
+									</span>
+								</aura:if>
+							</div>
+						</th>
+					</aura:set>
+				</aura:if>
+			</tr>
+		</thead>
+
+		<tbody>
+			<aura:if isTrue="{! v.loading }">
+				<lightning:spinner variant="brand" size="small" alternativeText="Loading" />
+				<aura:set attribute="else">
+					<aura:iteration items="{!v.data}" var="message">
+						<tr id="{!message.id == v.activeSelect ? 'selected' : '' }" class="{!message.read == false ? 'unread' : ''}">
+							<aura:if isTrue="{! message.messageProfile == 'Patient' }">
+								<td data-id="{!message.messageProfile}">
+									<lightning:icon iconName="action:user" alternativeText="Patient" size="xx-small" title="patient" class="patient" />
+								</td>
+
+								<aura:set attribute="else">
+									<aura:if isTrue="{! message.messageProfile == 'Family' }">
+										<td data-id="{!message.messageProfile}">
+											<lightning:icon iconName="action:new_group" alternativeText="Family" size="xx-small" title="family" class="family" />
+										</td>
+
+										<aura:set attribute="else">
+											<td data-id="{!message.messageProfile}">
+												<lightning:icon iconName="action:new_person_account" alternativeText="Staff" size="xx-small" title="staff" class="staff" />
+											</td>
+										</aura:set>
+									</aura:if>
+								</aura:set>
+							</aura:if>
+
+							<aura:if isTrue="{! v.clientId == '' }">
+								<aura:if isTrue="{! v.type != 'Sent Messages' }">
+									<td class="pointer" data-label="From" onclick="{!c.preview}" data-id="{!message.id}">
+										<div class="slds-truncate" title="{!message.from}">{!message.from}</div>
+									</td>
+								</aura:if>
+
+								<aura:if isTrue="{! v.type == 'Sent Messages' }">
+									<td class="sent-col2 pointer" data-label="To" onclick="{!c.preview}" data-id="{!message.id}">
+										<div class="slds-truncate" title="{!message.to}">{!message.to}</div>
+									</td>
+								</aura:if>
+
+								<td class="selectable" data-label="Subject" data-id="{!message.id}" data-message-type="{!v.type}" onclick="{!c.handleSubjectMessage}">
+									<div class="slds-truncate" title="{!message.subject}">
+										<a class="subject-link">{!message.subject == '' || message.subject == null ? '[No Subject]' : message.subject}</a>
+									</div>
+								</td>
+
+								<td class="pointer" data-label="Sent" onclick="{!c.preview}" data-id="{!message.id}">
+									<div class="slds-truncate" title="{!message.sent}">
+										<lightning:formattedDateTime value="{!message.sent}" year="numeric" month="numeric" day="numeric" hour="2-digit" minute="2-digit" hour12="true" timeZoneName="short" timeZone="America/New_York" />
+									</div>
+								</td>
+
+								<aura:if isTrue="{! v.type == 'Standard Message' }">
+									<td data-label="Action">
+										<div class="slds-truncate" title="">
+											<lightning:button label="Reply" disabled="false" value="{!message.messageId}" class="buttons" onclick="{!c.handleReply}" />
+											<lightning:button label="Delete" value="{!message.id}" variant="destructive" class="buttons" onclick="{!c.handleDelete}" />
+										</div>
+									</td>
+								</aura:if>
+
+								<!-- <aura:if isTrue="{! v.type == 'Deleted Messages' }">
+									<td data-label="Action">
+										<div class="slds-truncate" title="">
+											<lightning:button label="Undelete" value="{!message.id}" variant="destructive" class="buttons" onclick="{!c.handleUnDelete}" />
+										</div>
+									</td>
+								</aura:if> -->
+
+								<aura:set attribute="else">
+									<td class="selectable" data-label="Subject" onclick="{!c.handleSubjectMessage}" data-id="{!message.id}">
+										<div class="slds-truncate" title="{!message.subject}">
+											<a class="subject-link">{!message.subject == '' || message.subject == null ? '[No Subject]' : message.subject}</a>
+										</div>
+									</td>
+
+									<td class="pointer" data-label="Sent" onclick="{!c.preview}" data-id="{!message.id}">
+										<div class="slds-truncate" title="{!message.sent}">
+											<lightning:formattedDateTime value="{!message.sent}" year="numeric" month="numeric" day="numeric" hour="2-digit" minute="2-digit" hour12="true" timeZoneName="short" timeZone="America/New_York" />
+										</div>
+									</td>
+								</aura:set>
+							</aura:if>
+						</tr>
+					</aura:iteration>
+					<aura:if isTrue="{!v.data.length == 0}">
+						<div class="no-data-row">
+							<div class="no-data">No data found.</div>
+						</div>
+					</aura:if>
+				</aura:set>
+			</aura:if>
+		</tbody>
+	</table>
+	<lightning:overlayLibrary aura:id="overlayLibUserMsg" />
+	<lightning:notificationsLibrary aura:id="notifLib" />
+	<lightning:empApi aura:id="empApi" />
+</aura:component>

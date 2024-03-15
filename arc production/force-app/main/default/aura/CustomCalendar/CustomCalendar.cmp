@@ -1,0 +1,362 @@
+<aura:component controller="CustomCalendarCtl">
+
+    <aura:attribute name="showSpinner" type="Boolean" default="true"/>
+
+	<aura:attribute name="selectedTabId" type="String" default="userSchedule"/>
+	<aura:attribute name="originalViewOptionSetList" type="List" description="Original List of View Option Sets before modified by user." />
+	<aura:attribute name="viewOptionSetList" type="List" description="List of View Option Sets available for this Context." />
+	<aura:attribute name="currentViewOptionSet" type="Map" description="The currently selected View Option Set." />
+	<aura:attribute name="currentViewOptionSetId" type="String" description="The currently selected View Option Set Id." />
+	<aura:attribute name="selectedTopLevelOptionSet" type="Map" />
+	<aura:attribute name="context" type="String" default="Custom Calendar" description="The context used to find View Option Sets." />
+
+	<aura:attribute name="userId" type="String" description="User Id to pull meetings for"/>
+	<aura:attribute name="patientId" type="String" description="Patient Id"/>
+    <aura:attribute name="user" type="Map"/>
+	<aura:attribute name="showUserSelect" type="Boolean" default="false" description="Currently not in use; intended to allow the user to see other users' schedules"/>
+    <aura:attribute name="selectedUser" type="Map" default="{}"/>
+	<aura:attribute name="userLookupFilter" type="List" default="[]"/>
+	<aura:attribute name="displayMode" type="String" default="ViewOptions" description="What mode the custom calendar should use."/>
+	
+	<aura:attribute name="events" type="List" description="A list of events to display on the calendar"/>
+	<aura:attribute name="isCalendarLoaded" type="Boolean" default="false"/>
+    <aura:attribute name="viewStartDate" type="Date"/>
+	<aura:attribute name="viewEndDate" type="Date"/>
+	<aura:attribute name="display" type="String" default="calendar" description="determines what kind of calendar to display: calendar, communityWeek, etc"/>
+	<aura:attribute name="queryType" type="String" default="MeetingType" description="query method for getting list of events (MeetingType, RoomName)"/>
+    <aura:attribute name="calendarView" type="String" description="view passed from the c:Calendar component within"/>
+    <aura:attribute name="defaultView" type="String" default="month"/>
+    <aura:attribute name="overrideView" type="String" default="month"/>
+
+	<aura:attribute name="selectedMeeting" type="String" default=""/>
+	<aura:attribute name="selectedMeetingRecord" type="Object"/>
+
+	<aura:attribute name="isRecurrence" type="Boolean" default="false"/>
+    <aura:attribute name="recurrenceOptions" type="List" default="[
+		{'label': 'Just this one', 'value': 'single'},
+		{'label': 'The entire series', 'value': 'series'}]"/>
+	<aura:attribute name="recurrenceSelected" type="String" default="single"/>
+
+    <aura:attribute name="showCreateMeetingModal" type="Boolean" default="false"/>
+	<aura:attribute name="showEditMeetingModal" type="Boolean" default="false"/>
+    <aura:attribute name="showRecurrenceModal" type="Boolean" default="false"/>
+    <aura:attribute name="showDeleteMeetingModal" type="Boolean" default="false"/>
+    <aura:attribute name="showGroupNoteModal" type="Boolean" default="false"/>
+
+	<aura:attribute name="isPopoverOpen" type="Boolean" default="false"/>
+	<aura:attribute name="popoverTimerId" type="Decimal" default=""/>
+	<aura:attribute name="popoverTop" type="Integer"/>
+	<aura:attribute name="popoverBottom" type="Integer"/>
+	<aura:attribute name="popoverLeft" type="Integer"/>
+	<aura:attribute name="popoverRight" type="Integer"/>
+	<aura:attribute name="popoverDirection" type="String" default="left"/>
+	<aura:attribute name="popoverUp" type="Boolean" default="false"/>
+	<aura:attribute name="showHoverSpinner" type="Boolean" default="false"/>
+	<aura:attribute name="hoverEvent" type="Map"/>
+	<aura:attribute name="hoverEventStartDateTime" type="String"/>
+	<aura:attribute name="hoverEventEndDateTime" type="String"/>
+	<aura:attribute name="hoverType" type="String" default="readOnly" description="what kind of hover modal to show"/>
+	<aura:attribute name="groupNoteId" type="String" description="group note id used for button in hover"/>
+    <aura:attribute name="topLevelTabName" type="String" default="Scheduling" description="the name of the top-level tab this calendar is being displayed in, eg. Home/Scheduling/etc"/>
+	<aura:attribute name="showAllDay" type="Boolean" default="false" description="Handles choice between All Day Meeting or selecting start and end times" />
+    <aura:attribute name="selectedOptionSetButton" type="String" />
+	<aura:attribute name="shouldGetEvents" type="Boolean" default="false"/>
+	<aura:attribute name="hasCalendarShowGroupNote" type="Boolean" default="false"/>
+
+	<aura:attribute name="attendanceOptions" type="List"  description="options to mark attendance"
+			default="[
+				{'label': 'Unknown', 'value': 'Unknown'},
+				{'label': 'Attended', 'value': 'Attended'},
+				{'label': 'Did Not Attend', 'value': 'Did Not Attend'}
+				]" />
+	
+	<aura:attribute name="vfHost" type="String" default="arc-synaptic--dev.lightning.force.com" />
+	<aura:attribute name="iframeUrl" type="String" />
+	<aura:attribute name="enableRecurrenceButton" type="Boolean"/>
+	<aura:attribute name="canEditMeeting" type="Boolean" default="true" description="if true, user can edit meeting" />
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+	<aura:handler name="change" value="{!v.currentViewOptionSet}" action="{!c.handleCurrentViewOptionSetChanged}" />
+    <aura:handler name="change" value="{!v.selectedTabId}" action="{!c.handleSelectOptionSet}"/>
+    <aura:handler name="change" value="{!v.isCalendarLoaded}" action="{!c.loadEvents}"/>
+	<!-- <aura:handler name="change" value="{!v.viewOptionSetList}" action="{!c.loadEvents}"/> -->
+	<aura:handler name="closeModalEvent" event="c:closeModal" action="{!c.handleCloseModalEvent}"/>
+	<aura:handler name="calendarMeetingLoadedEvent" event="c:CalendarMeetingLoaded" action="{!c.handleCalendarMeetingLoaded}"/>
+	<aura:registerEvent name="closeCalendarModalEvent" type="c:closeModal"/>
+	
+
+	<aura:handler name="calendarDateChangedEvent" 
+					event="c:CalendarDateChangedEvent" 
+    				action="{!c.handleCalendarDateChangedEvent}"/>
+    <aura:handler name="calendarViewChangedEvent" 
+                    event="c:CalendarViewChangedEvent" 
+                    action="{!c.handleCalendarViewChangedEvent}"/>
+	<aura:handler name="calendarNewMeetingButtonClickedEvent" 
+					event="c:CalendarNewMeetingButtonClickedEvent"
+					action="{!c.handleCalendarNewMeetingButtonClickedEvent}"/>
+	<aura:handler name="calendarEventClickedEvent" 
+					event="c:CalendarEventClickedEvent"
+					action="{!c.handleCalendarEventClickedEvent}"/>
+	<aura:handler name="calendarEventMouseEnterEvent"
+					event="c:CalendarEventMouseEnterEvent"
+					action="{!c.handleCalendarEventMouseEnterEvent}"/>
+	<aura:handler name="calendarEventMouseExitEvent"
+					event="c:CalendarEventMouseExitEvent"
+					action="{!c.handleCalendarEventMouseExitEvent}"/>
+	<aura:handler name="calendarEventRefreshButtonClickedEvent"
+					event="c:CalendarEventRefreshButtonClickedEvent"
+					action="{!c.handleRefreshButtonClick}"/>
+
+	<lightning:notificationsLibrary aura:id="notifLib"/>
+	<lightning:overlayLibrary aura:id="overlayLib"/>
+	<lightning:navigation aura:id="navService"/>
+
+	
+	
+	<aura:if isTrue="{!or(v.showSpinner, !v.isCalendarLoaded)}">
+		
+		<lightning:spinner alternative-text="Loading" size="small" />
+	</aura:if>
+
+	<!-- lightning tabset moved here from ScheduleApp -->
+	<aura:if isTrue="{!v.displayMode == 'ViewOptions'}">
+		<lightning:tabset selectedTabId="{!v.selectedTabId}">
+			<aura:iteration items="{!v.viewOptionSetList}" var="opt">
+				<aura:if isTrue="{!or(opt.optionSetObj.Role__c == 'Top-level', opt.optionSetObj.Role__c == 'Group', opt.optionSetObj.Role__c == null)}">
+					<lightning:tab label="{!opt.optionSetObj.Title__c}" id="{!opt.optionSetObj.Id}">
+					</lightning:tab>
+				</aura:if>
+			</aura:iteration>
+		</lightning:tabset>
+	</aura:if>
+
+	<lightning:card>
+		<lightning:layout pullToBoundary="true">
+
+			<aura:if isTrue="{!v.displayMode == 'ViewOptions'}">
+			
+				<lightning:layoutItem size="2"   class="slds-p-left_medium hide-on-print">
+					<lightning:layout multipleRows="true" >
+						
+						<!-- <lightning:layoutItem size="10">	
+							<lightning:select aura:id="calendarSelect" name="Select Calendar" label="Select Calendar" value="{!v.currentViewOptionSetId}" onchange="{!c.handleSelectOptionSet}"> 
+								
+								<aura:iteration items="{!v.viewOptionSetList}" var="opt" >
+									<option text="{!opt.optionSetObj.Title__c}" value="{!opt.optionSetObj.Id}" />
+								</aura:iteration>
+							</lightning:select>
+						</lightning:layoutItem> -->
+						<!-- <lightning:layoutItem size="2" class="slds-p-top_medium slds-p-left_medium">	
+							<lightning:buttonIcon iconName="utility:refresh" onclick="{!c.handleRefreshButtonClick}" alternativeText="Refresh" />
+						</lightning:layoutItem> -->
+
+						<lightning:layoutItem aura:id="viewOptions" size="12" class="{!if(v.showSpinner,'slds-hide','slds-show')}">
+							<c:ViewOptions context="{!v.context}" viewOptionSetList="{!v.viewOptionSetList}" 
+								currentViewOptionSet="{!v.currentViewOptionSet}" selectedTopLevelOptionSet="{!v.selectedTopLevelOptionSet}" 
+								selectedOptionSetButton="{!v.selectedOptionSetButton}" />
+						</lightning:layoutItem>
+						
+
+					</lightning:layout>
+				</lightning:layoutItem>
+			</aura:if>
+			
+    		<lightning:layoutItem size="{!v.displayMode == 'PatientAttendance' ? 12 : 10}">
+    			<lightning:layout>
+    				<lightning:layoutItem size="12" padding="horizontal-medium">
+						<!-- <iframe id="iframe" aura:id="vfFrame" src="{!v.iframeUrl}" /> -->
+						<div id="print-calendar" class="show-on-print">
+                            <aura:if isTrue="{!v.isPopoverOpen}">
+                                <div class="popover-container" onclick="{!c.handleClickPopover}" onmouseenter="{!c.handlePopoverMouseEnter}" onmouseleave="{!c.handlePopoverMouseLeave}">
+                                    <div class="popover" style="{!'top: ' + v.popoverTop + 'px; left: ' + v.popoverLeft + 'px; bottom: ' + v.popoverBottom + 'px; right: ' + v.popoverRight + 'px; position: fixed;'}">
+                                        <section class="{!'slds-popover ' + 
+                                        ((v.popoverDirection == 'left') ? (v.popoverUp ? 'slds-nubbin_right-bottom ' : 'slds-nubbin_right-top ') : (v.popoverUp ? 'slds-nubbin_left-bottom ' : 'slds-nubbin_left-top ')) + 
+                                        'slds-popover_medium'}" role="dialog">
+                                            <header class="slds-popover__header">
+                                                <h2 class="slds-text-heading_small">
+                                                    {!v.hoverEvent.calendarEvent.title}
+                                                    &nbsp;
+                                                </h2>
+												<!-- Zoom Link -->
+												<aura:if isTrue="{!not(empty(v.hoverEvent.calendarEvent.meeting.Videoconference_Link__c))}">
+													<h2>
+														<span style="font-size: 1rem;">
+															<lightning:icon iconName="utility:video" title="Video" />
+															<lightning:formattedUrl 
+																value="{!v.hoverEvent.calendarEvent.meeting.Videoconference_Link__c}" 
+																label=" Join Remotely" 
+																target="_blank" >
+															</lightning:formattedUrl>
+														</span>
+													</h2>
+												</aura:if>
+                                            </header>
+                                            <div class="slds-popover__body">
+                                                <aura:if isTrue="{!or(v.hoverType == 'readOnly', v.meetingRecord.Monthly_Note_Finalized__c == true)}" >
+													<aura:if isTrue="{!v.hoverEvent.calendarEvent.meeting.All_Day_Meeting__c}">
+														<p><strong>All Day Meeting</strong></p>
+														<p><strong>Date: </strong><ui:outputDate format="MM/dd/yy" value="{!v.hoverEvent.calendarEvent.meeting.All_Day_Date__c}" /></p>
+														<aura:set attribute="else">
+															<p><strong>Start: &nbsp;</strong><ui:outputDateTime format="MM/dd/yy, hh:mm a" value="{!v.hoverEventStartDateTime}"/></p>
+                                                   			<p><strong>End: &nbsp;&nbsp;&nbsp;</strong><ui:outputDateTime format="MM/dd/yy, hh:mm a" value="{!v.hoverEventEndDateTime}"/></p>
+														</aura:set>
+													</aura:if>
+                                                    <lightning:formattedRichText value="{!v.hoverEvent.calendarEvent.meeting.Description__c}"/>	
+                                                    <aura:if isTrue="{!and(v.hasCalendarShowGroupNote, v.hoverEvent.calendarEvent.groupNotes, or(v.hoverEvent.calendarEvent.meeting.Meeting_Focus__c == 'Patient Group', v.hoverEvent.calendarEvent.meeting.Meeting_Focus__c == 'Staff Group' ))}">
+                                                        <lightning:button label="Group Note" variant="brand" onclick="{!c.handleClickGroupNote}" class="slds-m-bottom_small" disabled="{!v.groupNoteId != null}"/>
+                                                    </aura:if>
+                                                </aura:if>
+                                                <aura:if isTrue="{!and(v.hoverType == 'edit', v.meetingRecord.Monthly_Note_Finalized__c != true)}" >
+                                                    <div>
+                                                        <aura:if isTrue="{!v.showHoverSpinner}">
+															<lightning:spinner aura:id="hoverSpinner" alternative-text="Saving" size="small" />
+														</aura:if>
+														
+														<lightning:formattedRichText value="{!v.hoverEvent.calendarEvent.meeting.Description__c}"/>	
+														<!-- <p><strong>Start: &nbsp;</strong>{!v.hoverEventStartDateTime}</p> -->
+														<!-- disabled display 210504 JN -->
+														<aura:if isTrue="{!v.meetingRecord.All_Day_Meeting__c}">
+															<lightning:input type="checkbox" checked="{!v.showAllDay}"
+																	value="{!v.meetingRecord.All_Day_Meeting__c}"
+																	label="All Day Meeting" name="allDayMeeting" disabled="true"/>
+														</aura:if>
+														<aura:if isTrue="{!v.showAllDay}">
+															<lightning:input class="datePicker customRequired" type="date"
+																	label="All Day Date" dateStyle="short"
+																	value="{!v.meetingRecord.All_Day_Date__c}" required="true"
+																	onchange="{!c.onChangeFromHover}" disabled="true"/>
+															<aura:set attribute="else">
+																<lightning:input name="popoverDatetimeInput" id="popoverDatetimeInput" aura:id="popoverDatetimeInput"
+																		class="datePicker" type="datetime" dateStyle="short" timeStyle="short"
+																		label="Start" value="{!v.hoverEventStartDateTime}" 
+																		required="true" onchange="{!c.onChangeFromHover}" disabled="true"/>
+															</aura:set>
+														</aura:if>
+                                                        <lightning:radioGroup name="popoverAttendanceInput" id="popoverAttendanceInput" label="Attendance"
+                                                                value="{!v.hoverEvent.calendarEvent.meeting.Patient_Attendance__c}" 
+                                                                class="slds-m-vertical_medium"
+                                                                onchange="{!c.onChangeFromHover}"
+                                                                options="{!v.attendanceOptions}"
+																disabled="{!v.hoverEvent.calendarEvent.meeting.Monthly_Note_Finalized__c}"/>
+
+                                                        <aura:if isTrue="{!and(v.hasCalendarShowGroupNote, v.hoverEvent.calendarEvent.groupNotes, or(v.hoverEvent.calendarEvent.meeting.Meeting_Focus__c == 'Patient Group', v.hoverEvent.calendarEvent.meeting.Meeting_Focus__c == 'Staff Group' ))}">
+                                                            <lightning:button label="Group Note" variant="brand" onclick="{!c.handleClickGroupNote}" class="slds-m-bottom_small" disabled="{!v.groupNoteId != null}"/>
+                                                        </aura:if>
+														<aura:if isTrue="{!v.hoverEvent.calendarEvent.meeting.Monthly_Note_Finalized__c == false}">
+															<lightning:button label="Remove from Schedule" variant="brand" onclick="{!c.handleClickRemoveFromPopover}" class="slds-m-bottom_small"/>
+														</aura:if>
+                                                    </div>	
+                                                </aura:if>
+
+                                            </div>
+                                        </section>
+                                    </div>
+                                </div>
+                            </aura:if>
+							<aura:if isTrue="{!v.display == 'calendar'}">
+								<c:Calendar
+										events="{!v.events}"
+										showNavigateButtons="{!v.displayMode == 'PatientAttendance' ? false : true}"
+										isLoaded="{!v.isCalendarLoaded}"
+										overrideView="{!v.overrideView}"
+										calendarStartDate="{!v.displayMode == 'PatientAttendance' ? v.viewStartDate : ''}"/>
+							</aura:if>			
+
+							<aura:if isTrue="{!v.display == 'communityWeek'}">
+								<c:CommunityWeek options="{!v.currentViewOptionSet}" isLoaded="{!v.isCalendarLoaded}" viewStartDate="{!v.viewStartDate}"/>
+							</aura:if>			
+						</div>
+
+						<aura:if isTrue="{!v.displayMode == 'PatientAttendance'}">
+							<lightning:button
+									label="Close"
+									title="Close"
+									onclick="{!c.closeCustomCalendarModal}"/>
+						</aura:if>
+
+		            </lightning:layoutItem>
+		        </lightning:layout>
+			</lightning:layoutItem>
+			
+		</lightning:layout>
+		
+	</lightning:card>
+
+	<aura:if isTrue="{!v.showDeleteMeetingModal}" >
+		<c:sldsModal instanceName="deleteMeeting">
+			<aura:set attribute="header">
+				Delete Meeting
+			</aura:set>
+			<aura:set attribute="content">
+				<div class="slds-p-horizontal--small">
+                	Are you sure  you want to delete this meeting?
+                </div>				
+			</aura:set>
+			<aura:set attribute="footer">
+				<lightning:button label="Yes, remove this meeting from the schedule" variant="destructive" onclick="{!c.handleDeleteFromPopoverConfirmation}"/>
+            	<lightning:button label="No, keep this meeting" variant="neutral" onclick="{!c.handleCancelFromPopoverConfirmation}"/>
+			</aura:set>
+		</c:sldsModal>
+	</aura:if>
+
+	<aura:if isTrue="{!v.showCreateMeetingModal}">
+		<c:sldsModal instanceName="createMeeting">
+			<aura:set attribute="header">
+				Meeting Details
+			</aura:set>
+			<aura:set attribute="content">
+				<c:EditMeeting aura:id="meetingModal" instanceName="createMeeting" isRecurrence="{!v.isRecurrence}" user="{!v.user.user}" patientId="{!v.patientId}" enableRecurrenceButton="{!v.enableRecurrenceButton}"/>
+			</aura:set>
+			<aura:set attribute="footer">
+				<!-- <lightning:button label="Turn this into a repeating series" onclick="{!c.handleEditRecurrence}"/> -->
+				<lightning:button label="{!if(v.isRecurrence, 'Change how this series repeats', 'Turn this into a repeating series')}" onclick="{!c.handleEditRecurrence}" disabled="{!v.enableRecurrenceButton == false}"/>
+				<lightning:button label="Save" variant="brand" onclick="{!c.handleSave}" disabled="{!v.enableRecurrenceButton == false}"/>
+				<lightning:button label="Cancel" variant="neutral" onclick="{!c.handleCancel}"/>
+			</aura:set>
+		</c:sldsModal>
+	</aura:if>
+	
+	<aura:if isTrue="{!v.showEditMeetingModal}">
+		<c:sldsModal instanceName="editMeeting">
+			<aura:set attribute="header">
+				Meeting Details
+			</aura:set>
+			<aura:set attribute="content">
+				<c:EditMeeting aura:id="meetingModal" instanceName="editMeeting" recordId="{!v.selectedMeeting}" 
+							recurrenceSelected="{!v.recurrenceSelected}" isRecurrence="{!v.isRecurrence}" attendanceOptions="{!v.attendanceOptions}"/>
+			</aura:set>
+			<aura:set attribute="footer">
+				<aura:if isTrue="{!v.canEditMeeting}" >
+					<aura:if isTrue="{!and(v.recurrenceSelected == 'single', v.isRecurrence)}" >
+						<lightning:button label="Edit entire series of meetings" onclick="{!c.handleEditSeriesClick}" disabled="{!v.selectedMeetingRecord.Monthly_Note_Finalized__c}"/>
+					</aura:if>
+					<aura:if isTrue="{!and(v.recurrenceSelected == 'series', v.isRecurrence)}" >
+						<lightning:button label="Change how this series repeats" onclick="{!c.handleEditRecurrence}" disabled="{!v.selectedMeetingRecord.Monthly_Note_Finalized__c}"/>
+					</aura:if>
+				
+					<aura:if isTrue="{!not(v.isRecurrence)}" >
+						<lightning:button label="Turn this into a repeating series" onclick="{!c.handleEditRecurrence}" disabled="{!v.selectedMeetingRecord.Monthly_Note_Finalized__c}"/>
+					</aura:if>
+					<aura:if isTrue="{!!empty(v.selectedMeeting)}" >
+						<lightning:button label="Remove Meeting from Schedule" onclick="{!c.handleRemoveMeeting}" disabled="{!v.selectedMeetingRecord.Monthly_Note_Finalized__c}"/>
+					</aura:if>
+				
+				
+					<lightning:button label="Save" variant="brand" onclick="{!c.handleSave}" disabled="{!v.selectedMeetingRecord.Monthly_Note_Finalized__c}"/>
+				</aura:if>
+				
+				<lightning:button label="Cancel" variant="neutral" onclick="{!c.handleCancel}"/>
+			</aura:set>
+		</c:sldsModal>
+	</aura:if>
+
+	<aura:if isTrue="{!v.showGroupNoteModal}">
+		<c:sldsModal instanceName="groupNote">
+			<aura:set attribute="content">
+
+				<c:GroupNote recordId="{!v.selectedMeeting}" />
+			</aura:set>
+		</c:sldsModal>
+	</aura:if>
+
+
+</aura:component>

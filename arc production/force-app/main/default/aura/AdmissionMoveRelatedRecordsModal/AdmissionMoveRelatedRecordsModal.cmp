@@ -1,0 +1,33 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId">
+	<aura:attribute name="recordId" type="String" />
+    <aura:attribute name="record" type="Object" />
+    <aura:attribute name="simpleRecord" type="Object" />
+    <aura:attribute name="showModal" type="Boolean" description="If true, modal is displayed." default="false"  />
+
+    <!--Handler for removing Modal Component-->
+    <aura:handler name="removeComponent" action="{!c.removeComponent}" event="c:RemoveComponent" />
+
+    <force:recordData recordId="{!v.recordId}" targetRecord="{!v.record}" targetFields="{!v.simpleRecord}" fields="Id, Name, Total_Admissions__c, Current_Admission__c, Current_Admission__r.Name" mode="VIEW" />
+
+    <aura:if isTrue="{!v.simpleRecord.Total_Admissions__c > 1}">
+        <div class="slds-clearfix">
+            <div class="slds-float_right">
+            	<lightning:layout>
+                    <lightning:layoutItem class="slds-float_right" size="12">
+                        <lightning:button class="slds-m-right_x-small" label="Move Related Items" title="Move Related Items" 
+                                          onclick="{!c.handleClick}"/>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </div>
+        </div>
+    </aura:if>
+    <!--Set dynamic modal component in the varible {!v.body}-->
+    <!--
+    <div aura:id="componentBody">
+        {!v.body}
+    </div>
+    -->
+    <aura:if isTrue="{!v.showModal}">
+        <c:AdmissionMoveRelatedRecords recordId="{!v.recordId}" simpleRecord="{!v.simpleRecord}"/>
+    </aura:if>
+</aura:component>

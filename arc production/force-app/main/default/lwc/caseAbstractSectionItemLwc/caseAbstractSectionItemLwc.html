@@ -1,0 +1,54 @@
+<template>
+	<template if:true={sectionitem} >
+		<div class="slds-m-left_medium">
+			<template if:true={showTitle} >
+				<label class="slds-form-element__label slds-text-heading_small" >
+					<!-- JN Removed 220427 {section.sectionMdt.Section_Number__c}{sectionitem.sectionItemMdt.Section_Item_Number__c}&nbsp;{sectionitem.sectionItemMdt.Title__c} -->
+					{sectionitem.sectionItemMdt.Title__c}
+				</label>
+			</template>
+
+			<div if:true={sectionitem.errorMessage} class={errorMessagesClassName}>
+				<lightning-layout style="width: 100%;">
+					<lightning-layout-item size="1">
+						<lightning-icon icon-name="utility:warning" alternative-text="Warning" title="Warning" variant="warning" class="slds-float_left slds-m-right_small"></lightning-icon>
+					</lightning-layout-item>
+					
+					<lightning-layout-item size="11" style="font-weight: bold;">
+						<lightning-formatted-rich-text value={sectionitem.errorMessage}  ></lightning-formatted-rich-text>
+					</lightning-layout-item>
+				</lightning-layout>
+			</div>
+
+			<!-- <template if:true={sectionitem.sectionFieldValue} > -->
+			<template if:true={isRichText} >
+				<template if:true={canEdit} >
+					<lightning-input-rich-text class="slds-form-element__control " 
+							value={sectionitem.sectionFieldValue}
+							disabled-categories="FORMAT_FONT,ALIGN_TEXT,INSERT_CONTENT,REMOVE_FORMATTING" 
+							onchange={handleRichTextChange}>
+					</lightning-input-rich-text>
+				</template>
+				
+				<template if:false={canEdit} >
+					<lightning-formatted-rich-text value={sectionitem.sectionFieldValue}  class="slds-form-element__control">
+					</lightning-formatted-rich-text>
+				</template>
+				
+				
+			</template>
+
+			<template if:true={isDigitalFile} >
+				<div>
+					<!-- <lightning-icon icon-name="doctype:attachment" alternative-text="View File" size="small" title="View"></lightning-icon> -->
+					<lightning-formatted-rich-text value={sectionitem.sectionFieldValue}  class="slds-form-element__control">
+					</lightning-formatted-rich-text>
+				</div>
+			</template>
+
+			<!-- <template if:true={item.errorMessage} >
+				<lightning-formatted-text value={item.errorMessage} linkify ></lightning-formatted-text>
+			</template> -->
+		</div>
+	</template>
+</template>

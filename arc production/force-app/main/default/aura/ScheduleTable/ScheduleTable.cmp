@@ -1,0 +1,133 @@
+<aura:component controller="Scheduling">
+	<aura:attribute name="userId" type="String" />
+	<aura:attribute name="selectedResource" type="Map" default="{}" />
+	<aura:attribute name="staffLookupAdditionalOptions" type="List" default="[]" />
+	<aura:attribute name="contactLookupAdditionalOptions" type="List" default="[]" />
+	<aura:attribute name="groupLookupAdditionalOptions" type="List" default="[]" />
+	<aura:attribute name="resourceLookupAdditionalOptions" type="List" default="[]" />
+	<aura:attribute name="staffLookupFilter" type="List" default="[]" />
+	<aura:attribute name="contactLookupFilter" type="List" default="[]" />
+	<aura:attribute name="groupLookupFilter" type="List" default="[]" />
+	<aura:attribute name="resourceLookupFilter" type="List" default="[]" />
+	<aura:attribute name="resourceSearchText" type="String" default="" />
+	<aura:attribute name="lookupError" type="Map" default="{message: 'error', show: false}" />
+	<aura:attribute name="lookupComponentList" type="Aura.Component[]" />
+	<aura:attribute name="scheduleRowList" type="Aura.Component[]" />
+	<aura:attribute name="selectedRecordList" type="List" default="[]" />
+	<aura:attribute name="startDateTime" type="Datetime" />
+	<aura:attribute name="endDateTime" type="Datetime" />
+	<aura:attribute name="readOnly" type="Boolean" default="false" />
+
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+	<aura:handler name="change" value="{!v.selectedRecordList}" action="{!c.handleSelectedRecordListChange}" />
+	<aura:handler name="selectedItemEvent" event="c:selectedItemEvent" action="{!c.handleSelectedItemEvent}" />
+	<aura:handler name="removedItemEvent" event="c:removedItemEvent" action="{!c.handleRemovedItemEvent}" />
+
+	<aura:registerEvent name="meetingChangedEvent" type="c:MeetingChangedEvent" />
+
+	<aura:method name="updateRows" action="{!c.handleUpdateRows}" />
+
+	<div class="wrapper">
+		<div class="header">
+			<lightning:layout>
+				<lightning:layoutItem size="3">
+					<div style="min-height: 55px;"></div>
+					<div class="record-selector">
+						<aura:iteration items="{!v.selectedRecordList}" var="selectedRecord" indexVar="index">
+							<div class="record-selector-container">
+								<lightning:layout>
+									<lightning:layoutItem size="3">
+										<aura:if isTrue="{!!selectedRecord.isRecord}">
+											<div class="type-selector">
+												<lightning:select value="{!selectedRecord.type}" disabled="{!v.readOnly}">
+													<option value="User">Staff</option>
+													<option value="Contact">Patient</option>
+													<option value="Group">Group</option>
+												</lightning:select>
+											</div>
+											<aura:set attribute="else">
+												{!selectedRecord.type}
+											</aura:set>
+										</aura:if>
+									</lightning:layoutItem>
+
+									<aura:if isTrue="{!v.readOnly}">
+										{!selectedRecord.label}
+										<aura:set attribute="else">
+											<lightning:layoutItem size="9">
+												<div class="lookup-component">
+													<aura:if isTrue="{!selectedRecord.type == 'User'}">
+														<c:LookupComponent instanceName="{!index}"
+															selectedRecord="{!selectedRecord}"
+															additionalOptions=""
+															filters="{!v.staffLookupFilter}"
+															displayField="Name"
+															allowFreeText="true"
+															lookupFieldName=""
+															splitSearchTextBySeperator="true"
+															label=""
+															validationError="{!v.lookupError}"
+															objectName="User"
+															displayFieldValue="Id"
+															fieldsToSearch="Name"
+															SearchKeyWord="{!selectedRecord.searchText}"
+															allowPropagation="true" />
+													</aura:if>
+													<aura:if isTrue="{!selectedRecord.type == 'Contact'}">
+														<c:LookupComponent instanceName="{!index}"
+															selectedRecord="{!selectedRecord}"
+															additionalOptions=""
+															filters="{!v.contactLookupFilter}"
+															displayField="Name"
+															allowFreeText="true"
+															lookupFieldName=""
+															splitSearchTextBySeperator="true"
+															label=""
+															validationError="{!v.lookupError}"
+															objectName="Contact"
+															displayFieldValue="Id"
+															fieldsToSearch="Name"
+															SearchKeyWord="{!selectedRecord.searchText}"
+															allowPropagation="true" />
+													</aura:if>
+													<aura:if isTrue="{!selectedRecord.type == 'Group'}">
+														<c:LookupComponent instanceName="{!index}"
+															selectedRecord="{!selectedRecord}"
+															additionalOptions=""
+															filters="{!v.groupLookupFilter}"
+															displayField="Name"
+															allowFreeText="true"
+															lookupFieldName=""
+															splitSearchTextBySeperator="true"
+															label=""
+															validationError="{!v.lookupError}"
+															objectName="Group__c"
+															displayFieldValue="Id"
+															fieldsToSearch="Name"
+															SearchKeyWord="{!selectedRecord.searchText}"
+															allowPropagation="true" />
+													</aura:if>
+												</div>
+											</lightning:layoutItem>
+										</aura:set>
+									</aura:if>
+								</lightning:layout>
+							</div>
+						</aura:iteration>
+
+					</div>
+				</lightning:layoutItem>
+				<lightning:layoutItem size="9" class="scrollable-wrapper slds-scrollable_x">
+					<c:ScheduleRow aura:id="header-row" isHeader="true" startDateTime="{!v.startDateTime}"
+						endDateTime="{!v.endDateTime}" />
+					<aura:iteration items="{!v.selectedRecordList}" var="selectedRecord" indexVar="index">
+						<aura:if isTrue="{!not(empty(selectedRecord.value))}">
+							<c:ScheduleRow recordId="{!selectedRecord.value}" type="{!selectedRecord.type}"
+								startDateTime="{!v.startDateTime}" endDateTime="{!v.endDateTime}" />
+						</aura:if>
+					</aura:iteration>
+				</lightning:layoutItem>
+			</lightning:layout>
+		</div>
+	</div>
+</aura:component>

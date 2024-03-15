@@ -1,0 +1,32 @@
+.THIS .entryError{
+    color:red;
+}
+.THIS.c-lightgrey{
+    background: rgb(250, 250, 250);
+}
+.THIS .c-indent{
+    margin-left: 5%;
+}
+.THIS .align-middle{
+    vertical-align: middle;
+    line-height:38px;
+}
+.THIS .goal .slds-textarea
+{
+    border: 1px solid red !important;
+}
+.THIS .goal-main
+{
+    display: flex;
+}
+.THIS .cancel-icon-middle
+{
+    text-align: center;
+    /* width: 2%; */
+    /* transform: translateY(-50%); */
+    /* margin: auto; */
+}
+.THIS .redFill
+{
+    background-color: #FF0000;
+}

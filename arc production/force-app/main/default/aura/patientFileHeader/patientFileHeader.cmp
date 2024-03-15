@@ -1,0 +1,97 @@
+<aura:component implements="force:appHostable,force:hasSObjectName,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId" access="global">
+    <!-- Atttributes Section -->
+    <aura:attribute name="accountFields" type="list" access="public" default="['Age__c','Preferred_Pronouns__c', 'Gender_Identifies_As__c','Sex_Assigned_at_Birth__c','Phone__c', 'Stage_Service_Type__c','Previous_Admissions_Numeric__c']" />
+    <aura:attribute name="accountRecord" type="Object" access="public" Description="Holds Account Record" />
+    <aura:attribute name="contactRecord" type="Object" access="public" Description="Holds Contact Record" />
+    <aura:attribute name="admissionRecord" type="Object" access="public" Description="Holds Admission Record" />
+    <aura:attribute name="isRecordLoaded" type="Boolean" access="public" default="false" Description="Holds if Account Record Loaded" />
+
+    <aura:handler event="c:refreshPatient" action="{!c.handleRecordUpdated}" />
+
+    <aura:registerEvent name="refreshpage" type="force:refreshView" />
+
+    <!-- Getting Account Record -->
+    <force:recordData aura:id="recordLoader" recordId="{!v.recordId}" targetFields="{!v.accountRecord}" fields="Photo_Document_Id__c, Patient_Contact__r.Deceased__c,Discharge_Date__c" layoutType="FULL" recordUpdated="{!c.handleRecordUpdated}" />
+    <force:recordData aura:id="contactRecordLoader" recordId="{!v.accountRecord.Patient_Contact__c}" targetFields="{!v.contactRecord}" fields="LastModifiedDate" layoutType="FULL" recordUpdated="{!c.handleRecordUpdated}" />
+    <force:recordData aura:id="admissionRecordLoader" recordId="{!v.accountRecord.Current_Admission__c}" targetFields="{!v.admissionRecord}" fields="LastModifiedDate" layoutType="FULL" recordUpdated="{!c.handleRecordUpdated}" />
+    <!-- Header Component Begins -->
+    <aura:if isTrue="{!v.isRecordLoaded}">
+        <div class="slds-card" style="background: rgb(243, 242, 242);">
+
+            <lightning:spinner aura:id="spinner" variant="brand" alternativeText="loading" class="{!if(v.isRecordLoaded,'slds-hide','slds-show')}" />
+            <lightning:recordViewForm recordId="{!v.recordId}" objectApiName="Account">
+                <lightning:layout class="">
+                    <lightning:layoutItem>
+                        <!-- Photo Component Begins -->
+                        <c:photoComponent parentRecordId="{!v.recordId}" photoIdField="{!v.accountRecord.Photo_Document_Id__c}" height="100" width="100" />
+                    </lightning:layoutItem>
+                    <aura:if isTrue="{!v.accountRecord.Patient_Contact__r.Deceased__c}">
+								<lightning:layoutItem>
+									<div class="slds-form-element slds-form-element_stacked">
+										<label class="slds-form-element__label">&nbsp;</label>
+										<div class="slds-form-element__static deceased-text">Deceased</div>
+										<!-- <label class="slds-form-element__label">Deceased</label> -->
+										<!-- <div class="slds-form-element__control">
+											<div class="slds-form-element__static">
+												<lightning:input variant="label-hidden" type="checkbox" readonly="true" checked="true" disabled="true"></lightning:input>
+											</div>
+										</div> -->
+									</div>
+								</lightning:layoutItem>
+								<lightning:layoutItem class="slds-var-m-right_medium">
+									<label class="slds-form-element__label">Patient</label>
+									<lightning:outputField variant="label-hidden" fieldName="Name" />
+								</lightning:layoutItem>
+								<lightning:layoutItem class="slds-var-m-right_medium">
+									<label class="slds-form-element__label">Admin Date</label>
+									<lightning:outputField variant="label-hidden" fieldName="Admit_Date__c" />
+								</lightning:layoutItem>
+								<lightning:layoutItem class="slds-var-m-right_medium">
+									<div class="slds-form-element slds-form-element_stacked">
+										<label class="slds-form-element__label">Discharge Date</label>
+										<div class="slds-form-element__control">
+											<div class="slds-form-element__static">
+                                                <lightning:outputField variant="label-hidden" fieldName="Discharge_Date__c" />
+												<!--<lightning:formattedDateTime variant="label-hidden" value="{!v.accountRecord.Discharge_Date__c}"></lightning:formattedDateTime>-->
+											</div>
+										</div>
+									</div>
+								</lightning:layoutItem>
+								<lightning:layoutItem class="slds-var-m-right_medium">
+									<label class="slds-form-element__label">Previous Admissions</label>
+									<lightning:outputField variant="label-hidden" fieldName="Previous_Admissions_Numeric__c" />
+								</lightning:layoutItem>
+								<aura:set attribute="else">
+									<aura:iteration items="{!v.accountFields}" var="item">
+                                    <lightning:layoutItem class="slds-align_absolute-center slds-var-m-top_xxx-small slds-var-p-top_large">
+                                        <!-- <aura:if isTrue="{!item != 'Previous_Admissions__c'}"> -->
+                                        <aura:if isTrue="{!item=='Stage_Service_Type__c' }">
+                                            <lightning:outputField fieldName="{!item}" />
+                                            <aura:set attribute="else">
+                                                <lightning:outputField fieldName="{!item}" /><br />
+                                            </aura:set>
+                                        </aura:if>
+
+                                        <!-- <aura:set attribute="else">
+                                                <div class="slds-form-element">
+                                                    <span class="slds-form-element__label">Previous Admissions</span>
+                                                    <div class="slds-form-element__control">
+                                                        <span class="slds-form-element__static">
+                                                            <ui:outputCheckbox value="{!v.accountRecord.Previous_Admissions__c}" />
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </aura:set> -->
+                                        <!-- </aura:if> -->
+                                    </lightning:layoutItem>
+                                </aura:iteration>
+								</aura:set>
+							</aura:if>
+
+                    
+                </lightning:layout>
+            </lightning:recordViewForm>
+        </div>
+    </aura:if>
+
+</aura:component>

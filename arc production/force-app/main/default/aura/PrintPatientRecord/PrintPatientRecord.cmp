@@ -1,0 +1,397 @@
+<aura:component controller="MedRecordHierarchy"  extends="c:ApexService" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,lightning:actionOverride,forceCommunity:availableForAllPageTypes,lightning:availableForFlowScreens" access="global" >
+    <aura:handler name="init" value="{!this}" action="{!c.init}" />
+    <aura:attribute name="gridColumns" type="List" access="PRIVATE" />
+    <aura:attribute name="medRecHierarchy" type="Object[]" access="public" />
+    <aura:attribute name="gridData" type="Object" access="PRIVATE" />
+	<aura:attribute name="originalGridData" type="Object" access="PRIVATE" />
+	<aura:attribute name="medicalRecords" type="Object" access="PRIVATE" />
+	<aura:attribute name="reviewData" type="Object" access="PRIVATE" />
+    <aura:attribute name="categories" type="Object" access="PRIVATE"/>
+    <aura:attribute name="categoriesForSearch" type="Object" access="PRIVATE"/>
+    <aura:attribute name="searchText" type="String" access="public" />
+    <aura:attribute name="Spinner" type="boolean" default="false"/>
+    <aura:attribute name="isOpen" type="boolean" default="true"/>
+    <aura:attribute name="isCollapsed" type="boolean" default="false"/>
+    <aura:attribute name="isExpanded" type="boolean" default="true"/>
+	<aura:attribute name="gridSelectedRows" type="List" />
+	<aura:attribute name="oldGridSelectedRows" type="List" />
+	<aura:attribute name="originalGridSelectedRows" type="List" access="public" />
+	<aura:attribute name="inProcess" type="boolean" />
+	<aura:attribute name="bypassOnRowSelection" type="Boolean" default="false"/>
+	<aura:attribute name="searchContactDate" type="boolean" />
+	<aura:attribute name="patientId" type="String" default="0012i00000XtUSAAA3"/>
+	<aura:attribute name="patientName" type="String" />
+	<aura:attribute name="requestId" type="String" />
+	<aura:attribute name="startDate" type="String" />
+	<aura:attribute name="endDate" type="String" />
+	<aura:attribute name="status" type="String" />
+	<aura:attribute name="admissionOptions" type="List" default="[]"/>
+	<aura:attribute name="isAdmissionOpen" type="Boolean" default="false"/>
+	<aura:attribute name="listOfSearchRecords" type="List" />
+	<aura:attribute name="selectedAdmissionValue" type="String" />
+	<aura:attribute name="expandedRowsCount" type="Integer" default="0"/>
+    <aura:handler event="aura:waiting" action="{!c.showSpinner}"/>
+    <aura:handler event="aura:doneWaiting" action="{!c.hideSpinner}"/>
+	<aura:handler name="selectedItemEvent" event="c:selectedItemEvent" action="{!c.handleSelectedItemEvent}" />
+	<aura:attribute name="selectedRecord" type="Object" default="{isRecord: false}" access="public" description="Use,for store SELECTED sObject Record"/>
+	<aura:attribute name="selectedRowsStored" type="List" access="public"/>
+	<aura:attribute name="gridSelectedRowsTemp" type="List" access="public"  />
+	<!-- Tree Grid -->
+    <!--aura:attribute name="gridData" type="Object" /-->
+    <aura:attribute name="gridExpandedRows" type="List" />
+    <aura:attribute name="isLoading" type="Boolean" default="false" />
+
+	<aura:if isTrue="{!v.isAdmissionOpen}">
+        <section aura:id="modal" role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+			<div class="slds-modal__container modal-window">
+				<lightning:spinner aura:id="mySpinner" variant="brand" size="medium" class="{!v.showSpinner ? 'slds-show' : 'slds-hide'}"/>
+				<!-- ###### MODAL BOX HEADER Start ######-->
+				<header class="slds-modal__header">
+					<lightning:buttonIcon iconName="utility:close" class="slds-modal__close" variant="bare"  alternativeText="Cancel" onclick="{!c.closeModal}" />
+					<h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">
+						Please Select an Admission File
+					</h2>
+				</header>
+	
+				<!--###### MODAL BOX BODY Part Start######-->
+				<div class="slds-modal__content slds-p-around_medium modal-body" id="modal-content-id-1">
+					<aura:if isTrue="{!not(empty(v.admissionOptions))}">
+						<lightning:layout class="slds-align_absolute-center">
+							<lightning:layoutItem size="12" padding="around-small">
+											Patient Name 1
+							</lightning:layoutItem>
+							<lightning:layoutItem size="12" class="slds-align_absolute-center" >
+								<div class="slds-align_absolute-center">
+									<div class="slds-form-element__control slds-input-has-icon slds-input-has-icon_right">
+										<lightning:select name="selectAdmissionFile" label="Admission Files" aura:id="selectAdmissionFile" value="{!v.selectedAdmissionValue}">
+											<aura:iteration items="{!v.admissionOptions}" var="option">
+												<option text="{!option.label}" value="{!option.value}" />
+											</aura:iteration>
+										</lightning:select>
+										<div class="slds-align_absolute-center slds-p-top_large">
+											<div class="slds-p-left_xx-large">
+												<lightning:button variant="brand"
+												label="Submit"
+												title="Submit"
+												onclick="{!c.handleSubmit}" />
+											 </div>
+										</div>
+									</div>
+								</div>
+							</lightning:layoutItem>
+						</lightning:layout>
+					</aura:if>
+				</div>
+				<!--###### MODAL BOX FOOTER Part Start ######-->
+			</div>
+		</section>
+		<div aura:id="modalBackdrop" class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if>
+	
+    <!-- Tree Grid -->
+       
+    <aura:if isTrue="{!!v.isOpen}">
+    		<div class="slds-wrap" style="background-color:white">
+                <div class="slds-align_absolute-center slds-p-top_large">
+                    <div class="slds-p-left_xx-large">
+     					<!--<aura:if isTrue="{!!v.isExpanded}">-->
+	 						<lightning:button variant="brand"
+                          	label="Expand All"
+                          	title="Expand All"
+						  	onclick="{!c.expand }" />
+        				<!--</aura:if>-->
+                     </div>
+                     <div class="slds-p-left_medium">
+         				<!--<aura:if isTrue="{!!v.isCollapsed}">-->
+        					<lightning:button variant="brand"
+                          	label="Collapse All"
+                          	title="Collapse All"
+						  	onclick="{!c.collapse}" />
+        				<!--</aura:if>-->
+                    </div>
+                    
+         			
+                    <div class="slds-p-left_medium">
+            				<lightning:button variant="brand"
+                          	label="Full Screen"
+                          	title="Full Screen"
+						  	onclick="{!c.openModal }" />
+                    </div>
+                   
+        		</div>
+        	<div class="slds-grid slds-gutters">
+               <aura:if isTrue="{!v.Spinner}">
+    		   	   <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed;
+    					top: 0;
+    					right: 0;
+    					bottom: 0;
+    					margin: auto;height:100px">
+                       
+       					<div class="slds-spinner--brand  slds-spinner slds-spinner--large slds-is-relative" role="alert">
+         					<span class="slds-assistive-text">Loading</span>
+         					<div class="slds-spinner__dot-a"></div>
+         					<div class="slds-spinner__dot-b"></div>
+       					</div>
+    				</div>
+ 				</aura:if>
+           		
+                <div class="slds-col slds-size_1-of-4">
+        			<lightning:layout>
+            			
+            				<lightning:layoutItem size="12" class="slds-p-around_small slds-p-top_medium">
+                				<div class="slds-p-left_medium">
+      								<div class="SearchText"> Find</div>
+                				</div>
+            				</lightning:layoutItem >
+                		
+               
+            			<lightning:layoutItem size="12">
+                	
+                        	<div class="slds-p-top_large">
+    							<div class="slds-form-element__control slds-input-has-icon slds-input-has-icon_right">
+       								<ui:inputText label="" aura:id="searchText" updateOn="keyup" class="field" value="{!v.searchText}" keyup="{!c.searchTree}"/>
+                				</div>
+								<div class="slds-lookup__menu slds" id="lookup-348" >
+									<ul class="slds-listbox slds-listbox_vertical" role="presentation">
+										<aura:iteration items="{!v.listOfSearchRecords}" var="singleRec">
+											<div title="">
+												<c:LookupResultComponent obj="{!singleRec}" />
+											</div>
+										</aura:iteration>
+									</ul>		
+								</div>
+                			</div>
+            			</lightning:layoutItem>
+        			</lightning:layout>        	
+        		</div>
+           
+				<div class="slds-col slds-size_3-of-4">
+        			<div class="slds-p-around_large">
+        				<div class="slds-box">
+                			<div class="tree">
+								<lightning:tree items="{!v.categories }" header=""/>
+          					</div>
+            			</div>
+        			</div>
+       			</div>
+            
+    		</div>
+    
+ 		</div>
+    </aura:if>
+		<!--Use "slds-m-around_xx-large" class to add standard X-Large padding to the component--> 
+    <div class="slds-m-around_none"> 
+        <!--Use aura:if tag to display Model Box, on the bese of conditions. [isOpen boolean attribute] -->   
+        <aura:if isTrue="{!v.isOpen}"> 
+            <!--###### MODAL BOX Start######--> 
+            
+                    <!-- ###### MODAL BOX HEADER Start ######-->
+                    <header class="slds-modal__header">
+                        <lightning:buttonIcon iconName="utility:close"
+                                              onclick="{!c.closeModal }"
+                                              alternativeText="close"
+                                              variant="bare-inverse"
+                                              class="slds-modal__close"/>
+                        <div class="slds-p-left_xx-large">
+                        	<h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Print Patient Records</h2>
+                        </div>
+                    </header>
+                    <!--###### MODAL BOX BODY Part Start######-->
+                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                    	<div aura:id="stepOne" class="slds-card" style="margin:None;">
+                        	<div class="slds-align_absolute-center">
+                                
+                                <div class="slds-p-left_xx-large">
+                            		<!--<aura:if isTrue="{!!v.isExpanded}">-->
+	 									<lightning:button variant="brand"
+                          						  label="Expand All"
+                          						  title="Expand All"
+						  						  onclick="{!c.expand }" />
+        							<!--</aura:if>-->
+         						</div>
+                                <div class="slds-p-left_medium">
+                            		<!--<aura:if isTrue="{!!v.isCollapsed}">-->
+        								<lightning:button variant="brand"
+                          						  label="Collapse All"
+                          						  title="Collapse All"
+						  						  onclick="{!c.collapse}" />
+        							<!--</aura:if>-->
+                                </div>
+								<div class="slds-p-left_medium">
+                                	<lightning:button variant="brand"
+                          				label="Save"
+	                          			title="Save"
+						  				onclick="{!c.save }" />
+                            	</div>
+                            	<div class="slds-p-left_medium">
+                                	<lightning:button variant="brand"
+                          				label="Back"
+	                          			title="Back"
+						  				onclick="{!c.navigateToRecord }" />
+                            	</div>
+								<div class="slds-p-left_medium">
+                                	<lightning:button variant="brand"
+                          				label="Next"
+	                          			title="Next"
+						  				onclick="{!c.goToStepTwo }" />
+                            	</div>
+                                
+                            </div>
+        					
+                            <div class="slds-grid slds-gutters">
+               					<aura:if isTrue="{!v.Spinner}">
+    								<div aura:id="spinnerId" class="slds-spinner_container" 
+                                         style="position: fixed;
+    											top: 0;
+    											right: 0;
+    											bottom: 0;
+    											margin: auto;height:100px">
+       									<div class="slds-spinner--brand  slds-spinner slds-spinner--large slds-is-relative" role="alert">
+         									<span class="slds-assistive-text">Loading</span>
+         									<div class="slds-spinner__dot-a"></div>
+         									<div class="slds-spinner__dot-b"></div>
+       									</div>
+    								</div>
+ 								</aura:if>
+           						
+                                <div class="slds-col slds-size_1-of-4">
+									<lightning:layout>
+										<lightning:layoutItem size="9" padding="around-small">
+											<ui:outputURL value="{! '/' + v.patientId}" label="{!v.patientName}" />
+										</lightning:layoutItem>
+									</lightning:layout>
+									<lightning:layout>
+            							<lightning:layoutItem size="9" padding="around-small">
+                        					<div class="slds-var-p-top_large">
+    											<div class="slds-form-element__control slds-input-has-icon slds-input-has-icon_right">
+													<lightning:combobox aura:id="selectAdmissionFile" name="selectAdmissionFile" label="Admission Files" class="select-admission-file"
+															placeholder="Choose Admission File"
+															onchange="{!c.handleAdmissionFileSelected}"
+															options="{!v.admissionOptions}"
+															value="{!v.selectedAdmissionValue}"/>
+                								</div>
+                							</div>
+            							</lightning:layoutItem>
+									</lightning:layout>
+        							<lightning:layout>
+            							<!--div class="slds-p-around_small">
+            								<lightning:layoutItem size="1" class="slds-p-top_medium">
+                								<div >
+      												<div class="SearchText"> Find </div>
+                								</div> 
+            								</lightning:layoutItem >
+                						</div-->
+               
+            							<lightning:layoutItem size="9">
+                        					<div class="slds-p-top_large slds-p-around_small">
+    											<div class="slds-form-element__control slds-input-has-icon slds-input-has-icon_right">
+       												<ui:inputText label="Find" aura:id="searchText" updateOn="keyup" class="field find-box" 
+													   	value="{!v.searchText}" keyup="{!c.searchTree}" focus="{!c.searchTree}" />
+                								</div>
+												<div class="slds-lookup__menu slds" id="lookup-348" aura:id="search-look-ahead">
+													<ul class="slds-listbox slds-listbox_vertical" role="presentation">
+														<aura:iteration items="{!v.listOfSearchRecords}" var="singleRec">
+															<div title="">
+																<c:LookupResultComponent obj="{!singleRec}" />
+															</div>
+														</aura:iteration>
+													</ul>		
+												</div>
+                							</div>
+            							</lightning:layoutItem>
+        							</lightning:layout>  
+									<div class="slds-m-top_x-large">
+										<lightning:layout multipleRows="true">
+											<lightning:layoutItem padding="around-small" size="12">
+												<div class="SearchText">Search by Date</div>
+											</lightning:layoutItem>
+											<lightning:layoutItem padding="around-small" size="12">
+												<ui:inputCheckbox aura:id="searchFinalizedDate" label="Search Finalized Date" />
+											</lightning:layoutItem>
+											<lightning:layoutItem size="12" padding="around-small">
+												<lightning:input aura:id="fromDate" name="fromDate" label="From Date" type="date" dateStyle="long" />  
+											</lightning:layoutItem>
+											<lightning:layoutItem size="12" padding="around-small">
+												<lightning:input aura:id="toDate" name="toDate" label="To Date" type="date" dateStyle="long" />  
+											</lightning:layoutItem> 
+											<lightning:layoutItem size="12" padding="around-small">
+												<lightning:button variant="brand"
+													label="Search &amp; Select"
+													title="Search &amp; Select"
+													onclick="{!c.onSearchDate}" /> 
+											</lightning:layoutItem> 
+										</lightning:layout> 	
+									</div>
+        						</div>
+            
+								<div class="slds-col slds-size_3-of-4">
+        							<div class="slds-p-around_large">
+        								<div class="slds-box">
+                							<div class="tree">
+												<lightning:treeGrid
+												   aura:id="treegrid_async"
+												   columns="{!v.gridColumns}"
+												   expandedRows="{! v.gridExpandedRows }"
+												   data="{!v.gridData}"
+												   keyField="name"
+												   isLoading="{! v.isLoading }"
+												   ontoggle="{!c.handleRowToggle}"
+												   onrowselection="{!c.onSelected}"
+												   selectedRows="{!v.gridSelectedRows}"
+											   />
+          									</div>
+            							</div>
+        							</div>
+       							</div>
+            
+    						</div>
+    
+ 						</div>
+						<div aura:id="stepTwo" class="slds-card" style="margin:None;">
+							<div class="slds-align_absolute-center">
+								<div class="slds-p-left_medium">
+                                	<lightning:button variant="brand"
+                          				label="Back"
+	                          			title="Back"
+						  				onclick="{!c.goBackToStepOne }" />
+                            	</div>
+								<div class="slds-p-left_medium">
+									<lightning:button variant="brand"
+                          				label="Print"
+	                          			title="Print"
+						  				onclick="{!c.handlePrintJob }" />
+                            	</div>
+							</div>
+							<div class="slds-grid slds-gutters">
+								<div class="slds-col slds-size_4-of-4">
+        							<div class="slds-p-around_large">
+        								<div class="slds-box">
+                							<div class="tree">
+           										<!--lightning:tree items="{!v.categories }" header=""/-->
+
+												<lightning:treeGrid
+												   aura:id="treegrid_review"
+												   columns="{!v.gridColumns}"
+												   data="{!v.reviewData}"
+												   keyField="name"
+												   isLoading="{! v.isLoading }"
+												   hideCheckboxColumn="true"
+											   />
+          									</div>
+            							</div>
+        							</div>
+       							</div>
+							</div>
+						</div>
+                    </div>
+                    
+                    
+                    <!--###### MODAL BOX FOOTER Part Start ######-->
+                    
+        	
+            
+            <!--###### MODAL BOX Part END Here ######-->  
+    	</aura:if>
+	</div>
+
+</aura:component>

@@ -1,0 +1,60 @@
+<aura:component implements="force:hasRecordId,force:lightningQuickActionWithoutHeader" controller="CancelPendingProcedureOrders">
+    <aura:handler name = "init" value = "{!this}" action = "{!c.onInit}"/>
+    <aura:attribute name="data" type="Object"/>
+    <aura:attribute name="columns" type="List"/>
+    <aura:attribute name="isModalOpenConfirmation" type="boolean" default="false"/>
+    
+    <div class="slds-modal__header">
+        <h1 id="modal-heading-01" class="slds-modal__title slds-hyphenate">Cancel Pending Results?</h1>
+    </div>
+    
+    <div class="slds-modal__content slds-var-p-around_medium" id="modal-content-id-1">
+        <div style="height: 200px">
+            <lightning:datatable
+                    aura:id="pendingOrders"
+                    keyField="id"
+                    data="{! v.data }"
+                    columns="{! v.columns }"
+                    hideCheckboxColumn="false"/>
+        </div>
+    </div>
+
+    
+    <div class="slds-modal__footer">
+        <lightning:button aura:id="cancelBtn" variant="neutral" label="Cancel Pending Results" onclick="{!c.confirmPendingOrdersCancellation}" />
+        <lightning:button aura:id="closeBtn" variant="neutral" label="Close" onclick="{!c.closeQuickAction}" />
+    </div>
+    <aura:if isTrue="{!v.isModalOpenConfirmation}">
+            <!-- Modal/Popup Box starts here-->
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <!-- Modal/Popup Box Header Starts here-->
+                    <header class="slds-modal__header">
+                        <lightning:buttonIcon iconName="utility:close"
+                                              onclick="{! c.closeModelConfirm }"
+                                              alternativeText="close"
+                                              variant="bare-inverse"
+                                              class="slds-modal__close"/>
+                        <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Confirmation</h2>
+                    </header>
+                    <!--Modal/Popup Box Body Starts here-->
+                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                      Are you sure you want to cancel? Any unsaved changes will be lost.
+
+                    </div>
+                    <!--Modal/Popup Box Footer Starts here-->
+                    <footer class="slds-modal__footer">
+                        <lightning:button variant="neutral"
+                                          label="Cancel Pending Results"
+                                          title="Cancel Pending Results"
+                                          onclick="{! c.cancelPendingOrders }"/>
+                        <lightning:button variant="brand"
+                                          label="Go Back to Editing"
+                                          title="Go Back to Editing"
+                                          onclick="{!c.closeConfirmPendingOrdersCancellation}"/>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </aura:if>
+</aura:component>

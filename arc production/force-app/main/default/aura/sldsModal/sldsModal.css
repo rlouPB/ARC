@@ -1,0 +1,13 @@
+.THIS .maxHeightSection
+{
+    height:     75%     !important;
+    max-height: 75%     !important;
+    position:   fixed   !important;
+    top:        12.5%   !important;
+}
+
+.THIS .maxHeight
+{
+    height:     100%    !important;
+    max-height: 100%    !important;
+}

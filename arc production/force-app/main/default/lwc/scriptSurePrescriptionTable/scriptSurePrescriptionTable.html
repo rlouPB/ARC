@@ -1,0 +1,100 @@
+<!--
+  @description       : 
+  @author            : 
+  @file type         : 
+  @created modified  : 
+  @last modified on  : 01-13-2022
+  @last modified by  : 
+-->
+<template>
+
+    <lightning-card >
+        <h3 slot="title">
+            <lightning-icon icon-name="standard:account" size="small" alternative-text="Prescriptions" class="slds-m-right_small"></lightning-icon>
+            Prescriptions
+        </h3>
+        
+        <lightning-button-group slot="actions">
+            <lightning-button variant="neutral" label="Print Current" onclick={openPrintedLastDispensedMeds}></lightning-button>
+            <lightning-button-icon if:true={showrefresh} icon-name="utility:refresh" title="refresh" onclick={getPrescriptions}></lightning-button-icon>
+        </lightning-button-group>
+
+    <div style="margin-top: 0px;">
+        <!-- onsave={handleSave} -->
+        <template if:true={forOther}>
+            <template if:true={prescriptionData.length}>
+                <lightning-datatable
+                    key-field="Id"
+                    data={prescriptionData}
+                    columns={prescriptionColumns}
+                    onsave={handleSave}
+                    draft-values={draftValues}
+                    hide-checkbox-column
+                    default-sort-direction={defaultSortDirection}
+                    sorted-direction={sortDirection}
+                    sorted-by={sortedBy}
+                    onsort={onHandleSort}
+                    onheaderaction={handleHeaderAction}
+                    suppress-bottom-bar="true">
+                </lightning-datatable>
+            </template>
+            <template if:false={prescriptionData.length}>
+                <p>No prescriptions recorded</p>
+            </template>
+        </template>
+
+        <template if:false={forOther}>
+            <!-- <lightning-datatable
+                    class="tbl"
+                    key-field="Id"
+                    data={prescriptionData}
+                    columns={prescriptionColumns}
+                    onsave={handleSave}
+                    draft-values={draftValues}
+                    hide-checkbox-column
+                    >
+            </lightning-datatable> -->
+
+            <template if:true={forAwayOrder}>
+
+                <div class="slds-grid slds-gutters">
+                    <div class="slds-col slds-size_1-of-3">
+                      <lightning-input if:false={finalDischargeMedOrder} class="item-date slds-has-error" type="date" data-id="startDate" label="First Day Away"  onchange={calculateDaysAway} date-style="short"></lightning-input>
+                      <lightning-input if:true={finalDischargeMedOrder} class="item-date slds-has-error" type="date" data-id="startDate" label="Discharge Date"  onchange={calculateDaysAway} date-style="short"></lightning-input>
+                    </div>
+                    <!-- <div class="slds-col slds-size_2-of-3">
+                      <lightning-input type="checkbox" data-id="dischargeCheckbox" label="Final Discharge Med Order"  onchange={handleFinalDischargeMedOrderChange}></lightning-input>
+                    </div> -->
+                </div>
+
+                <lightning-input class="item-date slds-has-error" type="date" data-id="endDate" label="Last Day Away"  onchange={calculateDaysAway} date-style="short"></lightning-input>
+                <lightning-input class="item-number " type="number" data-id="numberOfDaysAway" label="Days Away" disabled="" ></lightning-input>
+                
+                <lightning-input class="item-number slds-hide slds-has-error" type="number" data-id="numberOfDayForFinalDischarge" label="Days to Package"  onchange={updateCountsForDaysAway}></lightning-input>
+                
+                <br />
+            </template>
+
+            <c-custom-datatable-lwc
+                key-field="Id"
+                data={prescriptionData}
+                columns={prescriptionColumns}
+                onsave={handleSave}
+                draft-values={draftValues}
+                hide-checkbox-column
+                onpicklistchanged={picklistChanged} 
+                ontextfieldchanged={textfieldChanged} 
+                onvalueselect={handleSelection}
+                oncellchange={handleCellChange}
+                oncancel={handleCancel}
+                suppress-bottom-bar="true"
+            >
+        </c-custom-datatable-lwc>
+        </template>
+
+
+       
+      
+    </div>
+    </lightning-card>
+</template>

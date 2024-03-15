@@ -1,0 +1,205 @@
+<aura:component controller="DischargeSectionCtl" extensible="true" extends="c:ApexService">
+    <aura:attribute name="numErrors" type="Integer"/>
+    <aura:attribute name="dischargeSection" type="Map"/>
+    <aura:attribute name="dischargeDisposition" type="Map"/>
+    <aura:attribute name="currentUser" type="Map"/>
+    <aura:attribute name="responsibleSocialWorker" type="Map"/>
+    <aura:attribute name="referralListMap" type="Map" default="{}" description="A Map with a grouping name and referral sub-list."/>
+    <aura:attribute name="isLoading" type="Boolean" default="true"/>
+    <aura:attribute name="loading" type="Boolean" default="true" />
+    <aura:attribute name="hideReferrals" type="Boolean" default="false" />
+
+    <!-- Internal Attributes -->
+    <aura:attribute name="isResponsiblePersonChanged" type="Boolean" default="false" description="When responsible person is changed, it controls if Save button is showing or not.  This is used only when current user is responsible social worker but not section owner."/>
+    <aura:attribute name="isResponsiblePersonChangeClicked" type="Boolean" default="false"/>
+    <aura:attribute name="responsiblePersonFilter" type="List" default="[]" access="public"/>
+    <aura:attribute name="selectedResponsiblePerson" type="Map" access="public" />
+    <aura:attribute name="responsiblePersonName" type="String"/>
+    <aura:attribute name="isReopenable" type="Boolean" default="false" description="This defines who can re-open this.  Only Disposition Responsible Social Worker or System Admin."/>
+    <aura:attribute name="isResponsibleWorkerChangeable" type="Boolean" default="false" description="Disposition is draft, only responsible worker, social worker, and system admin can see this clickable button."/>
+    <aura:attribute name="isEditable" type="Boolean" default="false" description="Only Responsible User, Disposition Responsible Social Worker, and System Admin can edit WHEN it is not Finalized or Cancelled."/>
+    <aura:attribute name="instanceName" type="String"/>
+    <aura:attribute name="referralFilter" type="List" default="[]" access="public" description="The filter applied to all searches for patient record selection" />
+    <aura:attribute name="showMarkCompleteModal" type="Boolean" default="false"/>
+    <aura:attribute name="psetAssignmentFilters" type="List" description="PermissionSetAssignment filter list to pass to lookupComponent. Assembled in this component based on parameters" />
+    <aura:attribute name="permissionSetNames" type="String" default="'Clinical'" 
+			description="Single-quoted comma-separated Permission Set Names to include in query. Only applies to PermissionSetAssignment queries. Default selects RiggsClinical." />
+    <!-- handler -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler name="change" value="{!v.selectedResponsiblePerson}" action="{!c.handleUpdateResponsiblePerson}"/>
+    
+    <!-- Events -->
+    <aura:registerEvent name="dischargeSectionActionEvent" type="c:DischargeSectionActionEvent"/>
+    <aura:registerEvent name="dischargeSectionSplitComplete" type="c:DischargeSectionSplitCompleteEvent"/>
+    <aura:registerEvent name="dischargeSectionReopenedEvent" type="c:DischargeSectionReopenedEvent"/>
+    <aura:registerEvent name="DischargeDispositionActionEvent" type="c:DischargeDispositionActionEvent"/>
+
+    <aura:if isTrue="{!v.loading}">
+        <lightning:spinner variant="brand" size="small" alternativeText="Loading" />
+    </aura:if>
+    <div class="slds-box">
+        <lightning:card>
+            <aura:set attribute="footer">
+                <lightning:layout multipleRows="true">
+                    <lightning:layoutItem size="3" class="slds-var-p-around_x-small">
+                        <aura:if isTrue="{!not(empty(v.dischargeSection.completedByName))}">
+                            <div>Completed By</div>
+                        </aura:if>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="7" class="slds-var-p-around_x-small">
+                        <aura:if isTrue="{!not(empty(v.dischargeSection.completedByName))}">
+                            <div class="slds-text-align_left">{!v.dischargeSection.completedByName}</div>
+                        </aura:if>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="2" class="slds-var-p-around_x-small" alignmentBump="left"></lightning:layoutItem>
+
+                    <lightning:layoutItem size="3" class="slds-var-p-around_x-small">
+                        <aura:if isTrue="{!not(empty(v.dischargeSection.completedDateTime))}">
+                            <div>Completed Date Time</div>
+                        </aura:if>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="3" class="slds-var-p-around_x-small">
+                        <aura:if isTrue="{!not(empty(v.dischargeSection.completedDateTime))}">
+                            <div class="slds-text-align_left">
+                                <lightning:formattedDateTime value="{!v.dischargeSection.completedDateTime}"
+                                                             year="numeric" month="2-digit" day="2-digit"
+                                                             hour="2-digit" minute="2-digit" timeZoneName="short" timeZone="America/New_York" hour12="true"/>
+                            </div>
+                        </aura:if>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="3" ></lightning:layoutItem>
+                    <lightning:layoutItem size="3">
+                        <div class="slds-clearfix">
+                            <div class="slds-var-p-around_x-small slds-float_right">
+                                <aura:if isTrue="{!v.isReopenable}">
+                                    <lightning:button class="slds-button_stretch" 
+                                                      variant="brand" 
+                                                      label="Re-Open Section" 
+                                                      title="Re-Open Section" 
+                                                      onclick="{!c.handleReopenDischargeSection}"/>
+                                </aura:if>
+                            </div>
+                            <div class="slds-var-p-around_x-small slds-float_right">
+                                <aura:if isTrue="{!v.isEditable}">
+                                    <lightning:button class="slds-button_stretch" 
+                                                      variant="brand" 
+                                                      label="Mark Section Complete" 
+                                                      title="Mark Section Complete" 
+                                                      onclick="{!c.handleMarkSectionComplete}"/>
+                                </aura:if>
+                            </div>
+                            <div class="slds-var-p-around_x-small slds-float_right">
+                                <aura:if isTrue="{!or(v.isEditable,v.isResponsiblePersonChanged)}">
+                                    <lightning:button class="slds-button_stretch" 
+                                                      variant="brand" label="Save" 
+                                                      title="Save" 
+                                                      onclick="{!c.handleSaveDischargeSection}"/>
+                                </aura:if>
+                            </div>
+                        </div>
+                        
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </aura:set>
+
+            <lightning:layout multipleRows="true" class="slds-p-right_medium">
+                <lightning:layoutItem size="6">
+                    <p class="slds-text-heading_medium">{!v.dischargeSection.dischargeSectionObj.Role__c}</p>
+                </lightning:layoutItem>
+                <!-- <lightning:layoutItem size="3">
+
+                </lightning:layoutItem> -->
+
+                <lightning:layoutItem size="3">
+                    <lightning:layout multipleRows="true">
+                        <aura:if isTrue="{!or(not(v.isResponsibleWorkerChangeable),v.dischargeSection.dischargeSectionObj.Role__c=='Medical Care Instructions')}">
+                            <!--lightning:layoutItem size="2">
+                                &nbsp;
+                            </lightning:layoutItem-->
+                            <lightning:layoutItem size="12">
+                                <div id="ResponsiblePerson">Assigned To:&nbsp;{!v.dischargeSection.responsiblePerson}</div>
+                            </lightning:layoutItem>
+                            <aura:set attribute="else">
+                                <aura:if isTrue="{!v.isResponsiblePersonChangeClicked}">
+                                    <lightning:layoutItem size="12">
+                                        <div>Assigned To:</div>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem size="12" alignmentBump="left">
+                                        <c:LookupComponent required="true" aura:id="assignedToLookup" 
+                                                        selectedRecord="{!v.selectedResponsiblePerson}" 
+                                                        fieldsToSearch="Assignee.Name" 
+                                                        filters="{!v.psetAssignmentFilters}" 
+                                                        displayField="Assignee.Professional_Name__c"
+                                                        splitSearchTextBySeperator="true" 
+                                                        allowPropagation="true"
+                                                        displayFieldValue="Assignee.Id" 
+                                                        allowFreeText="true"  
+                                                        label="" 
+                                                        objectName="PermissionSetAssignment" />
+                                    </lightning:layoutItem>
+                                    <aura:set attribute="else">
+                                        <lightning:layoutItem size="12">
+                                            <div id="ResponsiblePerson">Assigned To:&nbsp;{!v.dischargeSection.responsiblePerson}</div>
+                                        </lightning:layoutItem>
+                                        <lightning:layoutItem size="12" class="slds-m-top_x-small">
+                                            <div id="ChangeResponsiblePersonButton"><lightning:button variant="brand" label="Change Responsible Person" title="Change Responsible Person" onclick="{!c.handleChangeResponsiblePerson}"/></div>
+                                        </lightning:layoutItem>
+                                    </aura:set>
+                                </aura:if>
+                            </aura:set>
+                        </aura:if>
+                    </lightning:layout>
+                </lightning:layoutItem>
+
+                <lightning:layoutItem size="3">
+                    <div class="slds-clearfix slds-var-m-top_x-small">
+                        <div class="slds-var-p-around_x-small slds-float_right">
+                            <aura:if isTrue="{!v.isReopenable}">
+                                <lightning:button class="slds-button_stretch" 
+                                                    variant="brand" 
+                                                    label="Re-Open Section" 
+                                                    title="Re-Open Section" 
+                                                    onclick="{!c.handleReopenDischargeSection}"/>
+                            </aura:if>
+                        </div>
+                        <div class="slds-var-p-around_x-small slds-float_right">
+                            <aura:if isTrue="{!v.isEditable}">
+                                <lightning:button class="slds-button_stretch" 
+                                                    variant="brand" 
+                                                    label="Mark Section Complete" 
+                                                    title="Mark Section Complete" 
+                                                    onclick="{!c.handleMarkSectionComplete}"/>
+                            </aura:if>
+                        </div>
+                        <div class="slds-var-p-around_x-small slds-float_right">
+                            <aura:if isTrue="{!or(v.isEditable,v.isResponsiblePersonChanged)}">
+                                <lightning:button class="slds-button_stretch" 
+                                                    variant="brand" label="Save" 
+                                                    title="Save" 
+                                                    onclick="{!c.handleSaveDischargeSection}"/>
+                            </aura:if>
+                        </div>
+                    </div>
+                </lightning:layoutItem>
+            </lightning:layout>
+            {!v.body}
+        </lightning:card>
+    </div>
+    
+    <aura:if isTrue="{!v.showMarkCompleteModal}">
+        <c:sldsModal instanceName="markCompleteSection">
+            <aura:set attribute="header">
+                
+            </aura:set>
+            <aura:set attribute="content">
+                <div class="slds-p-horizontal_small">
+                    Are you sure you want to mark this section complete?
+                </div>
+            </aura:set>
+            <aura:set attribute="footer">
+                <lightning:button label="Mark as Complete" variant="destructive" onclick="{!c.handleConfirmMarkAsComplete}"/>
+                <lightning:button label="Go back to Section" variant="neutral" onclick="{!c.handleBackToSection}"/>
+            </aura:set>
+        </c:sldsModal>
+    </aura:if>
+</aura:component>

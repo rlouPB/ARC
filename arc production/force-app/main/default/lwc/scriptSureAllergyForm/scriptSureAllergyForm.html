@@ -1,0 +1,105 @@
+<template>
+    <div id="platform-selection-container" role="dialog" class="slds-modal slds-fade-in-open ">
+        <div class="slds-modal__container " style="max-width: unset; width: 550px;">
+            <div class="slds-is-relative">
+                <lightning-spinner if:true={showSpinner} alternative-text="Saving..." size="medium"></lightning-spinner>
+            
+                <div class="slds-modal__header">
+                    <button class="slds-button slds-modal__close slds-button--icon-inverse" title="Close"
+                        onclick={closeModal} disabled={showSpinner}>
+                        <lightning-icon variant="inverse" icon-name="utility:close" size="x-small"
+                            alternative-text="Close icon"></lightning-icon>
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 id="header43" class="slds-text-heading--medium">Allergy</h2>
+                </div>
+
+                <div id="modal-content" class="slds-modal__content slds-p-around--medium" style="height: 500px; padding: 0;">
+                    <div id="form-container" style="width: 90%; margin: auto;">
+                        <div class="slds-p-around_medium lgc-bg">
+
+                            <!-- <lightning-input type="text" required label="Allergy Name:" value={name} onchange={onAllergyNameChange}></lightning-input> -->
+                            
+                            <div class="slds-form-element">
+                                <div class="slds-form-element__control">
+                                <label for="allergyName" class="slds-form-element__label slds-no-flex">Allergy Name:</label>
+                                <input type="text" 
+                                        name="allergyName" 
+                                        onchange={onAllergyNameChange}
+                                        class="slds-input custom-required" 
+                                        autofocus
+                                        value={name} />
+                                </div>
+                            </div>
+
+                            <lightning-input type="date" date-style="short" name="onsetDate" class="onsetDateInput" label="Onset Date:"  value={onsetDate} onchange={onSetDateChange}></lightning-input>
+                            <lightning-input type="date" date-style="short" name="endDate" label="End Date:" value={endDate} onchange={onEndDateChange}></lightning-input>
+                            
+                            <!-- <template if:true={allergyTypeOptions.data}>
+                                <lightning-combobox
+                                class="unique-class"
+                                name="allergyType"
+                                label="Type:"
+                                value={selectedAllergyType}
+                                placeholder="Select Allergy Type."
+                                options={allergyTypeOptions.data.values}
+                                onchange={onAllergyTypeChange}
+                                required></lightning-combobox>
+                            </template> -->
+
+                            <template if:true={adverseCodeOptions.data}>
+                                <lightning-combobox
+                                name="allergyType"
+                                label="Type:"
+                                value={selectedAdverseCode}
+                                placeholder="Select Type."
+                                options={adverseCodeOptions.data.values}
+                                onchange={onAdverseCodeChange} ></lightning-combobox>
+                            </template>
+
+                            <template if:true={reactionOptions.data}>
+                                <lightning-combobox
+                                name="reactions"
+                                label="Reactions:"
+                                value={selectedReaction}
+                                placeholder="Select Reaction."
+                                options={reactionOptions.data.values}
+                                onchange={onReactionsChange} ></lightning-combobox>
+                            </template>
+                            
+                            <template if:true={severityOptions.data}>
+                                <lightning-combobox
+                                name="severity"
+                                label="Severity:"
+                                value={selectedSeverity}
+                                placeholder="Select Severety."
+                                options={severityOptions.data.values}
+                                onchange={onSeverityChange} ></lightning-combobox>
+                            </template>
+                            
+
+                            <!-- <lightning-input type="text" label="Description:" value={description}></lightning-input> -->
+                            <lightning-textarea name="comment" label="Comment:" value={description} onchange={onDescriptionChange}></lightning-textarea>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+                
+                <div class="slds-modal__footer">
+                    <lightning-button label="Close" title="Close" class="slds-m-left_x-small" onclick={closeModal}>
+                    </lightning-button>
+                    <lightning-button id="save-button" variant="brand" label="Save" title="Save" onclick={save}
+                        class="slds-m-left_x-small"></lightning-button>
+                    <lightning-button id="save-new-button" variant="brand" label="Save & New" title="Save & New" onclick={saveAndNew}
+                        class="slds-m-left_x-small"></lightning-button>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+    <div class="slds-backdrop slds-backdrop_open"></div>
+</template>

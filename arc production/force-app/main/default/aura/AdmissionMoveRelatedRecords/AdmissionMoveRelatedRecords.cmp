@@ -1,0 +1,566 @@
+<aura:component controller="AdmissionMoveRelatedRecordsApexCtl" implements="flexipage:availableForRecordHome,force:hasRecordId" extends="c:ApexService">
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="record" type="Object" />
+    <aura:attribute name="simpleRecord" type="Object" />
+    <aura:attribute name="selectedSourceObject" type="Object" default="{}" access="public" />
+    <aura:attribute name="sourceObjectLabel" type="String" access="public" default="Source" />
+    <aura:attribute name="selectedTargetObject" type="Object" access="public" />
+    <aura:attribute name="targetObjectLabel" type="String" access="public" default="Target" />
+    <aura:attribute name="parentObjectName" type="String" default="Account" />
+    <aura:attribute name="lookupFilters" type="Map" default="{'source': [], 'target': []}" access="public" />
+    <aura:attribute name="requestItemFilters" type="List[]" />
+    <aura:attribute name="admissionMedicationFilters" type="List[]" />
+    <aura:attribute name="formsFilters" type="List[]" />
+    <aura:attribute name="admissionList" type="List[]" />
+    <aura:attribute name="selectedRowsObject" type="Map" default="{}" />
+    
+    <aura:attribute name="relatedRecords" type="Map" />
+    <aura:attribute name="showSpinner" type="Boolean" default="false" />
+
+    <aura:attribute name="showRelatedLists" type="Boolean" default="false" description="hide related list tables" />
+
+    <aura:registerEvent name="removeComponent" type="c:RemoveComponent"/>
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler name="change" value="{!v.selectedSourceObject}" action="{!c.handleSelectedSourceObjectChanged}" />
+    <aura:handler name="change" value="{!v.selectedTargetObject}" action="{!c.handleSelectedTargetObjectChanged}" />
+
+    <!-- <force:recordData recordId="{!v.recordId}" targetRecord="{!v.record}" targetFields="{!v.simpleRecord}" fields="Id, Name, Total_Admissions__c, Current_Admission__c, Current_Admission__r.Name" mode="VIEW" /> -->
+
+    <section aura:id="modal" role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+        <div class="slds-modal__container modal-window">
+            <lightning:spinner aura:id="mySpinner" variant="brand" size="medium" class="{!v.showSpinner ? 'slds-show' : 'slds-hide'}"/>
+            <!-- ###### MODAL BOX HEADER Start ######-->
+            <header class="slds-modal__header">
+                <lightning:buttonIcon iconName="utility:close" class="slds-modal__close" variant="bare"  alternativeText="Cancel" onclick="{!c.removeComponent}" />
+                <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">
+                    Move Related Items
+                </h2>
+            </header>
+
+            <!--###### MODAL BOX BODY Part Start######-->
+            <div class="slds-modal__content slds-p-around_medium modal-body" id="modal-content-id-1">
+                <!-- <lightning:layout>
+                    <lightning:layoutItem class="slds-text-align_center" size="12" padding="horizontal-medium">
+                        <div class="slds-text-heading_large">Move Admission Related Items</div>
+                    </lightning:layoutItem>
+                </lightning:layout> -->
+                <lightning:layout horizontalAlign="left" class="slds-m-bottom_large">
+                    
+                     <lightning:layoutItem size="2" class="slds-text-align_right " >
+                         <lightning:icon iconName="standard:resource_absence" alternativeText="Move From" title="Move From" class="fromIcon"/>
+                     </lightning:layoutItem>                   
+                    <lightning:layoutItem size="4" padding="horizontal-medium">
+                        <c:LookupComponent required="true" aura:id="sourceObjectLookup" 
+                            selectedRecord="{!v.selectedSourceObject}" displayField="Name" 
+                            displayFieldValue="Id" filters="{!v.lookupFilters.source}" 
+                            minimumSearchTextLength="0" label="{!v.sourceObjectLabel}" 
+                            objectName="{!v.parentObjectName}" fieldsToSearch="Name" />
+                    </lightning:layoutItem>
+                    
+                    <lightning:layoutItem size="1" class="slds-text-align_right">
+                        <lightning:icon iconName="standard:choice" alternativeText="Move To" title="Move To" class="toIcon" />
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="4" padding="horizontal-medium">
+                        <c:LookupComponent required="true" aura:id="targetObjectLookup" 
+                            selectedRecord="{!v.selectedTargetObject}" displayField="Name" 
+                            displayFieldValue="Id" filters="{!v.lookupFilters.target}" 
+                            minimumSearchTextLength="0" label="{!v.targetObjectLabel}" 
+                            objectName="{!v.parentObjectName}" fieldsToSearch="Name" />
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="1" />
+
+                </lightning:layout>
+
+                <aura:if isTrue="{!not(empty(v.admissionList))}">
+                    <table class="recordList slds-table slds-table_bordered" style="empty-cells: show;">
+                        <thead>
+                            <tr class="slds-text-title_caps">
+                                <th style="width: 5%" scope="col">
+                                </th>
+                                <th scope="col">
+                                    Admission Number
+                                </th>
+                                <th scope="col">
+                                    Stage
+                                </th>
+                                <th scope="col">
+                                    Admit Date
+                                </th>
+                                <th scope="col">
+                                    Discharge Date
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <aura:iteration items="{!v.admissionList}" var="admission">
+                                <tr>
+                                    <td>
+                                        <aura:if isTrue="{!and(not(empty(v.selectedSourceObject)), v.selectedSourceObject.value == admission.Id)}" >
+                                            <lightning:icon iconName="standard:resource_absence" alternativeText="Move From" title="Move From" class="fromIcon"/>
+                                        </aura:if>
+                                        <aura:if isTrue="{!and(not(empty(v.selectedTargetObject)), v.selectedTargetObject.value == admission.Id)}" >
+                                            <lightning:icon iconName="standard:choice" alternativeText="Move To" title="Move To" class="toIcon" />
+                                        </aura:if>
+                                         
+                                    </td>
+                                    <td>
+                                        <aura:if isTrue="{!admission.Is_Current_Admission__c}">
+                                            {!admission.Name + ' (Current)'}
+                                            <aura:set attribute="else">
+                                                {!admission.Name}
+                                            </aura:set>
+                                        </aura:if>
+                                    </td>
+                                    <td>
+                                        {!admission.Stage__c}
+                                    </td>
+                                    <td>
+                                        {!admission.Admit_Date__c}
+                                    </td>
+                                    <td>
+                                        {!admission.Discharge_Date__c}
+                                    </td>
+                                </tr>
+                            </aura:iteration>
+                        </tbody>
+                    </table>
+
+                    <!-- <lightning:layout horizontalAlign="center" multipleRows="true" class="recordList">
+                        <lightning:layoutItem size="3" padding="around-medium" class="recordCell">
+                            <div class="slds-text-title_bold">Admission Number</div>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="3" padding="around-medium" class="recordCell">
+                            <div class="slds-text-title_bold">Stage</div>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="3" padding="around-medium" class="recordCell">
+                            <div class="slds-text-title_bold">Admit Date</div>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="3" padding="around-medium" class="recordCell">
+                            <div class="slds-text-title_bold">Discharge Date</div>
+                        </lightning:layoutItem>
+                        <aura:iteration items="{!v.admissionList}" var="admission">
+                            <aura:if isTrue="{!admission.Is_Current_Admission__c}">
+                                <lightning:layoutItem size="3" padding="horizontal-medium" class="recordCell">
+                                    <div>{!admission.Name + ' (Current)'}</div>
+                                </lightning:layoutItem>
+                                <aura:set attribute="else">
+                                    <lightning:layoutItem size="3" padding="horizontal-medium" class="recordCell">
+                                        <div>{!admission.Name}</div>
+                                    </lightning:layoutItem>
+                                </aura:set>
+                            </aura:if>
+                            <lightning:layoutItem size="3" padding="horizontal-medium" class="recordCell">
+                                <div>{!admission.Stage__c}</div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="3" padding="horizontal-medium" class="recordCell">
+                                <div>{!admission.Admit_Date__c}</div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="3" padding="horizontal-medium" class="recordCell">
+                                <div>{!admission.Discharge_Date__c}</div>
+                            </lightning:layoutItem>
+                        </aura:iteration>
+                    </lightning:layout> -->
+                </aura:if>
+
+                <!-- <aura:if isTrue="{!v.showRelatedLists}">
+                    <lightning:layout horizontalAlign="center">
+                        <lightning:layoutItem class="slds-text-align_center" size="6" padding="around-medium">
+                            <lightning:button variant="brand" label="Move Selected Items" title="Move Selected Items" onclick="{!c.handleSaveButtonClick}" />
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                </aura:if> -->
+
+                <div class="slds-scrollable" style="height: 30vh;">
+                    <aura:if isTrue="{!v.showRelatedLists}">
+                        <div class="slds-text-heading_medium">Request Items</div>
+                        <!-- <lightning:layout horizontalAlign="center" multipleRows="true" class="recordList">
+                            <lightning:layoutItem size="1" class="recordCell">
+                                &nbsp;
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="2" padding="around-medium" class="recordCell">
+                                <div class="slds-text-title_bold ">Action</div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="2" padding="around-medium" class="recordCell">
+                                <div class="slds-text-title_bold">Requirement</div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="1" padding="around-medium" class="recordCell">
+                                <div class="slds-text-title_bold">Status</div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="2" padding="around-medium" class="recordCell">
+                                <div class="slds-text-title_bold">Date Confirmed</div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="2" padding="around-medium" class="recordCell">
+                                <div class="slds-text-title_bold">Notes</div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="2" padding="around-medium" class="recordCell">
+                                <div class="slds-text-title_bold">Attached Files</div>
+                            </lightning:layoutItem>
+                        </lightning:layout> -->
+                        <aura:if isTrue="{!not(empty(v.relatedRecords.requestItems))}" >
+                            <!-- <aura:iteration items="{!v.relatedRecords.requestItems}" var="requestItem">
+                            <lightning:layout>
+                                <lightning:layoutItem size="1" padding="horizontal-medium" class="recordCell">
+                                    <div>
+                                        <lightning:input id="{!requestItem.Id}" name="requestItems" type="checkbox" onchange="{!c.handleCheckboxChange}" />
+                                    </div>
+                                </lightning:layoutItem>
+                                <lightning:layoutItem size="2" padding="horizontal-medium" class="recordCell">
+                                    <div>{!requestItem.Action__c}</div>
+                                </lightning:layoutItem>
+                                <lightning:layoutItem size="2" padding="horizontal-medium" class="recordCell">
+                                    <div>{!requestItem.Admissions_Requirement__r.Name}</div>
+                                </lightning:layoutItem>
+                                <lightning:layoutItem size="1" padding="horizontal-medium" class="recordCell">
+                                    <div>{!requestItem.Status__c}</div>
+                                </lightning:layoutItem>
+                                <lightning:layoutItem size="2" padding="horizontal-medium" class="recordCell">
+                                    <div>{!requestItem.Date_Confirmed__c}</div>
+                                </lightning:layoutItem>
+                                <lightning:layoutItem size="2" padding="horizontal-medium" class="recordCell">
+                                    <div>{!requestItem.Notes__c}</div>
+                                </lightning:layoutItem>
+                                <lightning:layoutItem size="2" padding="horizontal-medium" class="recordCell">
+                                    <div>
+                                        <ul style="list-style-type: none;">
+                                            <aura:iteration items="{!requestItem.ContentDocumentLinks.records}" var="contentDocumentLink" indexVar="index">
+                                                <li>{!contentDocumentLink.ContentDocument.Title}</li>
+
+                                            </aura:iteration>
+                                        </ul>
+                                    </div>
+                                </lightning:layoutItem>
+                            </lightning:layout>
+                            </aura:iteration> -->
+                            <table class="recordList slds-table slds-table_bordered" style="empty-cells: show;">
+                                <thead>
+                                    <tr class="slds-text-title_caps">
+                                        <th scope="col">
+                                            <!-- <lightning:input  name="requestItems" type="checkbox" onchange="{!c.handleCheckAllBoxes}" /> -->
+                                            <!-- <ui:inputCheckbox  name="requestItems"  change="{!c.handleCheckboxChange}" value="{!requestItem.Is_Selected}"/> -->
+                                        </th>
+                                        <th scope="col">
+                                            Action
+                                        </th>
+                                        <th scope="col">
+                                            Requirement
+                                        </th>
+                                        <th scope="col">
+                                            Status
+                                        </th>
+                                        <th scope="col">    
+                                            Date Confirmed
+                                        </th>
+                                        <th scope="col">
+                                            Notes
+                                        </th>
+                                        <th scope="col">
+                                            Attached Files
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <aura:iteration items="{!v.relatedRecords.requestItems}" var="requestItem">
+                                        <tr>
+                                            <td>
+                                                <lightning:input id="{!requestItem.Id}" name="requestItems" type="checkbox" onchange="{!c.handleCheckboxChange}" value="{!requestItem.Is_Selected}"/>
+                                                <!-- <ui:inputCheckbox  name="requestItems"  change="{!c.handleCheckboxChange}" value="{!requestItem.Is_Selected}"/> -->
+                                                
+                                            </td>
+                                            <td>
+                                                {!requestItem.Action__c}
+                                            </td>
+                                            <td>
+                                                {!requestItem.Admissions_Requirement__r.Name}
+                                            </td>
+                                            <td>
+                                                {!requestItem.Status__c}
+                                            </td>
+                                            <td>
+                                                {!requestItem.Date_Confirmed__c}
+                                            </td>
+                                            <td>
+                                                {!requestItem.Notes__c}
+                                            </td>
+                                            <td>
+                                                <ul style="list-style-type: none;">
+                                                    <aura:iteration items="{!requestItem.ContentDocumentLinks.records}" var="contentDocumentLink" indexVar="index">
+                                                        <li>{!contentDocumentLink.ContentDocument.Title}</li>
+                                                    </aura:iteration>
+                                                </ul>
+                                            </td>
+                                        </tr>
+                                    </aura:iteration>
+                                </tbody>
+                            </table>
+
+                            <aura:set attribute="else">
+                                <div>No Items Found</div>
+                            </aura:set>
+                        </aura:if>
+
+
+
+
+
+
+                        <!-- </lightning:layout> -->
+                        <br />
+
+                        <div class="slds-text-heading_medium">Admission Medications</div>
+                        <!-- <lightning:layout horizontalAlign="center" multipleRows="true" class="recordList">
+                            <lightning:layoutItem size="1" class="recordCell">
+                                
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="3" padding="around-medium" class="recordCell">
+                                <div class="slds-text-title_bold">Medication</div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="2" padding="around-medium" class="recordCell">
+                                <div class="slds-text-title_bold">Dose</div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="2" padding="around-medium" class="recordCell">
+                                <div class="slds-text-title_bold">Frequency</div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="2" padding="around-medium" class="recordCell">
+                                <div class="slds-text-title_bold">Last Dose Taken</div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="2" padding="around-medium" class="recordCell">
+                                <div class="slds-text-title_bold">Info Source</div>
+                            </lightning:layoutItem> -->
+                        <aura:if isTrue="{!not(empty(v.relatedRecords.admissionMedications))}" >
+
+                            <table class="recordList slds-table slds-table_bordered" style="empty-cells: show;">
+                                <thead>
+                                    <tr class="slds-text-title_caps">
+                                        <th scope="col">
+                                        </th>
+                                        <th scope="col">
+                                            Medication
+                                        </th>
+                                        <th scope="col">
+                                            Dose
+                                        </th>
+                                        <th scope="col">
+                                            Frequency
+                                        </th>
+                                        <th scope="col">
+                                            Last Dose Taken
+                                        </th>
+                                        <th scope="col">
+                                            Info Source
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <aura:iteration items="{!v.relatedRecords.admissionMedications}" var="admissionMedication">
+                                        <tr>
+                                            <td>
+                                                <lightning:input id="{!admissionMedication.Id}" name="admissionMedications" type="checkbox" onchange="{!c.handleCheckboxChange}" />
+                                            </td>
+                                            <td>
+                                                {!admissionMedication.Medication__c}
+                                            </td>
+                                            <td>
+                                                {!admissionMedication.Dose__c}
+                                            </td>
+                                            <td>
+                                                {!admissionMedication.Frequency__c}
+                                            </td>
+                                            <td>
+                                                {!admissionMedication.Last_Dose_Taken__c}
+                                            </td>
+                                            <td>
+                                                {!admissionMedication.Info_Source__c}
+                                            </td>
+                                        </tr>
+                                    </aura:iteration>
+                                </tbody>
+                            </table>
+
+                            <aura:set attribute="else">
+                                <div>No Items Found</div>
+                            </aura:set>
+                        </aura:if>
+
+
+                                <!-- <aura:iteration items="{!v.relatedRecords.admissionMedications}" var="admissionMedication">
+                                    <lightning:layoutItem size="1" padding="horizontal-medium" class="recordCell">
+                                        <lightning:input id="{!admissionMedication.Id}" name="admissionMedications" type="checkbox" onchange="{!c.handleCheckboxChange}" />
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem size="3" padding="horizontal-medium" class="recordCell">
+                                        <div>{!admissionMedication.Medication__c}</div>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem size="2" padding="horizontal-medium" class="recordCell">
+                                        <div>{!admissionMedication.Dose__c}</div>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem size="2" padding="horizontal-medium" class="recordCell">
+                                        <div>{!admissionMedication.Frequency__c}</div>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem size="2" padding="horizontal-medium" class="recordCell">
+                                        <div>{!admissionMedication.Last_Dose_Taken__c}</div>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem size="2" padding="horizontal-medium" class="recordCell">
+                                        <div>{!admissionMedication.Info_Source__c}</div>
+                                    </lightning:layoutItem>
+                                </aura:iteration>
+                                <aura:set attribute="else">
+                                    <lightning:layoutItem class="slds-text-heading_small slds-text-align_center" size="3" padding="horizontal-medium">
+                                        <div>No Items Found</div>
+                                    </lightning:layoutItem>
+                                </aura:set>
+                            </aura:if>
+                        </lightning:layout> -->
+                        <br />
+
+                        <div class="slds-text-heading_medium">Forms</div>
+                        <!--    <lightning:layout horizontalAlign="center" multipleRows="true" class="recordList">
+                            <lightning:layoutItem size="1" class="recordCell">
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="4" padding="around-medium" class="recordCell">
+                                <div class="slds-text-title_bold">Template</div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="4" padding="around-medium" class="recordCell">
+                                <div class="slds-text-title_bold">Related Contact</div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="3" padding="around-medium" class="recordCell">
+                                <div class="slds-text-title_bold">Created Date</div>
+                            </lightning:layoutItem> -->
+
+                            <aura:if isTrue="{!not(empty(v.relatedRecords.forms))}" >
+                                <table class="recordList slds-table slds-table_bordered" style="empty-cells: show;">
+                                    <thead>
+                                        <tr class="slds-text-title_caps">
+                                            <th scope="col">
+                                            </th>
+                                            <th scope="col">
+                                                Template
+                                            </th>
+                                            <th scope="col">
+                                                Related Contact
+                                            </th>
+                                            <th scope="col">
+                                                Created Date
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <aura:iteration items="{!v.relatedRecords.forms}" var="form">
+                                            <tr>
+                                                <td>
+                                                    <lightning:input id="{!form.Id}" name="forms" type="checkbox" onchange="{!c.handleCheckboxChange}" />
+                                                </td>
+                                                <td>
+                                                    {!form.disco__Form_Template__r.Name}
+                                                </td>
+                                                <td>
+                                                    {!form.Related_Contact__r.Contact_Role_Name__c}
+                                                </td>
+                                                <td>
+                                                    <ui:outputDateTime value="{!form.CreatedDate}" />
+                                                </td>
+                                            </tr>
+                                        </aura:iteration>
+                                    </tbody>
+                                </table>
+
+                                <aura:set attribute="else">
+                                    <div>No Items Found</div>
+                                </aura:set>
+
+
+                                <!-- <aura:iteration items="{!v.relatedRecords.forms}" var="form">
+                                    <lightning:layoutItem size="1" padding="horizontal-medium" class="recordCell">
+                                        <lightning:input id="{!form.Id}" name="forms" type="checkbox" onchange="{!c.handleCheckboxChange}" />
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem size="4" padding="horizontal-medium" class="recordCell">
+                                        <div>{!form.disco__Form_Template__r.Name}</div>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem size="4" padding="horizontal-medium" class="recordCell">
+                                        <div>{!form.Related_Contact__r.Contact_Role_Name__c}</div>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem size="3" padding="horizontal-medium" class="recordCell">
+                                        <div>
+                                            <ui:outputDateTime value="{!form.CreatedDate}" />
+                                        </div>
+                                    </lightning:layoutItem>
+                                </aura:iteration>
+                                <aura:set attribute="else">
+                                    <lightning:layoutItem class="slds-text-heading_small slds-text-align_center" size="3" padding="horizontal-medium">
+                                        <div>No Items Found</div>
+                                    </lightning:layoutItem>
+                                </aura:set> -->
+                            </aura:if>
+                        <!-- </lightning:layout> -->
+                        
+                        <br />
+
+                        <div class="slds-text-heading_medium">Basic Notes</div>
+                        
+                        <aura:if isTrue="{!not(empty(v.relatedRecords.baseNotes))}" >
+                        
+                            <table class="recordList slds-table slds-table_bordered" style="empty-cells: show;">
+                                <thead>
+                                    <tr class="slds-text-title_caps">
+                                        <th scope="col">
+                                        </th>
+                                        <th scope="col">
+                                            Name
+                                        </th>
+                                        <th scope="col">
+                                            Created Date
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <aura:iteration items="{!v.relatedRecords.baseNotes}" var="note">
+                                        <tr>
+                                            <td>
+                                                <lightning:input id="{!note.Id}" name="baseNotes" type="checkbox" onchange="{!c.handleCheckboxChange}" />
+                                            </td>
+                                            <td>
+                                                {!note.Name}
+                                            </td>
+                                            <td>
+                                                <ui:outputDateTime value="{!note.CreatedDate}" />
+                                            </td>
+                                        </tr>
+                                    </aura:iteration>
+                                </tbody>
+                            </table>
+
+                            <aura:set attribute="else">
+                                <div>No Items Found</div>
+                            </aura:set>
+
+                        </aura:if>
+
+
+                        <br />
+                        <!-- <lightning:layout horizontalAlign="center">
+                            <lightning:layoutItem class="slds-text-align_center" size="6" padding="around-medium">
+                                <lightning:button variant="brand" label="Move Selected Items" title="Move Selected Items" onclick="{!c.handleSaveButtonClick}" />
+                            </lightning:layoutItem>
+                        </lightning:layout> -->
+                    </aura:if>
+                </div>
+                <!-- </aura:if> -->
+            </div>
+
+            <!--###### MODAL BOX FOOTER Part Start ######-->
+            <footer class="slds-modal__footer">
+                <lightning:layout horizontalAlign="center">
+                    <lightning:layoutItem size="4" />
+                    <lightning:layoutItem class="slds-text-align_center" size="4" >
+                        <lightning:button variant="brand" label="Move Selected Items" title="Move Selected Items" onclick="{!c.handleSaveButtonClick}" />
+                    </lightning:layoutItem>
+                    <lightning:layoutItem class="slds-text-align_right" size="4" >
+                        <lightning:button variant="destructive" label="Cancel" title="Cancel" onclick="{!c.removeComponent}" />
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </footer>
+
+        </div>
+    </section>
+    <div aura:id="modalBackdrop" class="slds-backdrop slds-backdrop_open"></div>
+
+</aura:component>

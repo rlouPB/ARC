@@ -1,0 +1,155 @@
+<aura:component access="global" extends="c:ApexService" controller="GroupNoteController">
+
+    <aura:attribute name="showRoles" type="Boolean" default="false" access="public" />
+    <aura:attribute name="showRolesTest" type="Boolean" default="false" access="public" />
+    <aura:attribute name="noOfPatientsAttended" type="Integer" default="false" access="public" />
+    <aura:attribute name="objGroupAttendance" type="Group_Attendance__c" access="global" default="{'sobjectType' : 'Group_Attendance__c'}" />
+    <aura:attribute name="noTracking" type="boolean" default="false" />
+    <aura:attribute name="lstGroupAttendance" type="Group_Attendance__c[]" access="global" />
+    <aura:handler name="change" value="{!v.lstGroupAttendance.length}" action="{!c.reCountAttended}" />
+    <aura:attribute name="patientLookupFilter" type="List" default="[]" />
+    <aura:attribute name="isReadOnly" type="boolean" default="false" />
+    <aura:handler name="selectedItemEvent" event="c:selectedItemEvent" action="{!c.handleSelectedItemEvent}" />
+
+    <aura:attribute name="objGroupNote" type="Group_Note__c" access="global" default="{'sobjectType' : 'Group_Note__c'}" />
+    <aura:attribute name="objGroupmembership" type="Group__c" access="global" default="{'sobjectType' : 'Group__c'}" />
+
+    <aura:attribute name="selectedRecord" type="Object" default="{isRecord: false}" access="public" description="Use,for store SELECTED sObject Record" />
+    <aura:attribute name="TeamMemberLookupFilter" type="List" default="[]" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:attribute name="noOfStaffAttended" type="Integer" default="false" access="public" />
+    <aura:attribute name="attendingStaff" type="String" default="false" access="public" />
+    <aura:attribute name="duplicateRecordId" type="String" access="public" />
+    <!-- <aura:attribute name="AttendanceTracking" type="String" access="public" default="Track Attendance"/> -->
+    <aura:handler name="removedItemEvent" event="c:removedItemEvent" action="{!c.removeMember}" />
+    <aura:handler event="aura:doneWaiting" action="{!c.hideSpinner}" />
+
+    <!--create a component attributs -->
+    <aura:attribute name="Spinner" type="boolean" default="true" />
+
+    <force:recordData aura:id="recordLoaderGM" recordId="{!v.objGroupNote.Meeting__r.Group_Membership__c}" targetRecord="{!v.objGroupmembership}" layoutType="FULL" mode="EDIT" />
+    <div class="group-attendance" style="background-color:white; width:100%">
+        <aura:if isTrue="{!v.Spinner}">
+            <div aura:id="spinnerId" class="slds-spinner_container">
+                <div class="slds-spinner--brand  slds-spinner slds-spinner--large slds-is-relative" role="alert">
+                    <span class="slds-assistive-text">Loading</span>
+                    <div class="slds-spinner__dot-a"></div>
+                    <div class="slds-spinner__dot-b"></div>
+                </div>
+            </div>
+        </aura:if>
+
+        <aura:if isTrue="{!!v.noTracking}">
+            <div class="slds-box">
+                <div class="slds-col  slds-text-heading_small slds-p-around_small" style="text-align: center; margin-top: -15px;">
+                    Patient Attendance
+                </div>
+
+                <!-- <aura:if isTrue="{!!v.noTracking}"> -->
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-col slds-size_2-of-12" style="margin-top: 5px; margin-bottom: 15px; font-size:9.5px;">
+                        <aura:if isTrue="{!!v.isReadOnly}">
+                            <ui:inputCheckbox aura:id="checkbox" label="Show Roles" value="{!v.showRoles}" disabled="{!v.isReadOnly}" />
+                        </aura:if>
+                    </div>
+
+                    <div class="slds-col slds-size_3-of-12" style="margin-bottom: 15px; font-size: .7625rem; color:rgb(82, 82, 80); text-align: center;">
+                        <label class="slds-form-element__label">Number of Patients Attended</label>
+                        <div class="slds-form-element__static">{!v.noOfPatientsAttended}</div>
+                    </div>
+
+                    <div class="slds-col slds-size_2-of-12 " style="margin-bottom: 15px; width: 10%; font-size:11px; text-align: center;">
+                    </div>
+
+                    <div class="slds-col slds-size_5-of-12 slds-p-left_large" style="margin-top: -20px; margin-bottom: 15px;">
+                        <aura:if isTrue="{!!v.isReadOnly}">
+                            <c:LookupComponent  aura:id="patientLookup" 
+                                                objectName="Account" 
+                                                label="Add Patient to List"
+                                                selectedRecord="{!v.selectedRecord}"
+                                                fieldsToSearch="Name" 
+                                                lookupFieldName="{!v.objGroupAttendance.Patient__c}" 
+                                                filters="{!v.patientLookupFilter}" 
+                                                displayField="Name"
+                                                displayFieldValue="Id" 
+                                                allowPropagation="true" />
+                        </aura:if>
+
+                    </div>
+
+                    <!-- <div class="slds-col slds-size_12-of-12 slds-p-left_large" style="margin-top: 2%;">
+                        <ui:outputText value="{!v.AttendanceTracking}" />
+                    </div> -->
+
+                    <aura:iteration items="{!v.lstGroupAttendance}" var="item">
+                        <div class="slds-col slds-size_3-of-12 slds-p-horizontal_large" style="margin-bottom: 10px; margin-top: 10px; text-align:left;" aura:id="{!item.gatt.Patient__c}" id="{!item.gatt.Patient__c}">
+                            <aura:if isTrue="{!!v.isReadOnly}">
+                                <span class="slds-pill ">
+                                    <ui:inputCheckbox aura:id="checkbox" class="checkboxClass slds-text-align_right" labelClass="cbLabelClass slds-text-align_right"
+                                        value="{!item.gatt.Attended__c }" change="{!c.reCountAttended}" disabled="{!v.isReadOnly}" />
+                                    <span class="slds-pill__label slds-p-left_small slds-p-right_large">{!item.fullName}</span>
+                                    <button class="slds-button slds-button_icon slds-button_icon slds-pill__remove" title="Remove" data-value="{!item.gatt.Patient__c}" onclick="{!c.xClicked}">X
+                                        <span class="slds-assistive-text">Remove</span>
+                                    </button>
+                                </span>
+
+                                <aura:set attribute="else">
+                                    <ui:outputCheckbox aura:id="checkbox" class="checkboxClass" value="{!item.gatt.Attended__c }" />&nbsp;
+                                    <ui:outputText aura:id="checkBoxLabel" value="{!item.fullName}" />
+                                </aura:set>
+                            </aura:if>
+
+                            <div class="slds-p-left_large" style="font-size: 11px;">
+                                <aura:if isTrue="{!and(v.showRoles, item.gatt.Role__c)}">Role: {!item.gatt.Role__c}</aura:if>
+                            </div>
+                        </div>
+                    </aura:iteration>
+                </div>
+
+                <!-- <aura:set attribute="else">
+                    <div class="slds-col slds-size_12-of-12 " style="text-align: center;">
+                        <ui:outputText aura:id="checkBoxLabel" value="No Attendance Tracking" />
+                    </div>
+                </aura:set> -->
+                <!-- </aura:if> -->
+            </div>
+            <br/>
+
+            <div class="slds-box">
+                <div class="slds-col slds-text-heading_small slds-p-around_small" style="font-family: 'Salesforce Sans',Arial,sans-serif; text-align: center; margin-top: -15px;">
+                    Staff Attendance
+                </div>
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-col slds-size_1-of-12" />
+                    <div class="slds-col slds-size_4-of-12" style="margin-top: 5px; font-family: 'Salesforce Sans',Arial,sans-serif; text-align: right;">
+                        <ui:outputText value="No of Staff Attended" />
+                    </div>
+                    <div class="slds-col slds-size_1-of-12" />
+                    <div class="slds-col slds-size_2-of-12" style="font-family: 'Salesforce Sans',Arial,sans-serif;  width: 10%; font-size:11px;">
+                        <ui:inputText value="{!v.objGroupNote.Staff_Attended__c}" disabled="{!v.isReadOnly}" />
+                    </div>
+                </div>
+
+                <div class="slds-grid slds-wrap" style="margin-top: 15px;">
+                    <div class="slds-col slds-size_1-of-12" />
+                    <div class="slds-col slds-size_4-of-12" style="margin-top: 5px; font-family: 'Salesforce Sans',Arial,sans-serif; text-align: right">
+                        <ui:outputText value="Attending Staff Members" />
+                    </div>
+                    <div class="slds-col slds-size_1-of-12" />
+                    <div class="slds-col slds-size_5-of-12">
+                        <ui:inputTextArea aura:id="attendingStaff" rows="3" value="{!v.objGroupNote.Attending_Staffmembers__c}" disabled="{!v.isReadOnly}" />
+                    </div>
+                </div>
+
+            </div>
+
+            <aura:set attribute="else">
+                <div class="slds-col slds-size_12-of-12 " style="text-align: center;">
+                    <ui:outputText aura:id="checkBoxLabel" value="Attendance -  No Attendance Tracking" />
+                </div>
+
+            </aura:set>
+        </aura:if>
+    </div>
+
+</aura:component>

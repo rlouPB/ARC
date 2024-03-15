@@ -1,0 +1,19 @@
+<apex:page standardController="Request_Item__c">
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"/>
+    </head>
+    <script>
+        $(document).ready(function(){
+            // Go back to the Account detail page
+            if( (typeof sforce != 'undefined') && sforce && (!!sforce.one) ) {
+                //Salesforce app navigation
+                sforce.one.navigateToURL('/lightning/r/Account/'+'{!Request_Item__c.Admissions_Requirement__r.Admission__r.Patient_Account__c}'+'/view?c__requestId='+'{!Request_Item__c.Id}');
+            }
+            else {
+                // Set the window's URL using a Visualforce expression
+                window.location.href = '/'+'{!Request_Item__c.Admissions_Requirement__r.Admission__r.Patient_Account__c}';
+            }
+        });
+        
+    </script>
+</apex:page>

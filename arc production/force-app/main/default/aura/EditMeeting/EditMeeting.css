@@ -1,0 +1,37 @@
+.THIS .record-error {
+  color: red;
+  font-weight: bold;
+}
+
+.THIS .right-padding {
+  padding-right: 10px;
+}
+
+.THIS .datePicker .slds-form-element__group .slds-form-element__label {
+  display: none;
+}
+
+.THIS .slds-required {
+  display: none;
+}
+
+.THIS .customRequired {
+  font-weight: normal;
+}
+
+.THIS .customRequired a:not(.display),
+.THIS .customRequired input {
+  border: 1px solid red;
+}
+
+.THIS .slds-modal__container {
+  max-width: 70%;
+}
+.THIS .select-resource-container {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.THIS .select-resource-button {
+  margin-left: 10px;
+}

@@ -1,0 +1,193 @@
+<aura:component implements="flexipage:availableForAllPageTypes" controller="UserHomeApexController">
+    <aura:attribute name="todaysDate" type="Date" description="show todays date in component header" />
+    <aura:attribute name="loading" type="Boolean" default="true" description="if true, display spinner" />
+    <aura:attribute name="buttonsCollapsed" type="Boolean" default="false" description="if true, narrow version of left side tabs are displayed." />
+
+    <!-- Boolean switches to show which tab is currently displayed -->
+    <aura:attribute name="displayIRISHome" type="Boolean" default="true" description="Bulletin Board tab: default on open" />
+    <aura:attribute name="displayMessages" type="Boolean" default="false" description="Messages and Alerts tab" />
+    <aura:attribute name="displayOpenItems" type="Boolean" default="false" description="Open Items tab" />
+    <aura:attribute name="displayPatients" type="Boolean" default="false" description="Patients tab" />
+    <aura:attribute name="displaySchedule" type="Boolean" default="false" description="Schedule tab" />
+    <aura:attribute name="displayVariance" type="Boolean" default="false" description="Variance tab" />
+    <aura:attribute name="displayStaff" type="Boolean" default="false" description="Staff tab" />
+    <aura:attribute name="hasSwapPatientPictureBookForStaff" type="Boolean" default="false" description="If true, user has custom permission to swap view for patients" />
+    <aura:attribute name="userInViewConsultPendingGroup" type="Boolean" default="false" description="If true, user is in the View Consult Pending public group." />
+    <!-- Summary Info on Open Items button -->
+    <aura:attribute name="overdueTags" type="String" default="?" />
+    <aura:attribute name="dueNext7Days" type="String" default="?" />
+    <aura:attribute name="totalOpen" type="String" default="?" />
+    <!-- Summary Info for Messages and Alerts and Schedule (deprecated)-->
+    <aura:attribute name="unreadAlerts" type="String" default="?" />
+    <aura:attribute name="unreadMessages" type="String" default="?" />
+    <aura:attribute name="meetingsToday" type="String" default="?" />
+    <aura:handler name="init" value="{! this }" action="{! c.init }" />
+    <div class="outer-wrapper slds-var-p-bottom_large">
+        <div class="slds-grid slds-wrap">
+            <div class="slds-col slds-size_3-of-4 slds-var-p-around_medium">
+                <div class="greybackground fullheight border slds-var-p-around_medium slds-text-heading_large slds-text-align_center">
+                    IRIS
+                </div>
+            </div>
+            <div class="slds-col slds-size_1-of-4 slds-var-p-around_medium">
+                <div class="greybackground fullheight border slds-var-p-around_large slds-text-align_center">
+                    <ui:outputDate value="{!v.todaysDate}" />
+                </div>
+            </div>
+            <br/>
+        </div>
+        <div class="both-columns slds-grid slds-wrap">
+            <aura:if isTrue="{!!v.loading}">
+                <aura:set attribute="else">
+                    <lightning:spinner alternativeText="Loading" size="small" />
+                </aura:set>
+                <div class="{!'slds-var-p-left_medium slds-col ' + (v.buttonsCollapsed ? 'slds-size_1-of-12' : 'slds-size_1-of-6')}" id="ButtonContainer">
+                    <div class="{!'tab slds-var-p-around_medium slds-text-align_center' + (or(v.displayIRISHome == 'true', v.displayIRISHome == true) ? ' selected' : ' buttonHand')}" aura-id="IRISHomeDiv" data-id="IRISHomeDiv" onclick="{!c.buttonClick}">
+                        <aura:if isTrue="{!!v.buttonsCollapsed}">
+                            <br/>
+                            <span class="slds-text-title_bold">
+                                Bulletin Board
+                                <br/>
+                            </span>
+                            <br/>
+                            <aura:set attribute="else">
+                                <p class="slds-text-title_bold slds-truncate" title="IRIS Home">
+                                    Bulletin Board
+                                </p>
+                            </aura:set>
+                        </aura:if>
+                    </div>
+                    <div class="{!'tab slds-var-p-around_medium slds-text-align_center' + (v.displayMessages == 'true' ? ' selected' : ' buttonHand')}" aura-id="MessagesDiv" data-id="MessagesDiv" onclick="{!c.buttonClick}">
+                        <aura:if isTrue="{!!v.buttonsCollapsed}">
+                            <span class="slds-text-title_bold">
+                                Messages and Alerts
+                                <br/>
+                            </span>
+                            <aura:set attribute="else">
+                                <p class="slds-text-title_bold slds-truncate" title="Messages">
+                                    Messages
+                                </p>
+                            </aura:set>
+                        </aura:if>
+                    </div>
+                    <div class="{!'tab slds-var-p-around_medium slds-text-align_center' + (v.displayOpenItems == 'true' ? ' selected' : ' buttonHand')}" aura-id="OpenItemsDiv" data-id="OpenItemsDiv" onclick="{!c.buttonClick}">
+                        <aura:if isTrue="{!!v.buttonsCollapsed}">
+                            <span class="slds-text-title_bold">
+                                Open Items
+                                <br/>
+                            </span> Overdue: {!v.overdueTags}, Due Next 7 Days: {!v.dueNext7Days}
+                            <br/> Total Open: {!v.totalOpen}
+                            <br/>
+                            <aura:set attribute="else">
+                                <p class="slds-text-title_bold slds-truncate" title="Open Items">
+                                    Open Items
+                                </p>
+                            </aura:set>
+                        </aura:if>
+                    </div>
+                    <div class="{!'tab slds-var-p-around_medium slds-text-align_center' + (v.displayPatients == 'true' ? ' selected' : ' buttonHand')}" aura-id="PatientsDiv" data-id="PatientsDiv" onclick="{!c.buttonClick}">
+                        <aura:if isTrue="{!!v.buttonsCollapsed}">
+                            <span class="slds-text-title_bold">
+                                Patients
+                                <br/>
+                            </span>
+                            <aura:set attribute="else">
+                                <p class="slds-text-title_bold slds-truncate" title="Patients">
+                                    Patients
+                                </p>
+                            </aura:set>
+                        </aura:if>
+                    </div>
+                    <div class="{!'tab slds-var-p-around_medium slds-text-align_center' + (v.displayStaff == 'true' ? ' selected' : ' buttonHand')}" aura-id="StaffDiv" data-id="StaffDiv" onclick="{!c.buttonClick}">
+                        <aura:if isTrue="{!!v.buttonsCollapsed}">
+                            <span class="slds-text-title_bold">
+                                Staff
+                                <br/>
+                            </span>
+                            <aura:set attribute="else">
+                                <p class="slds-text-title_bold slds-truncate" title="Staff">
+                                    Staff
+                                </p>
+                            </aura:set>
+                        </aura:if>
+                    </div>
+                    <div class="{!'tab slds-var-p-around_medium slds-text-align_center' + (v.displaySchedule == 'true' ? ' selected' : ' buttonHand')}" aura-id="ScheduleDiv" data-id="ScheduleDiv" onclick="{!c.buttonClick}">
+                        <aura:if isTrue="{!!v.buttonsCollapsed}">
+                            <span class="slds-text-title_bold">
+                                Schedule
+                                <br/>
+                            </span>
+                            <!-- Meetings Today: {!v.meetingsToday}<br /><br /> -->
+                            <aura:set attribute="else">
+                                <p class="slds-text-title_bold slds-truncate" title="Schedule">
+                                    Schedule
+                                </p>
+                            </aura:set>
+                        </aura:if>
+                    </div>
+                    <div class="{!'tab slds-var-p-around_medium slds-text-align_center' + (v.displayVariance == 'true' ? ' selected' : ' buttonHand')}" aura-id="VarianceDiv" data-id="VarianceDiv" onclick="{!c.buttonClick}">
+                        <aura:if isTrue="{!!v.buttonsCollapsed}">
+                            <span class="slds-text-title_bold">
+                                Variance
+                                <br/>
+                            </span>
+                            <aura:set attribute="else">
+                                <p class="slds-text-title_bold slds-truncate" title="Variance">
+                                    Variance
+                                </p>
+                            </aura:set>
+                        </aura:if>
+                    </div>
+                    <!--<div class="tab slds-p-around_medium slds-text-align_center whitebackground" aura-id="collapseButton" data-id="collapseButton" onclick="{!c.collapseButtons}">
+						<aura:if isTrue="{!v.buttonsCollapsed}">
+							<lightning:icon iconName="utility:chevronright" size="small" alternativeText="arrow up"/>
+							<aura:set attribute="else">
+								<lightning:icon iconName="utility:chevronleft" size="small" alternativeText="arrow up"/>
+							</aura:set>
+						</aura:if>
+					</div>-->
+                </div>
+                <div class="{!'slds-col main-content-wrapper ' + (v.buttonsCollapsed ? 'slds-size_11-of-12' : 'slds-size_5-of-6')}" id="DisplayContainer">
+                    <div class="main-content fullheight slds-var-p-horizontal_medium" aura-id="display">
+                        <aura:if isTrue="{!v.displayIRISHome}">
+                            <c:BulletinBoard/>
+                        </aura:if>
+                        <aura:if isTrue="{!v.displayMessages}">
+                            <c:UserInbox hidePreview="true" />
+                        </aura:if>
+                        <aura:if isTrue="{!v.displayOpenItems}">
+                            <c:viewOutstandingItemsLwc></c:viewOutstandingItemsLwc>
+                        </aura:if>
+                        <aura:if isTrue="{!v.displaySchedule}">
+                            <c:ScheduleApp topLevelTabName="Home" />
+                        </aura:if>
+                        <aura:if isTrue="{!v.displayVariance}">
+                            <c:dynamicListView showNewButton="true" tableTitle="User Reported - Open" sObjectName="Variance__c" fieldSetName="Variance_List_View" additionalWhereClause="Status__c='Open' OR Status__c='Under Review'" includeName="true" iconName="standard:care_request_reviewer"
+                                showMyRecordsOnly="true" />
+                            <br/>
+                            <c:dynamicListView showNewButton="false" tableTitle="User Reported - Closed" sObjectName="Variance__c" fieldSetName="Variance_List_View" additionalWhereClause="Status__c='Closed' OR Status__c='Canceled'" includeName="true" iconName="standard:care_request_reviewer"
+                                showMyRecordsOnly="true" />
+                        </aura:if>
+                        <aura:if isTrue="{!v.displayPatients}">
+                            <aura:if isTrue="{!not(v.hasSwapPatientPictureBookForStaff)}">
+                                <aura:if isTrue="{!v.userInViewConsultPendingGroup}">
+                                    <lightning:listView objectApiName="Admission__c" listName="Consultation_Pending" rows="50" showSearchBar="false" showActionBar="true" enableInlineEdit="false" showRowLevelActions="false" />
+                                </aura:if>
+                                <lightning:listView objectApiName="Admission__c" listName="Patient_Photos" rows="50" showSearchBar="false" showActionBar="true" enableInlineEdit="false" showRowLevelActions="false" />
+                                <lightning:listView objectApiName="Admission__c" listName="Discharged_Chart_Not_Yet_Closed" rows="20" showSearchBar="false" showActionBar="true" enableInlineEdit="false" showRowLevelActions="false" />
+                            </aura:if>
+                        </aura:if>
+                        <aura:if isTrue="{!v.displayPatients}">
+                            <aura:if isTrue="{!v.hasSwapPatientPictureBookForStaff}">
+                                <lightning:listView objectApiName="Contact" listName="Patient_Photos_General" rows="50" showSearchBar="false" showActionBar="true" enableInlineEdit="false" showRowLevelActions="false" />
+                            </aura:if>
+                        </aura:if>
+                        <aura:if isTrue="{!v.displayStaff}">
+                            <lightning:listView objectApiName="Contact" listName="Staff_Photos" rows="50" showSearchBar="false" showActionBar="false" enableInlineEdit="false" showRowLevelActions="false" />
+                        </aura:if>
+                    </div>
+                </div>
+            </aura:if>
+        </div>
+    </div>
+</aura:component>

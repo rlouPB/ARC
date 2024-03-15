@@ -1,0 +1,172 @@
+<apex:page standardController="Account" extensions="Ctl_PrintScreeningMatrix" showHeader="false" sidebar="false" standardStylesheets="false" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0" renderAs="pdf">
+    <!-- renderAs="pdf" -->
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+
+        <head>
+            <!-- Import the Design System style sheet -->
+            <!-- <apex:slds /> -->
+            <style>
+                @page,
+                body {
+                    size: letter;
+                }
+
+                .questionLabel {
+                    /*font-weight:bold;*/
+                    white-space: pre-line;
+                    /*border: 1px solid gray;  */
+                    border-style: solid;
+                    border-color: gray;
+                    border-width: 1px 1px 0px 1px;
+                    width: 50%;
+                    padding: 0px 5px;
+                }
+
+                .rowQuestion {
+                    font-weight: bold;
+                    border-style: solid;
+                    border-color: gray;
+                    border-width: 1px 1px 0px 1px;
+                }
+
+                .rowAnswer {
+                    border-style: solid;
+                    border-color: gray;
+                    border-width: 1px 1px 0px 1px;
+                }
+
+                .commentsOnlyLabel .rowQuestion,
+                .ifYesLabel .rowQuestion {
+                    padding-left: 3rem;
+                    font-weight: normal;
+                    white-space: pre-line;
+                    width: 50%;
+                }
+
+                .commentsOnlyLabel .rowQuestion,
+                .commentsOnlyLabel .rowAnswer {
+                    border-style: solid;
+                    border-color: gray;
+                    border-width: 0px 1px 1px 1px;
+                }
+
+                .ifYesLabel .rowQuestion,
+                .ifYesLabel .rowAnswer {
+                    border-style: solid;
+                    border-color: gray;
+                    border-width: 0px 1px 0px 1px;
+                }
+
+                .questionLabel .rowAnswer {
+                    font-weight: normal;
+                }
+            </style>
+        </head>
+
+        <body>
+            <div style="font-family: 'Salesforce Sans',Arial,sans-serif; font-size: 12px;  padding: 0px 10px; width: 97%; ">
+                <table style="width: 100%; padding-bottom: 5rem;">
+                    <tr>
+                        <td colspan="3">
+                            <h2>{!Account.Name}</h2>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            <strong>Gender:</strong>&nbsp;{!Account.Patient_Contact__r.Gender__c}
+                        </td>
+                        <td>
+                            <strong>Age:</strong>&nbsp;{!Account.Patient_Contact__r.Age__c}
+                        </td>
+                        <td>
+                            <strong>Current Admission Stage:</strong>&nbsp;{!Account.Current_Admission_Stage__c}
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            <strong>Gender Identifies As:</strong>&nbsp;{!Account.Patient_Contact__r.Gender_Identifies_As__c}
+                        </td>
+                        <td>
+                            <strong>Preferred Pronouns:</strong>&nbsp;{!Account.Patient_Contact__r.Preferred_Pronouns__c}
+                        </td>
+                        <td>
+                            <strong>Service Type:</strong>&nbsp;{!Account.Current_Admission__r.Service_Type__c}
+                        </td>
+                    </tr>
+                </table>
+
+                <br /><br />
+
+
+                <!-- Datatable Begin-->
+                <apex:outputpanel layout="none" rendered="{!relatedContacts.size > 0}">
+                    <div style="height:100%;">
+                        <table style="border-collapse: collapse; border: 1px solid gray;">
+                            <thead>
+                                <tr style="text-transform: uppercase; ">
+                                    <th scope="col" style="width: 30%; border: 1px solid gray; jpadding-left: 5px; padding-right: 5px; vertical-align: top;">
+                                        <div title="Question">Question </div>
+                                    </th>
+
+                                    <apex:repeat value="{!relatedContacts}" var="relatedContact">
+                                        <th scope="col" style="border: 1px solid gray; text-align: center; vertical-align: top;">
+                                            <div title="{!relatedContact.Contact__r.Name + ' (' + relatedContact.Role__c + ')'}" style="font-weight:bold;  ">
+                                                {!relatedContact.Contact__r.Name}
+                                                <div style="font-weight:normal;">
+                                                    {!relatedContact.Long_Role__c}
+                                                </div>
+                                            </div>
+                                        </th>
+                                    </apex:repeat>
+                                </tr>
+                            </thead>
+                            <!-- Table Body Begin -->
+                            <tbody>
+
+                                <apex:repeat value="{!allQuestions}" var="question">
+                                    <tr style="{!IF(question.isAnswersDifferent,'background: #CBD5BF;','')} " class="{!IF(question.label == 'Comments', 'commentsOnlyLabel', IF(LEFT(question.label,6) == 'If yes','ifYesLabel','questionLabel'))}">
+                                        <td scope="row" class="rowQuestion" style="vertical-align: top;">
+                                            {!question.label}
+                                        </td>
+                                        <apex:repeat value="{!question.answers}" var="answer">
+                                            <td class="rowAnswer" style="vertical-align: top; white-space: pre-line; padding: 0px 5px;">
+                                                {!answer}
+                                            </td>
+                                        </apex:repeat>
+                                    </tr>
+                                </apex:repeat>
+
+                                <!--Display if Empty Questions Records -->
+                                <apex:outputpanel rendered="{!allQuestions.size == 0}">
+                                    <tr>
+                                        <td colspan="{!relatedContacts.size + 1}" style="border: 1px solid gray;  text-align: center;">
+                                            No records found
+                                        </td>
+                                    </tr>
+                                </apex:outputpanel>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </apex:outputpanel>
+
+
+                <!--Display if Empty Records -->
+                <apex:outputpanel layout="none" rendered="{!relatedContacts.size == 0}">
+                    <div class="text-align: center;">No records found</div>
+                </apex:outputpanel>
+
+
+
+
+
+
+
+
+            </div>
+        </body>
+
+    </html>
+</apex:page>

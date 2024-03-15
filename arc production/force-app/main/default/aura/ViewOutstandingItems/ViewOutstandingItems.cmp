@@ -1,0 +1,168 @@
+<aura:component controller="ViewOutstandingItemsApexController">
+    <!-- Attributes -->
+    <aura:attribute name="openItemTagWrappers" type="Map" />
+    <aura:attribute name="categories" type="List" />
+    <aura:attribute name="sortField" type="String" default="TargetDate" />
+    <aura:attribute name="sortAsc" type="Boolean" default="false" />
+    <aura:attribute name="selectedUserRecord" type="Map" />
+    <aura:attribute name="user" type="User" default="{'sobjectType':'User','Name':''}" />
+	<aura:attribute name="userSearchFilter" type="List" />
+	<aura:attribute name="selectedCategories" type="List" />
+	<aura:attribute name="hasManagerPermission" type="Boolean" default="FALSE" />
+	
+    
+    <!-- Handlers -->
+	<aura:handler name="init" value="{! this }" action="{! c.init }" />
+	<aura:handler name="change" value="{!v.selectedUserRecord}" action="{!c.handleUserSelectionChange}" />
+    
+    <div class="slds-grid">
+        <div class="slds-col slds-size_1-of-3 slds-p-around_medium">
+            <div class="fullheight border slds-p-around_medium">
+                <div class="slds-text-heading_large slds-text-align_center">
+                    Open Items
+				</div><br />
+				<!-- <aura:if isTrue="{!v.hasManagerPermission == true}" >
+					<div class="border slds-p-around_medium">
+						<c:LookupComponent required="false" aura:id="userLookup"
+											displayField="Name"
+											allowFreeText="false"
+											lookupFieldName="{!v.user.Name}"
+											filters="{!v.userSearchFilter}"
+											label="Displayed User:"
+											displayFieldValue="Id"
+											objectName="User"
+											fieldsToSearch="Name"
+											minimumSearchTextLength="0"
+											splitSearchTextBySeperator="false"
+											selectedRecord = "{!v.selectedUserRecord}" />
+					</div><br />
+				</aura:if> -->
+                <div class="slds-grid">
+                    <div class="slds-col slds-size_1-of-3">
+                        Categories
+                    </div>
+                    <div class="slds-col slds-size_2-of-3">
+						<lightning:checkboxGroup options="{!v.categories}" value="{!v.selectedCategories}" onchange="{!c.handleCheckboxChange}" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="slds-col slds-size_2-of-3 slds-p-around_medium">
+            <div class="fullheight border slds-p-around_medium">
+                <table class="slds-table fixed_header slds-table--bordered slds-table--fixed-layout box slds-max-medium-table--stacked-horizontal slds-table_col-bordered">
+                    <thead>
+                        <tr>
+                            <th width="28%" data-columnName="DocumentType" onclick="{!c.sortByName}">
+                                Document
+                                <aura:if isTrue="{!v.sortField=='DocumentType'}">
+                                    <span>      
+                                        <aura:if isTrue="{!v.sortAsc}">
+                                            <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up"/>
+                                            <aura:set attribute="else">
+                                                <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow up"/>
+                                            </aura:set>
+                                        </aura:if>
+                                    </span>
+                                </aura:if>
+                            </th>
+                            <th width="27%" data-columnName="PatientName" onclick="{!c.sortByName}">
+                                Patient
+                                <aura:if isTrue="{!v.sortField=='PatientName'}">
+                                    <span>      
+                                        <aura:if isTrue="{!v.sortAsc}">
+                                            <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up"/>
+                                            <aura:set attribute="else">
+                                                <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow up"/>
+                                            </aura:set>
+                                        </aura:if>
+                                    </span>
+                                </aura:if>
+                            </th>
+                            <th class="slds-text-align_center" width="15%" data-columnName="DocDate" onclick="{!c.sortByName}">
+                                Doc Date
+                                <aura:if isTrue="{!v.sortField=='DocDate'}">
+                                    <span>      
+                                        <aura:if isTrue="{!v.sortAsc}">
+                                            <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up"/>
+                                            <aura:set attribute="else">
+                                                <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow up"/>
+                                            </aura:set>
+                                        </aura:if>
+                                    </span>
+                                </aura:if>
+                            </th>
+                            <th class="slds-text-align_center" width="15%" data-columnName="Overdue" onclick="{!c.sortByName}">
+                                Overdue Days
+                                <aura:if isTrue="{!v.sortField=='Overdue'}">
+                                    <span>      
+                                        <aura:if isTrue="{!v.sortAsc}">
+                                            <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up"/>
+                                            <aura:set attribute="else">
+                                                <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow up"/>
+                                            </aura:set>
+                                        </aura:if>
+                                    </span>
+                                </aura:if>
+                            </th>
+                            <th class="slds-text-align_center" width="15%" data-columnName="TargetDate" onclick="{!c.sortByName}">
+                                Due Date
+                                <aura:if isTrue="{!v.sortField=='TargetDate'}">
+                                    <span>      
+                                        <aura:if isTrue="{!v.sortAsc}">
+                                            <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up"/>
+                                            <aura:set attribute="else">
+                                                <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow up"/>
+                                            </aura:set>
+                                        </aura:if>
+                                    </span>
+                                </aura:if>
+                            </th>
+                        </tr>
+                        <aura:iteration items="{!v.openItemTagWrappers}" var="openTag">
+                            <tr>
+                                <td class="slds-truncate">
+									<a href="{!'/' + openTag.RecordID}" target="_blank">
+										<!-- <aura:if isTrue="{!openTag.DocTypeShort != null}" >
+											<span title="{!openTag.DocumentType}">
+												{!openTag.DocTypeShort}...
+											</span>
+											<aura:set attribute="else">
+												{!openTag.DocumentType}
+											</aura:set>
+                                        </aura:if> -->
+                                        <span title="{!openTag.DocumentType}">
+                                            {!openTag.DocumentType}
+                                        </span>
+									</a>
+                                </td>
+                                <td class="slds-truncate">
+									<!-- <aura:if isTrue="{!openTag.PatientShort != null}" >
+										<span title="{!openTag.PatientName}">
+											{!openTag.PatientShort}...
+										</span>
+										<aura:set attribute="else">
+											{!openTag.PatientName}
+										</aura:set>
+									</aura:if> -->
+                                    <span title="{!openTag.PatientName}">
+                                        {!openTag.PatientName}
+                                    </span>
+
+                                </td>
+                                <td class="slds-text-align_center">
+                                    <ui:outputDate value="{!openTag.DocDate}" format="MM/DD/YYYY" />
+                                </td>
+                                <td class="slds-text-align_center">
+                                    {!openTag.Overdue}
+                                </td>
+                                <td class="slds-text-align_center">
+                                    <ui:outputDate value="{!openTag.TargetDate}" format="MM/DD/YYYY" />
+                                </td>
+                            </tr>
+                        </aura:iteration>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</aura:component>

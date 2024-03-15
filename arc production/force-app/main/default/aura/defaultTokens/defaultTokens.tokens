@@ -1,0 +1,434 @@
+<aura:tokens extends="force:base">
+	<aura:token
+		name="colorWhite"
+		value="#fff"/>
+	<aura:token
+		name="riggsCommunityBlue"
+		value="#1B76B0"/>
+	<aura:token
+		name="riggsCommunityComplementary"
+		value="#1bb0a0"/>
+	<aura:token
+		name="riggsFamilyGreen"
+		value="#71976B"/>
+	<aura:token
+		name="riggsFamilyComplementary"
+		value="#916b97"/>
+	<aura:token
+		name="riggsStaffRed"
+		value="#D15D34"/>
+	<aura:token
+		name="riggsStaffComplementary"
+		value="#34a8d1"/>
+	<aura:token
+		name="riggsBackdropColorBackground"
+		value="rgba(8, 7, 7, 0.6)"/>
+	<aura:token
+		name="riggsBlue1"
+		value="rgb(94, 138, 180)"/>
+	<aura:token
+		name="riggsBlue1Hover"
+		value="rgba(94, 138, 180, 0.95)"/>
+	<aura:token
+		name="riggsBlue1LightHover"
+		value="rgba(94, 138, 180, 0.05)"/>
+	<aura:token
+		name="riggsBlue2"
+		value="rgb(84, 105, 141)"/>
+	<aura:token
+		name="riggsBlue25"
+		value="rgb(0, 83, 155)"/>
+	<aura:token
+		name="riggsBlue25Hover"
+		value="rgba(0, 83, 155, 0.95)"/>
+	<aura:token
+		name="riggsBlue25LightHover"
+		value="rgba(0, 83, 155, 0.05)"/>
+	<aura:token
+		name="riggsBlue2Hover"
+		value="rgba(84, 105, 141, 0.95)"/>
+	<aura:token
+		name="riggsBlue2LightHover"
+		value="rgba(84, 105, 141, 0.05)"/>
+	<aura:token
+		name="riggsBlue3"
+		value="rgb(22, 50, 92)"/>
+	<aura:token
+		name="riggsBlue3Hover"
+		value="rgb(22, 50, 92, 0.95)"/>
+	<aura:token
+		name="riggsBlue3LightHover"
+		value="rgb(22, 50, 92, 0.05)"/>
+	<aura:token
+		name="riggsBlue4"
+		value="rgb(20, 48, 88)"/>
+	<aura:token
+		name="riggsBlue4Hover"
+		value="rgba(20, 48, 88, 0.95)"/>
+	<aura:token
+		name="riggsBlue4LightHover"
+		value="rgba(20, 48, 88, 0.05)"/>
+	<aura:token
+		name="riggsBlue5"
+		value="rgb(3, 45, 96)"/>
+	<aura:token
+		name="riggsBlue5Hover"
+		value="rgba(3, 45, 96, 0.95)"/>
+	<aura:token
+		name="riggsBlue5LightHover"
+		value="rgba(3, 45, 96, 0.05)"/>
+	<aura:token
+		name="riggsBorderRadiusNone"
+		value="0"/>
+	<aura:token
+		name="riggsColorBlue2"
+		value="rgb(84, 105, 141)"/>
+	<aura:token
+		name="riggsColorBlue210"
+		value="rgb(124, 144, 177)"/>
+	<aura:token
+		name="riggsColorBlue220"
+		value="rgb(108, 130, 168)"/>
+	<aura:token
+		name="riggsColorBlue235"
+		value="rgb(94, 117, 157)"/>
+	<aura:token
+		name="riggsColorBlue265"
+		value="rgb(74, 93, 125)"/>
+	<aura:token
+		name="riggsColorBlue280"
+		value="rgb(65, 81, 109)"/>
+	<aura:token
+		name="riggsColorBlue290"
+		value="rgb(55, 69, 93)"/>
+	<aura:token
+		name="riggsColorBlue2Analog10"
+		value="rgb(84, 134, 141)"/>
+	<aura:token
+		name="riggsColorBlue2Analog30"
+		value="rgb(92, 84, 141)"/>
+	<aura:token
+		name="riggsColorBlue2Comp"
+		value="rgb(141, 120, 84)"/>
+	<aura:token
+		name="riggsColorBlue2Comp10"
+		value="rgb(134, 141, 84)"/>
+	<aura:token
+		name="riggsColorBlue2Comp30"
+		value="rgb(141, 92, 84)"/>
+	<aura:token
+		name="riggsColorBlue2Tetra10"
+		value="rgb(84, 141, 120)"/>
+	<aura:token
+		name="riggsColorBlue2Tetra30"
+		value="rgb(141, 84, 105)"/>
+	<aura:token
+		name="riggsColorBlue2Tetra40"
+		value="rgb(141, 120, 84)"/>
+	<aura:token
+		name="riggsColorBlue2Triad10"
+		value="rgb(105, 141, 84)"/>
+	<aura:token
+		name="riggsColorBlue2Triad30"
+		value="rgb(141, 84, 105)"/>
+	<aura:token
+		name="riggsColorBorderInverse"
+		value="#fff"/>
+	<aura:token
+		name="riggsColorDark"
+		value="#282828"/>
+	<aura:token
+		name="riggsColorGray1"
+		value="#ccc"/>
+	<aura:token
+		name="riggsColorGray15"
+		value="#aeaeae"/>
+	<aura:token
+		name="riggsColorGray2"
+		value="#808080"/>
+	<aura:token
+		name="riggsColorPurple"
+		value="rgb(92, 30, 103)"/>
+	<aura:token
+		name="riggsColorPurple10"
+		value="rgb(145, 47, 162)"/>
+	<aura:token
+		name="riggsColorPurple20"
+		value="rgb(127, 42, 142)"/>
+	<aura:token
+		name="riggsColorPurple35"
+		value="rgb(110, 36, 123)"/>
+	<aura:token
+		name="riggsColorPurple65"
+		value="rgb(74, 24, 83)"/>
+	<aura:token
+		name="riggsColorPurple80"
+		value="rgb(57, 18, 64)"/>
+	<aura:token
+		name="riggsColorPurple90"
+		value="rgb(39, 13, 44)"/>
+	<aura:token
+		name="riggsColorPurpleAnalog10"
+		value="rgb(56, 30, 103)"/>
+	<aura:token
+		name="riggsColorPurpleAnalog30"
+		value="rgb(103, 30, 78)"/>
+	<aura:token
+		name="riggsColorPurpleComp"
+		value="rgb(41, 103, 30)"/>
+	<aura:token
+		name="riggsColorPurpleComp10"
+		value="rgb(30, 103, 56)"/>
+	<aura:token
+		name="riggsColorPurpleComp30"
+		value="rgb(78, 103, 30)"/>
+	<aura:token
+		name="riggsColorPurpleTetra10"
+		value="rgb(30, 41, 103)"/>
+	<aura:token
+		name="riggsColorPurpleTetra30"
+		value="rgb(103, 92, 30)"/>
+	<aura:token
+		name="riggsColorPurpleTetra40"
+		value="rgb(41, 103, 30)"/>
+	<aura:token
+		name="riggsColorPurpleTriad10"
+		value="rgb(30, 103, 92)"/>
+	<aura:token
+		name="riggsColorPurpleTriad30"
+		value="rgb(103, 92, 30)"/>
+	<aura:token
+		name="riggsDark"
+		value="#282828"/>
+	<aura:token
+		name="riggsDarker"
+		value="#212121"/>
+	<aura:token
+		name="riggsDarkerHover"
+		value="rgba(33, 33, 33, 0.95)"/>
+	<aura:token
+		name="riggsDarkerLightHover"
+		value="rgba(33, 33, 33, 0.05)"/>
+	<aura:token
+		name="riggsDarkHover"
+		value="rgba(40, 40, 40, 0.95)"/>
+	<aura:token
+		name="riggsDarkLightHover"
+		value="rgba(40, 40, 40, 0.05)"/>
+	<aura:token
+		name="riggsFontSize1"
+		value="0.625rem"/>
+	<aura:token
+		name="riggsFontSize10"
+		value="2rem"/>
+	<aura:token
+		name="riggsFontSize11"
+		value="2.625rem"/>
+	<aura:token
+		name="riggsFontSize2"
+		value="0.75rem"/>
+	<aura:token
+		name="riggsFontSize3"
+		value="0.8125rem"/>
+	<aura:token
+		name="riggsFontSize4"
+		value="0.875rem"/>
+	<aura:token
+		name="riggsFontSize5"
+		value="1rem"/>
+	<aura:token
+		name="riggsFontSize6"
+		value="1.125rem"/>
+	<aura:token
+		name="riggsFontSize7"
+		value="1.25rem"/>
+	<aura:token
+		name="riggsFontSize8"
+		value="1.5rem"/>
+	<aura:token
+		name="riggsFontSize9"
+		value="1.75rem"/>
+	<aura:token
+		name="riggsGray0"
+		value="#e9e9e9"/>
+	<aura:token
+		name="riggsGray0Hover"
+		value="rgba(233, 233, 233, 0.95)"/>
+	<aura:token
+		name="riggsGray0LightHover"
+		value="rgba(233, 233, 233, 0.05)"/>
+	<aura:token
+		name="riggsGray1"
+		value="#ccc"/>
+	<aura:token
+		name="riggsGray15"
+		value="#aeaeae"/>
+	<aura:token
+		name="riggsGray15Hover"
+		value="rgba(174, 174, 174, 0.95)"/>
+	<aura:token
+		name="riggsGray15LightHover"
+		value="rgba(174, 174, 174, 0.05)"/>
+	<aura:token
+		name="riggsGray1Hover"
+		value="rgba(204, 204, 204, 0.95)"/>
+	<aura:token
+		name="riggsGray1LightHover"
+		value="rgba(204, 204, 204, 0.05)"/>
+	<aura:token
+		name="riggsGray2"
+		value="#808080"/>
+	<aura:token
+		name="riggsGray2Hover"
+		value="rgba(128, 128, 128, 0.95)"/>
+	<aura:token
+		name="riggsGray2LightHover"
+		value="rgba(128, 128, 128, 0.05)"/>
+	<aura:token
+		name="riggsGray3"
+		value="#666"/>
+	<aura:token
+		name="riggsGray3Hover"
+		value="rgba(102, 102, 102, 0.95)"/>
+	<aura:token
+		name="riggsGray3LightHover"
+		value="rgba(102, 102, 102, 0.05)"/>
+	<aura:token
+		name="riggsGray4"
+		value="#4c4c4c"/>
+	<aura:token
+		name="riggsGray4Hover"
+		value="rgba(76, 76, 76, 0.95)"/>
+	<aura:token
+		name="riggsGray4LightHover"
+		value="rgba(76, 76, 76, 0.05)"/>
+	<aura:token
+		name="riggsGray5"
+		value="#404040"/>
+	<aura:token
+		name="riggsGray5Hover"
+		value="rgba(64, 64, 64, 0.95)"/>
+	<aura:token
+		name="riggsGray5LightHover"
+		value="rgba(64, 64, 64, 0.05)"/>
+	<aura:token
+		name="riggsGreen"
+		value="rgb(156, 175, 136)"/>
+	<aura:token
+		name="riggsGreen2"
+		value="rgb(156, 175, 136)"/>
+	<aura:token
+		name="riggsGreen2Hover"
+		value="rgba(157, 205, 106, 0.95)"/>
+	<aura:token
+		name="riggsGreen2LightHover"
+		value="rgba(157, 205, 106, 0.05)"/>
+	<aura:token
+		name="riggsGreen3"
+		value="rgb(84, 141, 120)"/>
+	<aura:token
+		name="riggsGreen3Hover"
+		value="rgba(84, 141, 120, 0.95)"/>
+	<aura:token
+		name="riggsGreen3LightHover"
+		value="rgba(84, 141, 120, 0.05)"/>
+	<aura:token
+		name="riggsGreenHover"
+		value="rgba(156, 175, 136, 0.95)"/>
+	<aura:token
+		name="riggsGreenLightHover"
+		value="rgba(156, 175, 136, 0.05)"/>
+	<aura:token
+		name="riggsLight"
+		value="rgb(244, 246, 249)"/>
+	<aura:token
+		name="riggsLightHover"
+		value="rgba(244, 246, 249, 0.95)"/>
+	<aura:token
+		name="riggsLightLightHover"
+		value="rgba(244, 246, 249, 0.05)"/>
+	<aura:token
+		name="riggsOrange"
+		value="rgb(217, 138, 94)"/>
+	<aura:token
+		name="riggsOrange2"
+		value="rgb(141, 120, 84)"/>
+	<aura:token
+		name="riggsOrange2Hover"
+		value="rgba(141, 120, 84, 0.95)"/>
+	<aura:token
+		name="riggsOrange2LightHover"
+		value="rgba(141, 120, 84, 0.05)"/>
+	<aura:token
+		name="riggsOrangeHover"
+		value="rgba(217, 138, 94, 0.95)"/>
+	<aura:token
+		name="riggsOrangeLightHover"
+		value="rgba(217, 138, 94, 0.05)"/>
+	<aura:token
+		name="riggsPurple"
+		value="rgb(92, 30, 103)"/>
+	<aura:token
+		name="riggsPurpleHover"
+		value="rgba(92, 30, 103, 0.95)"/>
+	<aura:token
+		name="riggsPurpleLightHover"
+		value="rgba(92, 30, 103, 0.05)"/>
+	<aura:token
+		name="riggsRed1"
+		value="rgb(234, 0, 30)"/>
+	<aura:token
+		name="riggsRed1Hover"
+		value="rgba(234, 0, 30, 0.95)"/>
+	<aura:token
+		name="riggsRed1LightHover"
+		value="rgba(234, 0, 30, 0.05)"/>
+	<aura:token
+		name="riggsRed2"
+		value="rgb(186, 5, 23)"/>
+	<aura:token
+		name="riggsRed2Hover"
+		value="rgba(186, 5, 23, 0.95)"/>
+	<aura:token
+		name="riggsRed2LightHover"
+		value="rgba(186, 5, 23, 0.05)"/>
+	<aura:token
+		name="riggsSpacingNone"
+		value="0rem"/>
+	<aura:token
+		name="riggsTransparent"
+		value="rgba(0, 0, 0, 0)"/>
+	<aura:token
+		name="riggsVarSpacingMediumLarge"
+		value="1.25rem"/>
+	<aura:token
+		name="riggsWhite"
+		value="#fff"/>
+	<aura:token
+		name="riggsWhiteHover"
+		value="rgba(255, 255, 255, 0.95)"/>
+	<aura:token
+		name="riggsWhiteLightHover"
+		value="rgba(255, 255, 255, 0.05)"/>
+	<aura:token
+		name="riggsWidth100Pct"
+		value="100%"/>
+	<aura:token
+		name="riggsYellow"
+		value="rgb(241, 202, 52)"/>
+	<aura:token
+		name="riggsYellow2"
+		value="rgb(241, 241, 50)"/>
+	<aura:token
+		name="riggsYellow2Hover"
+		value="rgba(241, 241, 50, 0.95)"/>
+	<aura:token
+		name="riggsYellow2LightHover"
+		value="rgba(241, 241, 50, 0.05)"/>
+	<aura:token
+		name="riggsYellowHover"
+		value="rgba(241, 202, 52, 0.95)"/>
+	<aura:token
+		name="riggsYellowLightHover"
+		value="rgba(241, 202, 52, 0.05)"/>
+</aura:tokens>

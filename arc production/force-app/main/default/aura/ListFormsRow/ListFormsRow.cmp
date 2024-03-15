@@ -1,0 +1,39 @@
+<aura:component controller="ListFormsCtl" access="global">
+	<aura:attribute name="context" type="String" default="community" description="Location this component is being displayed"/>
+	<aura:attribute name="formId" type="String" description="Record Id for Form to display"/>
+	<aura:attribute name="fieldList" type="String[]" default="['disco__Form_Template_Name__c', 'CreatedDate', 'disco__Status__c']"
+		description="Ordered list of fields to display left to right"/>
+	<aura:attribute name="valueList" type="Object[]" description="Values of fields in fieldList for columns"/>
+	<aura:attribute name="formRecord" type="Object" description="Variable of the form"/>
+	<aura:attribute name="subscription" type="Map"/>
+    <aura:attribute name="channel" type="String" default="/data/Patient_Note__ChangeEvent"/>
+
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+
+	<aura:method name="refreshRow" action="{!c.refreshListRow}" access="public"/>
+
+	<lightning:empApi aura:id="empApi"/>
+	
+	<force:recordData aura:id="formRecordData"
+		recordId="{!v.formId}"
+		fields="{!v.fieldList}"
+		targetFields="{!v.formRecord}"
+		recordUpdated="{!c.recordUpdated}"
+	/>
+
+	<disco:auraPubsub aura:id="auraPubsub" />
+	<lightning:layout multipleRows="true" verticalAlign="center">
+		<aura:iteration items="{!v.valueList}" var="object">
+			<lightning:layoutItem size="{!object.size}" padding="horizontal-small">
+				<div class="slds-truncate" style="font-weight: bold" title="{!object.value}">
+					{!object.value}
+				</div>
+			</lightning:layoutItem>
+		</aura:iteration>
+		<lightning:layoutItem size="2">
+			<lightning:buttonIcon alternativeText="View" title="View" iconName="utility:preview" onclick="{!c.viewForm}"/>
+			<lightning:buttonIcon alternativeText="View" title="Edit" iconName="utility:edit" onclick="{!c.editForm}"/>
+		</lightning:layoutItem>
+	</lightning:layout>
+
+</aura:component>

@@ -1,0 +1,116 @@
+<aura:component controller="AdmissionsWhiteboardController" implements="flexipage:availableForAllPageTypes" access="global">
+    <aura:attribute name="whattosay" type="String" default="wubwub"/>
+    <aura:attribute name="id" type="String" default=""/>
+    <aura:attribute name="account_requirement_rows" type="Account[]"/>
+    <aura:attribute name="admissions_requirements" type="String[]" default="['Motivation','Abstinence','Clinical','Finances','Medications','Medical','Legal']"/>
+    <aura:attribute name="records_requirement" type="Integer" default="2"/> <!-- should be the index of whichever Requirement above should have record number next to it -->
+    <aura:attribute name="accounts_in_waitlist" type="Account[]"/>
+    <aura:attribute name="accounts_in_active_done" type="Account[]"/>
+    <aura:attribute name="refresh_interval" type="Integer" default="3000000000" access="public"/>
+    <aura:attribute name="update_id" type="Decimal" default="[]" access="public"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler event="force:navigateToSObject" action="{!c.navigateToRecord}"/>
+    <!--main div-->
+    <div class="slds-p-around_medium" style="background:#f7f7f7;">
+        <lightning:layout>
+        	<lightning:layoutItem class="slds-box layer-front" padding="around-medium" size="9">
+            	<!--this is where the requirements grid will go-->
+                <table class="slds-table slds-table_bordered whb-table">
+                    <thead>
+                        <tr>
+                            <aura:iteration var="adReq" items="{!v.admissions_requirements}">
+                            	<th class="whb-heading whb-text slds-size_1-of-7">
+                                    {!adReq}
+                                </th>
+                            </aura:iteration>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <aura:iteration var="accReqRow" items="{!v.account_requirement_rows}">
+                            <tr>
+                            	<aura:iteration var="accReq" items="{!accReqRow.Requirements}" indexVar="index">
+                                    <td class="slds-size_1-of-7">
+                                        <div class="whb-cell">
+                                            <!-- if we are in the 'Clinical' column (has to be hard coded), display number of documents in the 'Clinical' requirement -->
+                                            <aura:if isTrue="{!index == 2}">
+                                                <aura:if isTrue="{!accReqRow.numReqRecords > 0}">
+                                                    <div class="document-info">
+                                                        <span class="document-icon">🗎</span>
+                                                        <span class="document-count">{!accReqRow.numReqRecords}</span>
+                                                    </div>
+                                                </aura:if>
+                                            </aura:if>
+                                            <aura:if isTrue="{!accReq == true}">
+                                                <a class="whb-name whb-text" onclick="{!c.handleClick}" data-id="{!accReqRow.Account.Id}" title="{!accReqRow.Account.Name}">
+                                                    <p class="slds-truncate">{!accReqRow.Account.Patient_LastName__c}</p>
+                                                </a>
+                                            </aura:if>
+                                        </div>
+                                    </td>
+                                </aura:iteration>
+                            </tr>
+                        </aura:iteration>
+                    </tbody>
+                </table>
+            </lightning:layoutItem>
+        	<lightning:layoutItem padding="around-medium">
+                <!--this is where the list of patients in waitlist or consultation pending will go-->
+                <div class="slds-text-heading_small slds-border_bottom">Waitlist/Consultation Pending:</div>
+                <table class="slds-table layer-back whb-table whb-waitlist">
+                    <aura:iteration var="account" items="{!v.accounts_in_waitlist}">
+                        <tr class="slds-border_top">
+                            <td class="whb-waitlist-num whb-text">
+                            	<aura:if isTrue="{!not(empty(account.Current_Admission__r.Waitlist_Order__c))}">
+                                    {!account.Current_Admission__r.Waitlist_Order__c}
+                                </aura:if>
+                            </td>
+                            <td class="whb-waitlist-name whb-text">
+                                <a onclick="{!c.handleClick}" data-id="{!account.Id}" title="{!account.Name}">
+                                    <p class="slds-truncate">{!account.Patient_LastName__c}</p>
+                                </a>
+                            </td>
+                            <td class="whb-waitlist-consult whb-text">
+                                <aura:if isTrue="{!not(empty(account.Current_Admission__r.Consultation_Date__c))}">
+                                    {!account.Current_Admission__r.Consultation_Date__c}
+                                    <aura:set attribute="else">
+                                        <aura:if isTrue="{!not(empty(account.Current_Admission__r.Consultation_Only_Date__c))}">
+                                            <span class="whb-weak-text">(Only) </span> {!account.Current_Admission__r.Consultation_Only_Date__c}
+                                            <aura:set attribute="else">
+                                                <aura:if isTrue="{!empty(account.Current_Admission__r.Waitlist_Order__c)}">
+                                                    <div class="whb-weak-text">(No Consult Date)</div>
+                                                </aura:if>
+                                            </aura:set>
+                                        </aura:if>
+                                    </aura:set>
+                                </aura:if>
+                            </td>
+                        </tr>
+                        <aura:if isTrue="{!not(empty(account.Current_Admission__r.Waitlist_Notes__c))}">
+                        	<tr>
+                                <td></td>
+                                <td class="whb-waitlist-notes" colspan="2">
+                                    {!account.Current_Admission__r.Waitlist_Notes__c}
+                                </td>
+                            </tr>
+                        </aura:if>
+                    </aura:iteration>
+                </table>
+            </lightning:layoutItem>
+        </lightning:layout>
+        <lightning:layout>
+        	<lightning:layoutItem padding="around-small">
+                <div class="slds-border_bottom">
+            	<span class="slds-text-heading_small">Ready for Waitlist: </span>
+                <lightning:helptext class="whb-helptext" content="Admission Stage is set to 'Active' but all requirements are checked"/>
+                </div>
+                <aura:iteration var="account" items="{!v.accounts_in_active_done}">
+                    <a class="whb-ready whb-text" onclick="{!c.handleClick}" data-id="{!account.Id}" title="{!account.Name}">
+                    	<p class="slds-border_top">{!account.Patient_LastName__c}</p>
+                    </a>
+                </aura:iteration>
+            </lightning:layoutItem>
+        </lightning:layout>
+        
+    </div>
+</aura:component>

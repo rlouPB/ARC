@@ -1,0 +1,45 @@
+.THIS .anchor a{
+  color: red;
+}
+.THIS .uiInput--checkbox input{
+    display: inline-block;
+}
+
+.THIS .uiInput uiInputCheckbox uiInput--default uiInput--checkbox{
+     display: inline-block ;
+
+}
+
+.THIS .uiInput--default .form-element__label {
+    padding-right: 8px;
+}
+
+.THIS .uiInput--input .input {
+    min-height: 0px;
+}
+
+.THIS .uiOutputText {
+    color:rgb(62, 62, 60);
+}
+
+.THIS uiInput uiInputText uiInput--default uiInput--input {
+    width:5%;
+    min-height:10%;
+}
+.THIS .cbLabelClass {
+    
+    padding-left: 5%;
+    font-size: 11.5px;
+}
+
+.THIS .checkboxClass {
+     float: left;
+   
+}
+.THIS .highlighted .slds-pill {
+  background-color: yellow;
+}
+.THIS .patientAttendee
+{
+    /* border */
+}

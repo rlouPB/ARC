@@ -1,0 +1,300 @@
+<apex:page renderAs="pdf" applyBodyTag="false" controller="PrintedProcedureOrderPDFController" action="{!init}">
+    <head>
+        <style type="text/css" media="print">
+            @page {
+                /*padding-top: 85px;*/
+                @top-center {
+                    content: element(header);
+                }
+                @bottom-left {
+                    content: element(footer);
+                }
+            }
+            div.header {
+                padding: 10px;
+                padding-top: 0.25in;
+                position: running(header);
+            }
+            div.footer {
+                display: block;
+                padding: 5px;
+                padding-bottom: 0.25in;
+                position: running(footer);
+            }
+            .pagenumber:before {
+                content: counter(page);
+            }
+            .pagecount:before {
+                content: counter(pages);
+            }
+            body{
+                font-family: "Arial", "Helvetica", sans-serif;
+            }
+            .red-border{
+                border: 1px solid red;
+            }
+            .red{
+                color: red;
+            }
+            .center-text{
+                text-align: center;
+            }
+            .slim-margin{
+                margin: 5px;
+            }
+            .text-align-right{
+                text-align: right;
+            }
+            .logo-padding{
+                padding: 5px 20px 6px;
+            }
+            .float-left{
+                float: left;
+            }
+            .float-right{
+                float: right;
+                margin-top: 10px;
+            }
+            .logo-image{
+                width: 350px;
+                position: relative;
+                left: -8px;
+            }
+            .bold{
+                font-weight: 700;
+            }
+            .extra-space{
+                height: 25px;
+            }
+            .section-header {
+                font-size: 2em;
+                font-weight: 700;
+                margin-top: 20px;
+            }
+            h1 {
+                font-size: 1.5em;
+                font-weight: 500;
+            }
+            hr.rounded {
+                border-top: 8px solid #bbb;
+                border-radius: 5px;
+            }
+            table {
+                width: 100%;
+            }
+            table, th, td {
+                border: 1px solid #bbb;
+                border-collapse: collapse;
+                padding: 4px;
+                vertical-align: top;
+            }
+            .center {
+                align-content: center;
+                text-align: center;
+                width: 100%;
+            }
+        </style>
+    </head>
+    <!--
+    <div class="header">
+        <div class="red-border center-text">
+            <p class="red slim-margin bold">{!$Label.ARC_Medical_Record_Disclaimer}</p>
+        </div>
+        <div class="float-left logo-padding"><img alt="" class="logo-image" src="{!$Resource.Riggs_Logo_Medical_Records}" /><br />
+            <span style="font-size:16px;">{!$Label.ARC_Address}</span>
+        </div>
+        <div class="float-right text-align-right"><span class="bold">{!patient.Name}</span> 
+            <span>File No.&nbsp;{!patient.Medical_Record_Number__c}</span><br />
+            <span>Date Admitted&nbsp;<apex:outputText value="{0,date,MM/dd/yyyy}"> <apex:param value="{!patient.Current_Admission__r.Admit_Date__c}" /> </apex:outputText></span><br />
+            <span>Birthdate&nbsp;<apex:outputText value="{0,date,MM/dd/yyyy}"> <apex:param value="{!patient.Date_of_Birth__c}" /> </apex:outputText></span>
+        </div>
+    </div>
+-->
+    <div class="footer">
+        <!--<div>Page <span class="pagenumber"/> of <span class="pagecount"/></div>-->
+    </div>
+    <div class="content">
+        <apex:pageBlock >
+            <div class="center">
+                <!-- <h1 style="padding-bottom: 0px;margin-bottom: 0px;"><apex:outputText value="{!procedureOrder.Description__c}"/></h1> -->
+                <h1 style="padding-bottom: 0px;margin-bottom: 0px;"><apex:outputText value="{!procedureOrder.Procedure__c}"/></h1>
+                <strong>Activation Date: </strong><apex:outputText value="{0,date,MM/dd/yyyy}"> <apex:param value="{!procedureOrder.Activation_Date__c}" /> </apex:outputText>
+            </div>
+            <br /><br />
+
+            <apex:outputPanel rendered="{!OR(procedureOrder.Recordtype.Name == 'Lab Order', procedureOrder.Recordtype.Name == 'Diagnostic Test', procedureOrder.Recordtype.Name == 'External Consultation')}">
+                <table border="1" style="padding-top: 20px;">
+                    <apex:outputPanel rendered="{!AND(procedureOrder.Testing_Facility__r.Name == 'Berkshire Health Systems', procedureOrder.Recordtype.Name == 'Lab Order')}" >
+                        <tr>
+                            <td colspan="2">
+                                    <div style="text-align:center;margin-top:0px;">
+                                        <strong style="color:red;">BHS staff: please use LifePoint to retrieve order and post results.</strong>
+                                    </div>
+                            </td>
+                        </tr>
+                    </apex:outputPanel>
+
+                    <tr>
+                        <th>Medical Institution</th>
+                        <th>Ordering Provider</th>
+                    </tr>
+                    <!-- </apex:outputPanel> -->
+                    <!-- <apex:outputPanel rendered="{!procedureOrder.Recordtype.Name == 'Nursing Procedure'}">
+                        <tr>
+                            <th>Ordering Provider</th>
+                        </tr>
+                    </apex:outputPanel> -->
+                    <tr>
+                        <td>
+                            <apex:outputText value="{!procedureOrder.Testing_Facility__r.Name}"/><br />
+                            <apex:outputText value="{!procedureOrder.Testing_Facility__r.BillingStreet}" rendered="{!procedureOrder.Testing_Facility__r.BillingStreet != null}"/><br />
+                            <apex:outputText value="{!procedureOrder.Testing_Facility__r.BillingCity}, " rendered="{!procedureOrder.Testing_Facility__r.BillingCity != null}"/> 
+                            <apex:outputText value="{!procedureOrder.Testing_Facility__r.BillingState} " rendered="{!procedureOrder.Testing_Facility__r.BillingState != null}"/>
+                            <apex:outputText value="{!procedureOrder.Testing_Facility__r.BillingPostalCode}" rendered="{!procedureOrder.Testing_Facility__r.BillingPostalCode != null}"/><br />
+                            <apex:outputText value="Phone: {!procedureOrder.Testing_Facility__r.Phone__c}" rendered="{!procedureOrder.Testing_Facility__r.Phone__c != null}"/><br />
+                        </td>
+                        <td>
+                            <apex:outputText value="AUSTEN RIGGS CENTER"/><br />
+                            <apex:outputText value="25 Main Street"/><br />
+                            <apex:outputText value="Stockbridge, "/>
+                            <apex:outputText value="MA "/>
+                            <apex:outputText value="01262"/><br />
+                            <apex:outputText value="Phone: 413-931-5217"/><br />
+                            <apex:outputText value="Fax: 413-931-5272"/><br />
+                        </td>
+                    </tr>
+                    
+                    <!-- <apex:outputPanel rendered="{!procedureOrder.Recordtype.Name == 'Nursing Procedure'}">
+                        <tr>
+                            <td>
+                                <apex:outputText value="AUSTEN RIGGS CENTER"/><br />
+                                <apex:outputText value="25 Main Street"/><br />
+                                <apex:outputText value="Stockbridge, "/>
+                                <apex:outputText value="MA "/>
+                                <apex:outputText value="01262"/><br />
+                                <apex:outputText value="Phone: TBD"/><br />
+                                <apex:outputText value="Fax: TBD"/><br />
+                            </td>
+                        </tr>
+                    </apex:outputPanel> -->
+                </table>
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{!procedureOrder.Recordtype.Name == 'Nursing Procedure'}">
+                <table border="1" style="padding-top: 20px;">
+                    <tr>
+                        <th>Ordering Provider</th>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            <apex:outputText value="AUSTEN RIGGS CENTER"/><br />
+                            <apex:outputText value="25 Main Street"/><br />
+                            <apex:outputText value="Stockbridge, "/>
+                            <apex:outputText value="MA "/>
+                            <apex:outputText value="01262"/><br />
+                            <apex:outputText value="Phone: TBD"/><br />
+                            <apex:outputText value="Fax: TBD"/><br />
+                        </td>
+                    </tr>
+                </table>                
+            </apex:outputPanel>
+
+            <h1>Order</h1>
+            <table border="1" style="padding-top: 20px;">
+                <tr>
+                    <td>Procedure</td><td>{!procedureOrder.Procedure__c}</td>
+                </tr>
+                <tr>
+                    <td>Indication</td><td>{!procedureOrder.Indication__c}</td>
+                </tr>
+                <tr>
+                    <td>Physician Comments</td><td>{!procedureOrder.MD_Comments__c}</td>
+                </tr>
+            </table>
+
+            <apex:outputPanel rendered="{!hasLabs}">
+                <apex:dataTable value="{!labs}" var="lab" rendered="{!procedureOrder.Recordtype.Name == 'Lab Order'}">
+                    <apex:column >
+                        <apex:facet name="header">Lab</apex:facet>
+                        <apex:outputText value="{!lab.Compendium_Entry__r.Test_Name__c}"/>
+                    </apex:column>
+
+                    <apex:column >
+                        <apex:facet name="header">Order Date</apex:facet>
+                        <apex:outputText value="{0,date,MM/dd/yyyy}"> <apex:param value="{!lab.Order_Date__c}" /> </apex:outputText>
+                    </apex:column>
+                </apex:dataTable>
+            </apex:outputPanel>
+
+            <h1>Patient Information</h1>
+            <table border="1" style="padding-top: 20px;">
+                <tr>
+                    <td>Patient Name</td><td><span class="bold">{!patient.Name}</span></td>
+                </tr>
+                <tr>
+                    <td>Sex - DOB - Age</td><td>{!patient.Sex_Assigned_at_Birth__c} - <apex:outputText value=" {0,date,MM/dd/yyyy}"><apex:param value="{!patient.Date_of_Birth__c}" /></apex:outputText> - {!patient.Age__c}</td>
+                </tr>
+                <tr>
+                    <td>Address</td>
+                    <td>
+                        <apex:outputText value="{!patient.Contacts[0].MailingStreet}" rendered="{!patient.Contacts[0].MailingStreet != null}"/><br />
+                        <apex:outputText value="{!patient.Contacts[0].MailingCity}, " rendered="{!patient.Contacts[0].MailingCity != null}"/>
+                        <apex:outputText value="{!patient.Contacts[0].MailingState} " rendered="{!patient.Contacts[0].MailingState != null}"/>
+                        <apex:outputText value="{!patient.Contacts[0].MailingPostalCode} " rendered="{!patient.Contacts[0].MailingPostalCode != null}"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Phone</td><td><apex:outputText value="{!patient.Phone__c}" rendered="{null != patient.Phone__c}"/></td>
+                </tr>
+                <tr>
+                    <td>Insurance</td>
+                    <td>
+                        <apex:repeat value="{!insurancePolicies}" var="policy">
+                            <apex:outputText value="{!policy.Insurance_Provider_Name__c}"/><br/>
+                            <apex:outputText value="{0,date,MM/dd/yyyy}"> Start: <apex:param value="{!policy.Policy_Start_Date__c}" /> </apex:outputText><br/>
+                            <apex:outputText value="{0,date,MM/dd/yyyy}"> End: <apex:param value="{!policy.Policy_End_Date__c}" /> </apex:outputText><br/>
+                            <apex:outputText value="Policy: {!policy.Policy_Number__c}"/><br/>
+                            <apex:outputText value="Provider Service Phone: {!policy.Provider_Services_Phone__c}"/><br/>
+                            <br />
+                        </apex:repeat>
+                    </td>
+                </tr>
+            </table>    
+            <!-- <apex:outputPanel  rendered="{!procedureOrder.Recordtype.Name == 'Lab Order'}">
+                <table>
+                    <tr>
+                        <td>Drawn By</td><td></td>
+                    </tr>
+                    <tr>
+                        <td>Drawn Date/Time</td><td></td>
+                    </tr>
+                    <tr>
+                        <td>Fasting?</td><td>__ None Needed &nbsp;&nbsp; __ 8 HR &nbsp;&nbsp; __ 12 HR</td>
+                    </tr>
+                    <tr>
+                        <td>Other/Notes</td><td></td>
+                    </tr>
+                    <tr>
+                        <td>CC</td><td></td>
+                    </tr>
+                </table>
+            </apex:outputPanel> -->
+        
+        </apex:pageBlock>
+
+        <apex:outputPanel rendered="{!eSignatureFilename != 'NOT AVAILABLE'}" >
+            <div style="text-align: center;margin-top:25px;">
+                Electronically Signed By: {!eSignatureProfessionalName}<br />
+                <apex:image url="{!$Resource[eSignatureFilename]}" style="border-bottom: 2px solid #000;"/><br />
+                {!eSignatureProfessionalName}
+            </div>
+        </apex:outputPanel>
+
+        <apex:outputPanel rendered="{!eSignatureFilename == 'NOT AVAILABLE'}" >
+            <div style="text-align: center;margin-top:25px;">
+                <strong style="color:red;">This Order needs to be finalized or the Phone Order Physician needs to be specified.</strong>
+            </div>
+        </apex:outputPanel>
+    </div>
+</apex:page>

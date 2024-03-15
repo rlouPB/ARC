@@ -1,0 +1,7 @@
+<aura:component abstract="true" extensible="true">
+    <ltng:require styles="{!$Resource.multilineToastCSS}" />
+    <aura:attribute name="showSpinner" type="Boolean" default="false" access="private" />
+    <lightning:spinner aura:id="mySpinner" variant="brand" size="medium" class="{!v.showSpinner ? 'slds-show' : 'slds-hide'}" />
+    <c:toast aura:id="toast" />
+    {!v.body}
+</aura:component>

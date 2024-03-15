@@ -1,0 +1,8 @@
+<aura:component extends="c:NoteItemPlugin" >
+    <c:dynamicListView showNewButton="false" tableTitle="History Program" sObjectName="Admitted_Program__c" fieldSetName="List_View_Fields" 
+									includeName="false" iconName="standard:care_request_reviewer" sObjectLookupIDField="Account__c"
+									showMyRecordsOnly = "false" recordId="{!v.theNote.patientNote.Account__c}" orderBy="End_Date__c desc"/>
+    <c:dynamicListView showNewButton="false" tableTitle="History Program Status" sObjectName="Admitted_Program_Status__c" fieldSetName="List_View_Fields" 
+									includeName="false" iconName="standard:care_request_reviewer" sObjectLookupIDField="Account__c"
+									showMyRecordsOnly = "false" recordId="{!v.theNote.patientNote.Account__c}" orderBy="Start_Date_Time__c desc"/>
+</aura:component>

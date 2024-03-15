@@ -1,0 +1,44 @@
+<aura:component implements="force:appHostable,force:hasSObjectName,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId" access="global">
+	<aura:attribute name="contactFields" type="List" default="['Name','Title', 'Department', 'Active_Employee__c']" />
+	<aura:attribute name="contactRecord" type="Object" access="public" Description="Holds Contact Record"/>
+	<aura:attribute name="isRecordLoaded" type="Boolean" access="public" default="false" Description="Holds if Contact Record Loaded"/>
+
+    <force:recordData aura:id="contactRecordLoader" recordId="{!v.recordId}" 
+    	targetFields="{!v.contactRecord}" fields="LastModifiedDate,Account.Photo_Document_Id__c" layoutType="FULL" 
+    	recordUpdated="{!c.handleRecordUpdated}" />
+
+    <aura:handler event="c:refreshPatient" action="{!c.handleRecordUpdated}" />
+    
+    <aura:registerEvent name="refreshpage" type="force:refreshView" />
+    
+    <aura:if isTrue="{!v.isRecordLoaded}" >
+        <div class="slds-card" style="background: rgb(243, 242, 242);">
+            <lightning:spinner aura:id="spinner" variant="brand" alternativeText="loading" class="{!if(v.isRecordLoaded,'slds-hide','slds-show')}"/>
+            <lightning:recordViewForm recordId="{!v.recordId}" objectApiName="Contact" >
+                <lightning:layout >
+                    <lightning:layoutItem >
+                        <!-- Photo Component Begins -->
+                        <c:photoComponent parentRecordId="{!v.contactRecord.AccountId}" photoIdField="{!v.contactRecord.Account.Photo_Document_Id__c}" height="100" width="100"/>
+                    </lightning:layoutItem>
+                    <aura:iteration items="{!v.contactFields}" var="item" >
+                        <lightning:layoutItem  class="slds-align_absolute-center">
+                        	<aura:if isTrue="{!item != 'Active_Employee__c'}">
+                                <lightning:outputField fieldName="{!item}" />
+                            	<aura:set attribute="else">
+                                    <div class="slds-form-element">
+                                    	<span class="slds-form-element__label">Active Employee</span>
+                                      	<div class="slds-form-element__control">
+                                        	<span class="slds-form-element__static">
+                                                <ui:outputCheckbox value="{!v.contactRecord.Active_Employee__c}" />
+                                            </span>
+                                      	</div>
+                                    </div>
+                                </aura:set>
+                            </aura:if>
+                        </lightning:layoutItem>
+                    </aura:iteration>
+                </lightning:layout>
+            </lightning:recordViewForm>
+        </div>
+    </aura:if>
+</aura:component>

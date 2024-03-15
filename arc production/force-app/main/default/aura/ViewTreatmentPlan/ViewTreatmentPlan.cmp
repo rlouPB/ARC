@@ -1,0 +1,197 @@
+<aura:component controller="ViewTreatmentPlanCtl" extends="c:ApexService" implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickActionwithoutheader,lightning:actionOverride">
+
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="edit" type="Boolean" default="false" />
+    <aura:attribute name="treatmentPlan" type="Object" description="Treatment Plan contains case, domains, goals and objectives." />
+    <aura:attribute name="loading" type="Boolean" default="false" />
+    <aura:attribute name="treatmentPlanEdit" type="Object" default="{}" />
+    <aura:attribute name="showSaveAsCompleteModal" type="Boolean" default="false" />
+    <aura:attribute name="showFinalizeModal" type="Boolean" default="false" />
+    <aura:attribute name="showCreateDraftTreatmentPlanTeamEditModal" type="Boolean" default="false" />
+    <aura:attribute name="latestFinalized" type="Object" />
+
+    <aura:handler name="init" value="{! this }" action="{!c.doInit}" />
+    <aura:handler event="force:refreshView" action="{!c.doInit}" />
+
+    <aura:handler name="treatmentPlanEditEvent" event="c:TreatmentPlanEditEvent" action="{!c.handleTreatmentPlanEdit}"></aura:handler>
+
+    <aura:attribute name="targetTreatmentPlan" type="Object" />
+
+    <c:customRecordData recordId="{!v.recordId}"  selectFields="Status,Snapshot__c,Snapshot__r.Html__c" target="{!v.targetTreatmentPlan}"></c:customRecordData>
+
+        <lightning:card>
+            <aura:set attribute="title">
+                <aura:if isTrue="{!!v.targetTreatmentPlan.Snapshot__c}">
+                    <div class="slds-text-heading_large"><b>
+                        <aura:if isTrue="{!v.treatmentPlan.currentTreatmentPlan.Status == 'Draft'}">
+                            <aura:if isTrue="{!v.edit}">
+                                Edit Treatment Plan
+                                <aura:set attribute="else">
+                                    Treatment Plan
+                                </aura:set>
+                            </aura:if>
+                            <aura:set attribute="else">
+                                <aura:if isTrue="{!v.treatmentPlan.currentTreatmentPlan.Status == 'Active'}">
+                                    Current Treatment Plan
+                                    <aura:set attribute="else">
+                                        Treatment Plan
+                                    </aura:set>
+                                </aura:if>
+                            </aura:set>
+                        </aura:if>
+                        </b>
+                    </div>
+                </aura:if>
+            </aura:set>
+            <!--
+            Menu on right side.  This is only working for View Current Treatment Plan-->
+            <aura:if isTrue="{! v.loading }">
+                <lightning:spinner variant="brand" size="small" alternativeText="Loading" />
+                <aura:set attribute="else">
+                    <aura:if isTrue="{!and(v.targetTreatmentPlan.Snapshot__c,v.targetTreatmentPlan.Status=='Finalized')}">
+                        <aura:set attribute="else">
+                                <aura:if isTrue="{!v.edit}">
+                                    <lightning:layout>
+                                        <lightning:layoutItem size="12" padding="around-small">
+                                            <div class="slds-text-heading_large slds-p-top_large"><b>Team Commentary</b></div>
+                                            <!-- <lightning:input name="OverallGoalForTreatment" class="c-label-hidden" value="{!v.treatmentPlan.ego.Overall_Goal__c}" maxlength="255"/> -->
+                                            <lightning:textarea name="TeamCommentary" class="c-label-hidden" value="{!v.treatmentPlan.currentTreatmentPlan.Team_Commentary__c}" 
+                                                    maxlength="5000" />
+                                            
+                                        </lightning:layoutItem>
+                                    </lightning:layout>
+                                    <aura:set attribute="else">
+                                        <!-- <div>{!v.treatmentPlan.ego.Overall_Goal__c}</div> -->
+                                        <aura:if isTrue="{!not(empty(v.treatmentPlan.currentTreatmentPlan.Team_Commentary__c))}">
+                                            <lightning:layout>
+                                                <lightning:layoutItem size="12" padding="around-small">
+                                                    <div class="slds-text-heading_large slds-p-top_large"><b>Team Commentary</b></div>
+                                                    <!-- <lightning:input name="OverallGoalForTreatment" class="c-label-hidden" value="{!v.treatmentPlan.ego.Overall_Goal__c}" maxlength="255"/> -->
+                                                    <div>{!v.treatmentPlan.currentTreatmentPlan.Team_Commentary__c}</div>
+                                                    
+                                                </lightning:layoutItem>
+                                            </lightning:layout>
+                                        </aura:if>
+                                    </aura:set>
+                                </aura:if>
+                        </aura:set>
+                    </aura:if>
+
+                    <aura:if isTrue="{!and(v.targetTreatmentPlan.Snapshot__c,v.targetTreatmentPlan.Status=='Finalized')}">
+                        <aura:set attribute="else">
+                            <lightning:layout>
+                                <lightning:layoutItem size="12" padding="around-small">
+                                    <div class="slds-text-heading_large slds-p-top_large"><b>Overall Goal for Treatment</b></div>
+                                    <aura:if isTrue="{!v.edit}">
+                                        <!-- <lightning:input name="OverallGoalForTreatment" class="c-label-hidden" value="{!v.treatmentPlan.ego.Overall_Goal__c}" maxlength="255"/> -->
+                                        <lightning:textarea name="OverallGoalForTreatment" class="c-label-hidden" value="{!v.treatmentPlan.currentTreatmentPlan.Goal__c}" 
+                                                maxlength="5000" />
+                                        <aura:set attribute="else">
+                                            <!-- <div>{!v.treatmentPlan.ego.Overall_Goal__c}</div> -->
+                                            <div>{!v.treatmentPlan.currentTreatmentPlan.Goal__c}</div>
+                                        </aura:set>
+                                    </aura:if>
+                                </lightning:layoutItem>
+                            </lightning:layout>
+                            <div><br /><br /></div>
+                        </aura:set>
+                    </aura:if>
+
+                    <div class="slds-p-horizontal_x-small">
+                        <lightning:layout>
+                            <lightning:layoutItem size="9">
+                                <div aura:id="MainScrollablePanel" class="slds-scrollable_y">
+                                    
+                                    <aura:if isTrue="{!and(v.targetTreatmentPlan.Snapshot__c,v.targetTreatmentPlan.Status=='Finalized')}">
+                                        <aura:unescapedHtml value="{!v.targetTreatmentPlan.Snapshot__r.Html__c}"></aura:unescapedHtml>
+                                        <aura:set attribute="else">
+                                            <aura:iteration items="{!v.treatmentPlan.domains}" var="domain">
+                                                <div class="c-domain-container slds-box c-fill-blue-stripes slds-m-vertical_small">
+                                                    <div class="c-domain-inner c-fill-white">
+                                                        <div class="slds-card_boundary slds-p-around_small">
+                                                            <div class="slds-text-heading_medium"><b>Domain: {!domain.domainObj.Domain_Number__c}.&nbsp;{!domain.domainObj.Label__c}</b></div>
+                                                            <aura:if isTrue="{!and(domain.domainObj.Label__c == 'Medical Care Plan', not(empty(v.treatmentPlan.currentTreatmentPlan.Admission__r.Medical_Care_Plan__c)))}">                       
+                                                                <aura:unescapedHtml value="{!v.treatmentPlan.currentTreatmentPlan.Admission__r.Medical_Care_Plan__c}"/>
+                                                                <aura:set attribute="else">
+                                                                    <c:TreatmentPlanGoals edit="{!v.edit}" goals="{!domain.goals}"
+                                                                                    domainNumber="{!domain.domainObj.Domain_Number__c}"
+                                                                                    todayDate="{!v.treatmentPlan.todayDate}"
+                                                                                    egoDate="{!v.treatmentPlan.ego.Date__c}"
+                                                                                    newTargetDate="{!v.treatmentPlan.newTargetDate}"
+                                                                                    treatmentStatus="{!v.treatmentPlan.currentTreatmentPlan.Status}"
+                                                                                    isFirstDraftTreatmentPlan="{!v.treatmentPlan.isFirstDraftTreatmentPlan}" />
+                                                                </aura:set>
+                                                            </aura:if>
+
+                                                            
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </aura:iteration>
+                                        </aura:set>
+                                    </aura:if>
+                                    
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="3" padding="around-small" alignmentBump="left">
+                                <c:TreatmentPlanHeader treatmentPlan="{!v.treatmentPlan}" edit="{!v.edit}" latestFinalized="{!v.latestFinalized}" />
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </div>
+
+                </aura:set>
+            </aura:if>        
+        </lightning:card>
+
+
+
+
+    <aura:if isTrue="{!v.showSaveAsCompleteModal}">
+        <c:sldsModal instanceName="saveAsCompleteTreatmentPlan">
+            <aura:set attribute="header">
+
+            </aura:set>
+            <aura:set attribute="content">
+                <div class="slds-p-horizontal--small">
+                    Are you sure you want to Complete this Draft Treatment Plan?
+                </div>
+            </aura:set>
+            <aura:set attribute="footer">
+                <lightning:button label="Save as Complete" variant="destructive" onclick="{!c.handleConfirmSaveAsComplete}" />
+                <lightning:button label="Go back to Draft Treatment Plan" variant="neutral" onclick="{!c.handleBackToDraftTreatmentPlan}" />
+            </aura:set>
+        </c:sldsModal>
+    </aura:if>
+    <aura:if isTrue="{!v.showFinalizeModal}">
+        <c:sldsModal instanceName="finalizeDraftTreatmentPlan">
+            <aura:set attribute="header">
+
+            </aura:set>
+            <aura:set attribute="content">
+                <div class="slds-p-horizontal--small">
+                    Are you sure you want to Finalize this Draft Treatment Plan?
+                </div>
+            </aura:set>
+            <aura:set attribute="footer">
+                <lightning:button label="Finalize" variant="destructive" onclick="{!c.handleConfirmFinalize}" />
+                <lightning:button label="Go back to Draft Treatment Plan" variant="neutral" onclick="{!c.handleBackToDraftTreatmentPlan}" />
+            </aura:set>
+        </c:sldsModal>
+    </aura:if>
+    <aura:if isTrue="{!v.showCreateDraftTreatmentPlanTeamEditModal}">
+        <c:sldsModal instanceName="createDraftTreatmentPlanTeamEdit">
+            <aura:set attribute="header">
+
+            </aura:set>
+            <aura:set attribute="content">
+                <div class="slds-p-horizontal--small">
+                    Are you sure you want to start editing a new Draft Treatment Plan without conducting an EGO-R?
+                </div>
+            </aura:set>
+            <aura:set attribute="footer">
+                <lightning:button label="Yes, create a new Draft" variant="destructive" onclick="{!c.handleConfirmCreateTreatmentPlanTeamEdit}" />
+                <lightning:button label="Cancel" variant="neutral" onclick="{!c.handleCancelCreateDraftTreatmentPlanTeamEdit}" />
+            </aura:set>
+        </c:sldsModal>
+    </aura:if>
+</aura:component>

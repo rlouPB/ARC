@@ -1,0 +1,11 @@
+<template>
+    <template if:true={patientId}>
+        <c-full-calendar-lwc
+            object-name="Medication_Administration_Record__c"
+            start-field="CreatedDate"
+            end-field="LastModifiedDate"
+            title-field="Medication_Name__c"
+            additional-filter={filter}
+        ></c-full-calendar-lwc>
+    </template>
+</template>

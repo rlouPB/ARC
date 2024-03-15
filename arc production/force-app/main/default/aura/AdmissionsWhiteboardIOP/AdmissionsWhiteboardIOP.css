@@ -1,0 +1,59 @@
+.THIS .whb-heading .whb-name .whb-waitlist-num .whb-waitlist-name 
+    .whb-waitlist-consult .whb-ready {
+    font-size: 1.5em;
+}
+.THIS .whb-text {
+    font-size: 1.5em;
+}
+.THIS .whb-name {
+    vertical-align: top;
+    display: inline-block;
+    width: 75%;
+}
+.THIS .whb-cell{
+    display: flex;
+}
+.THIS .document-info{
+    float: right;
+}
+.THIS .document-icon{
+    font-size: 1.5em;
+    padding: 2px;
+    vertical-align: middle;
+}
+.THIS .document-count{
+    font-size: 1.3em;
+    padding: 2px;
+    vertical-align: middle;
+}
+.THIS .layer-back {
+    background: #f7f7f7;
+}
+.THIS .layer-front {
+    background: white;
+}
+.THIS .whb-weak-text {
+    color: #929292;
+}
+.THIS .whb-helptext {
+    position: relative;
+    top: -3px;
+}
+.THIS .whb-table {
+    table-layout: fixed;
+}
+.THIS .whb-table td {
+    word-wrap: break-word;
+    white-space: normal;
+}
+.THIS .whb-waitlist td:first-child {
+    width: 42px;
+    text-align: center;
+}
+.THIS .whb-waitlist td+td {
+    width: auto;
+}
+.THIS .whb-waitlist-notes {
+    padding: 0;
+    padding-left: 0.5rem
+}

@@ -1,0 +1,95 @@
+<apex:page renderAs="pdf" applyBodyTag="false" controller="PrintedDispensingPackagesController" action="{!init}">
+    <head>
+        <style type="text/css" media="print">
+            @page {
+                /*padding-top: 85px;*/
+                @top-center {
+                    content: element(header);
+                }
+                @bottom-left {
+                    content: element(footer);
+                }
+            }
+            div.header {
+                /*padding: 10px;*/
+                /*padding-top: 0.25in;*/
+                /*position: running(header);*/
+            }
+            div.footer {
+                display: block;
+                padding: 5px;
+                padding-bottom: 0.25in;
+                position: running(footer);
+            }
+            .pagenumber:before {
+                content: counter(page);
+            }
+            .pagecount:before {
+                content: counter(pages);
+            }
+            body{
+                font-family: "Arial", "Helvetica", sans-serif;
+            }
+            .red-border{
+                border: 1px solid red;
+            }
+            .red{
+                color: red;
+            }
+            .center-text{
+                text-align: center;
+            }
+            .slim-margin{
+                margin: 5px;
+            }
+            .text-align-right{
+                text-align: right;
+            }
+            .logo-padding{
+                padding: 5px 20px 6px;
+            }
+            .float-left{
+                float: left;
+            }
+            .float-right{
+                float: right;
+                margin-top: 10px;
+            }
+            .logo-image{
+                width: 350px;
+                position: relative;
+                left: -8px;
+            }
+            .bold{
+                font-weight: 700;
+            }
+            .extra-space{
+                height: 25px;
+            }
+            .section-header {
+                font-size: 2em;
+                font-weight: 700;
+                margin-top: 20px;
+            }
+            h1 {
+                font-size: 1.5em;
+                font-weight: 500;
+            }
+            hr.rounded {
+                border-top: 8px solid #bbb;
+                border-radius: 5px;
+            }
+        </style>
+    </head>
+    
+    <div class="footer">
+        <!--<div>Page <span class="pagenumber"/> of <span class="pagecount"/></div>-->
+    </div>
+    <div class="content">
+        <apex:repeat value="{!packageHTMLs}" var="computedHtml" id="theRepeat1">
+            <div>
+                <apex:outputText value="{!computedHtml}" escape="false"/>
+            </div>
+        </apex:repeat>
+    </div>
+</apex:page>

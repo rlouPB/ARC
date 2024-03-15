@@ -1,0 +1,66 @@
+<template>
+
+
+    <div id="platform-selection-container" role="dialog" class="slds-modal slds-fade-in-open">
+        <div class="slds-modal__container" style="max-width: unset; width: 550px;">
+
+            <div class="slds-modal__header">
+                <button class="slds-button slds-modal__close slds-button--icon-inverse" title="Close"
+                    onclick={closeModal}>
+                    <lightning-icon variant="inverse" icon-name="utility:close" size="x-small"
+                        alternative-text="Close icon"></lightning-icon>
+                    <span class="slds-assistive-text">Close</span>
+                </button>
+                <h2 id="header43" class="slds-text-heading--medium">Allergy Search</h2>
+            </div>
+
+            <div id="modal-content" class="slds-modal__content slds-p-around--medium" style="height: 250px; padding: 0;">
+                <div onkeyup={handleKeyUpSearch} style="margin: 10px;">
+                    <lightning-input
+                        name="enter-search"
+                        label="Enter allergy name"
+                        type="search"
+                        class="allergySearch" >
+                    </lightning-input>
+                </div>
+
+                <div>
+
+                    <template if:true={isLoading}>
+                        <div class="backgroundInverse">
+                            <lightning-spinner alternative-text="Loading" variant="inverse"></lightning-spinner>
+                        </div>
+                    </template>
+
+                    <template if:false={allergyList}>
+                        <div style="width: 100%; text-align: center;">
+                            <label>{message}</label>
+                        </div>
+                        
+                    </template>
+
+                    <lightning-vertical-navigation onselect={handleSelectAllergy}>
+                        <lightning-vertical-navigation-section>
+                            <template for:each={allergyList} for:item="allergy">
+                            <lightning-vertical-navigation-item key={allergy.id} 
+                            label={allergy.Descr} 
+                            name={allergy.Descr}></lightning-vertical-navigation-item>
+
+                            </template>
+                        </lightning-vertical-navigation-section>
+                    </lightning-vertical-navigation>
+                </div>
+            </div>
+            
+            <div class="slds-modal__footer">
+                <lightning-button label="Close" title="Close" class="slds-m-left_x-small" onclick={closeModal}>
+                </lightning-button>
+                <!-- <lightning-button label="Other Allergy" title="Other Allergy" class="slds-m-left_x-small" onclick={handleSelectAllergy}>
+                </lightning-button> -->
+                <lightning-button label="Other Allergy" title="Other Allergy" class="slds-m-left_x-small" onclick={handleOtherAllergy}>
+                </lightning-button>
+            </div>
+        </div>
+    </div>
+    <div class="slds-backdrop slds-backdrop_open"></div>
+</template>

@@ -1,0 +1,30 @@
+<aura:component controller="DischargeSectionCtl" extends="c:DischargeSection">
+        
+    <!-- handler -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler name="dischargeSectionActionEvent" event="c:DischargeSectionActionEvent" action="{!c.handleSectionActionEvent}"/>
+    <aura:handler name="referralChanged" event="c:DischargeDispositionReferralChanged" action="{!c.handleReferralChanged}"/>
+
+    <!-- Register Events -->
+    
+    <lightning:card>
+        <lightning:layout multipleRows="true">
+            <lightning:layoutItem size="3">
+                <label for="Comments" class="slds-form-element__label"></label>
+                <div id="Comments">Nursing Education Information</div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="9">
+                <aura:if isTrue="{!v.isEditable}">
+                    <lightning:InputRichText value="{!v.dischargeSection.dischargeSectionObj.Nursing_Education_Information__c}" 
+                                             disabledCategories="FORMAT_FONT,ALIGN_TEXT,INSERT_CONTENT,REMOVE_FORMATTING"
+                                             disabled="{!not(v.isEditable)}"
+                                             />
+                    <aura:set attribute="else">
+                        <label for="Nursing_Education_Information__c" class="slds-form-element__label"></label>
+                        <div id="Nursing_Education_Information__c"><lightning:formattedRichText value="{!v.dischargeSection.dischargeSectionObj.Nursing_Education_Information__c}"/></div>
+                    </aura:set>
+                </aura:if>
+            </lightning:layoutItem>
+        </lightning:layout>
+    </lightning:card>
+</aura:component>

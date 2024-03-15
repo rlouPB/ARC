@@ -1,0 +1,46 @@
+<aura:component controller="AddLabObservationController" implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickAction">
+    <aura:handler name = "init" value = "{!this}" action = "{!c.onInit}"/>
+    <!-- New Program -->
+    <aura:attribute name="newCompendiumEntry" type="Map" description="new Compendium_Entry__c record"/>
+    <aura:attribute name="selectedCompendiumEntry" type="Map" description="object set by lookupComponent"/>
+    <aura:attribute name="selectedOBRCode" type="String" description="object set by lookupComponent" />
+    <aura:attribute name="patientRecord" type="Object" description="Patient Record" />
+    <aura:attribute name="category" type="String" description="Compendium Entry CAtegory" />
+    <aura:handler name="change" value="{!v.selectedCompendiumEntry}" action="{!c.onSelectedCompendiumEntryChanged}" />
+    <c:customRecordData aura:id="patientRecord"
+						recordId="{!v.recordId}"
+						selectFields="Id, Name, Patient_Name__c"
+						target="{!v.patientRecord}"></c:customRecordData>
+    <div>
+        <lightning:card  >
+            <lightning:layout multipleRows="true">
+                <lightning:layoutItem size="12" padding="around-small" class="slds-text-heading_medium">
+                    <lightning:input label="Patient Name" value="{!v.patientRecord.Patient_Name__c}" readonly="true" class="slds-text-heading_medium"/>
+                </lightning:layoutItem>
+                
+                <lightning:layoutItem size="12" padding="around-small" class="slds-text-heading_medium">
+                    <c:LookupComponent aura:id="selectCompendiumEntry"
+                                        objectName="Compendium_Entry__c" label="Select Compendium Entry"
+                                        fieldsToSearch="Name,Test_Name__c "
+                                        selectedRecord="{!v.selectedCompendiumEntry}"
+                                        displayField="Search_Field__c"
+                                        displayFieldValue="Id"
+                                        
+                                        required="true"
+                                        />
+                </lightning:layoutItem>
+                <lightning:layoutItem size="12"  padding="around-small" class="slds-text-heading_medium">
+                    <lightning:input  label="Lab Test Type" value="{!v.category}" readonly="true" class="slds-text-heading_medium"/>
+                </lightning:layoutItem>
+            
+                <lightning:layoutItem size="12"  padding="horizontal-medium">
+                        
+                    <lightning:button label="Save" title="Save" variant="brand"
+                                    onclick="{!c.saveLabObservation}"/>
+                        
+                </lightning:layoutItem>
+            </lightning:layout>
+            
+        </lightning:card>
+    </div>
+</aura:component>

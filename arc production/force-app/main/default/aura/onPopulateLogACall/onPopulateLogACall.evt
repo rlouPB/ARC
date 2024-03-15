@@ -1,0 +1,5 @@
+<aura:event type="APPLICATION" description="Used For Populate Log a Call From call Search component">
+    <aura:attribute name="noteId" type="String" access="public" Description="Used to store Note Id to populate Call a log" />
+    <aura:attribute name="noteRecordtypeName" type="String" access="public" Description="Used to store Note Recordtype Name" />
+    <aura:attribute name="isFromCallSearch" type="Boolean" access="public" Description="Used to store Note Id to populate Call a log" />
+</aura:event>

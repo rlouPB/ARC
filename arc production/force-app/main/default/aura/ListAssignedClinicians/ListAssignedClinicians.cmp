@@ -1,0 +1,239 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,force:hasRecordId,lightning:actionOverride,forceCommunity:availableForAllPageTypes" controller="ListAssignedClinicians" extends="c:ApexService" access="global">
+  <aura:attribute name="recordId" type="String" />
+  <aura:attribute name="accountRecord" type="Account" />
+  <aura:attribute name="admissionId" type="String" />
+  <aura:attribute name="assignedClinicians" type="Assigned_Clinician__c[]" access="global" />
+  <aura:attribute name="dieticianActive" type="Boolean" default="false" />
+  <aura:attribute name="dieticianId" type="String" />
+  <aura:attribute name="hasClinicianPermission" type="Boolean" />
+  <aura:attribute name="hasDietician" type="Boolean" default="false" />
+  <aura:attribute name="hasSUS" type="Boolean" default="false" />
+  <aura:attribute name="loaded" type="Boolean" default="false" />
+  <aura:attribute
+    name="radioOptions"
+    type="List"
+    default="[
+	{'label': 'Show All', 'value': 'all'},
+	{'label': 'Show Active', 'value': 'active'}
+	]"
+  />
+  <aura:attribute name="radioValue" type="String" default="active" />
+  <aura:attribute name="showManageModal" type="Boolean" default="false" />
+  <aura:attribute name="sortAsc" type="Boolean" default="false" />
+  <aura:attribute name="sortField" type="String" default="End_Date__c" />
+  <aura:attribute name="SUSActive" type="Boolean" default="false" />
+  <aura:attribute name="SUSId" type="String" />
+  <aura:attribute name="thisComponent" type="Aura.Component" default="{!this}" />
+  <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+  <aura:handler name="closeModalEvent" event="c:closeModal" action="{!c.handleCloseModalEvent}" />
+  <aura:handler event="c:refreshPatient" action="{!c.handleRefreshPatient}" />
+
+  <force:recordData aura:id="recordLoader" recordId="{!v.recordId}" fields="Name,Current_Case__c" targetFields="{!v.accountRecord}" />
+
+  <lightning:overlayLibrary aura:id="overlayLib" />
+  <lightning:notificationsLibrary aura:id="notifLib" />
+
+  <!-- <div class="slds-box slds-theme_default"> -->
+  <div class="slds-grid slds-wrap slds-var-p-left_medium slds-var-p-right_medium">
+    <div class="slds-col slds-size_3-of-12">
+      <div class="slds-grid slds-gutters">
+        <div class="slds-col">
+          <div class="slds-form-element">
+            <span style="float: left">
+              <h1 style="font-size: 18px; font-weight: 600">
+                <lightning:icon iconName="standard:team_member" size="small" alternativeText="Assigned Clinicians" class="slds-var-m-right_small" />
+                Assigned Clinicians
+              </h1>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slds-col slds-size_4-of-12">
+      <div class="slds-grid slds-gutters">
+        <div class="slds-col">
+          <div class="slds-form-element">
+            <span style="float: left">
+              <!-- Removed 210527 JN, for some reason this version wasn't showing the default selection right, don't understand why
+									<lightning:radioGroup name="viewOption"
+														label=""
+														options="{!v.radioOptions}"
+														value="{!v.radioValue}"
+														type="button"
+														variant="label-hidden"
+														class="display: inline-block !important;"
+														onchange="{!c.reloadData}" /> -->
+              <lightning:radioGroup name="radioButtonGroup" options="{! v.radioOptions }" value="{! v.radioValue }" type="button" variant="label-hidden" class="display: inline-block !important;" onchange="{!c.reloadData}" />
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slds-col slds-size_5-of-12">
+      <div class="slds-grid slds-gutters">
+        <div class="slds-col">
+          <div class="slds-form-element">
+            <span style="float: right">
+              <lightning:buttonGroup class="slds-p-bottom_medium slds-float_right">
+                <lightning:buttonIcon iconName="utility:refresh" onclick="{!c.handleRefreshButtonClick}" alternativeText="Refresh" />
+                <aura:if isTrue="{!v.hasClinicianPermission}">
+                  <lightning:button variant="neutral" onclick="{!c.handleShowManageModal}" label="Manage Assigned Clinicians" title="Manage Assigned Clinicians" />
+                </aura:if>
+              </lightning:buttonGroup>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slds-grid slds-wrap" style="margin-top: 25px">
+    <div class="slds-col slds-size_1-of-1">
+      <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped">
+        <thead>
+          <tr class="slds-line-height_reset">
+            <th class="slds-col slds-size_4-of-12" scope="col" data-columnName="User_Name__c" onclick="{!c.sortByName}">
+              <div class="slds-truncate" title="Clinician">
+                Clinician
+                <aura:if isTrue="{!v.sortField=='User_Name__c'}">
+                  <span>
+                    <aura:if isTrue="{!v.sortAsc}">
+                      <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up" />
+                      <aura:set attribute="else">
+                        <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow up" />
+                      </aura:set>
+                    </aura:if>
+                  </span>
+                </aura:if>
+              </div>
+            </th>
+            <th class="slds-col slds-size_4-of-12" scope="col" data-columnName="Role__c" onclick="{!c.sortByName}">
+              <div class="slds-truncate" title="Role">
+                Role
+                <aura:if isTrue="{!v.sortField=='Role__c'}">
+                  <span>
+                    <aura:if isTrue="{!v.sortAsc}">
+                      <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up" />
+                      <aura:set attribute="else">
+                        <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow up" />
+                      </aura:set>
+                    </aura:if>
+                  </span>
+                </aura:if>
+              </div>
+            </th>
+            <th class="slds-col slds-size_2-of-12" scope="col" data-columnName="Start_Date__c" onclick="{!c.sortByName}">
+              <div class="slds-truncate" title="Start Date">
+                Start Date
+                <aura:if isTrue="{!v.sortField=='Start_Date__c'}">
+                  <span>
+                    <aura:if isTrue="{!v.sortAsc}">
+                      <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up" />
+                      <aura:set attribute="else">
+                        <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow up" />
+                      </aura:set>
+                    </aura:if>
+                  </span>
+                </aura:if>
+              </div>
+            </th>
+            <th class="slds-col slds-size_2-of-12" scope="col" data-columnName="End_Date__c" onclick="{!c.sortByName}">
+              <div class="slds-truncate" title="End Date">
+                End Date
+                <aura:if isTrue="{!v.sortField=='End_Date__c'}">
+                  <span>
+                    <aura:if isTrue="{!v.sortAsc}">
+                      <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="arrow up" />
+                      <aura:set attribute="else">
+                        <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="arrow up" />
+                      </aura:set>
+                    </aura:if>
+                  </span>
+                </aura:if>
+              </div>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <aura:if isTrue="{! v.loaded }">
+            <aura:iteration items="{!v.assignedClinicians}" var="clinician">
+              <aura:if isTrue="{!and(!clinician.isDeleted, clinician.User__c != null, clinician.User__c != '')}">
+                <tr class="slds-hint-parent">
+                  <td data-label="Clinician" scope="row" class="slds-col slds-size_4-of-12">
+                    <div class="slds-truncate" title="{!clinician.User_Name__c}">{!clinician.User_Name__c}</div>
+                  </td>
+                  <td data-label="Role" class="slds-col slds-size_4-of-12">
+                    <div class="slds-truncate" title="{!clinician.Role__c}">{!clinician.Role__c}</div>
+                  </td>
+                  <td data-label="Start Date" class="slds-col slds-size_2-of-12">
+                    <div class="slds-truncate" title="{!clinician.Start_Date__c}">
+                      <ui:outputDate value="{!clinician.Start_Date__c}" format="MM/dd/yy" />
+                    </div>
+                  </td>
+                  <td data-label="End Date" class="slds-col slds-size_2-of-12">
+                    <div class="slds-truncate" title="{!clinician.End_Date__c}">
+                      <ui:outputDate value="{!clinician.End_Date__c}" format="MM/dd/yy" />
+                    </div>
+                  </td>
+                </tr>
+              </aura:if>
+            </aura:iteration>
+            <aura:set attribute="else">
+              <lightning:spinner alternativeText="Loading" />
+            </aura:set>
+          </aura:if>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Begin section added by Sols ARC-2100 -->
+  <!-- <aura:if isTrue="{!or(v.hasSUS, v.hasDietician)}"> -->
+  <div class="slds-grid slds-wrap" style="margin-top: 25px">
+    <div class="slds-col slds-size_3-of-12 slds-text-align_center"></div>
+    <div class="slds-col slds-size_2-of-12 slds-text-align_center">
+      <span class="slds-text-title_bold">Actively working with</span>
+    </div>
+    <!-- <aura:if isTrue="{!and(v.hasSUS, v.hasDietician)}"> -->
+    <div class="slds-col slds-size_2-of-12">
+      <span class="slds-text-title_bold">
+        <lightning:input type="checkbox" aura-id="{!v.SUSId}" data-id="{!v.SUSId}" label="Substance Use Counselor" name="activeSUS" />
+      </span>
+    </div>
+    <div class="slds-col slds-size_3-of-12">
+      <span class="slds-text-title_bold">
+        <lightning:input type="checkbox" aura-id="{!v.dieticianId}" data-id="{!v.dieticianId}" label="Registered Dietitian Nutritionist" name="activeDietician" />
+      </span>
+    </div>
+    <div class="slds-col slds-size_2-of-12 slds-text-align_center"></div>
+    <!-- <aura:set attribute="else">
+        <aura:if isTrue="{!v.hasSUS}">
+          <div class="slds-col slds-size_7-of-12">
+            <span class="slds-text-title_bold">
+              <lightning:input type="checkbox" aura-id="{!v.SUSId}" data-id="{!v.SUSId}" label="Substance Use Counselor" name="activeSUS" checked="{!v.SUSActive}" onchange="{!c.handleActiveSUS}" />
+            </span>
+          </div>
+          <aura:set attribute="else">
+            <div class="slds-col slds-size_7-of-12">
+              <lightning:input type="checkbox" aura-id="{!v.dieticianId}" data-id="{!v.dieticianId}" label="Registered Dietitian Nutritionist" name="activeDietician" checked="{!v.dieticianActive}" onchange="{!c.handleActiveDietician}" />
+            </div>
+          </aura:set>
+        </aura:if>
+      </aura:set> -->
+    <!-- </aura:if> -->
+  </div>
+  <!-- </aura:if> -->
+  <!-- End section added by Sols ARC-2100 -->
+
+  <aura:if isTrue="{!v.showManageModal}">
+    <c:sldsModal instanceName="manageClinicians" maxHeight="true">
+      <aura:set attribute="header"> Manage Assigned Clinicians </aura:set>
+      <aura:set attribute="content">
+        <c:ManageAssignedCliniciansNew recordId="{!v.recordId}" aura:id="manageClinicians" />
+      </aura:set>
+      <aura:set attribute="footer">
+        <lightning:button variant="Neutral" label="Cancel" onclick="{!c.hideManageModal}" />
+        <lightning:button variant="brand" label="Save Assigned Clinicians" onclick="{!c.saveAssignedClinicians}" />
+      </aura:set>
+    </c:sldsModal>
+  </aura:if>
+</aura:component>

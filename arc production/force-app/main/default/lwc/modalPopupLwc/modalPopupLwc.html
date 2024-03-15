@@ -1,0 +1,28 @@
+<template>
+    <template if:true={showDialog}>
+        <div>
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <div class="slds-modal__content">
+                        <header class={headerClass}>
+                            <h2 class="slds-text-heading--medium">{titleView}</h2>
+                        </header>                          
+                        <div class="slds-modal__content slds-p-around_medium" >  
+                            <template if:true={showPrompt}>      
+                                <lightning-input data-id="promptInput" variant="label-hidden" class="slds-input" value={promptMessage} onchange={promptChangeHandler} onkeyup={promptOnKeyUpHandler}></lightning-input>
+                            </template>
+                            <template if:false={showPrompt}><lightning-formatted-rich-text value={message}></lightning-formatted-rich-text></template>
+                        </div>
+                    </div>  
+                    <div class="slds-modal__footer"> 
+                        <lightning-button label={okBtnLabel} variant="brand" onclick={okBtnHandler}></lightning-button>
+                        <template if:true={isConfirmOrPrompt}>
+                            <lightning-button class="slds-p-left_x-small" label={cancelBtnLabel}  onclick={cancelBtnHandler}></lightning-button>
+                        </template>
+                    </div>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </div>
+    </template>
+</template>

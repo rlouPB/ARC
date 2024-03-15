@@ -1,0 +1,45 @@
+<template>
+    <div class="slds-grid slds-wrap slds-p-left_medium slds-p-right_medium">
+        <div class="slds-col slds-size_3-of-12">
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col">
+                    <div class="slds-form-element">
+                        <span style="float: left;">
+                            <h1 style="font-size: 18px; font-weight: 600;">
+                                <lightning-icon icon-name="standard:work_step" size="small" alternative-text="Patient Diagnoses" class="slds-m-right_small"></lightning-icon>
+                                Patient Diagnoses
+                            </h1>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="slds-col slds-size_4-of-12">
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col">
+                    <div class="slds-form-element">
+                        <span style="float: left;">
+                            <lightning-radio-group 
+                                value={selected}
+                                name="viewOption"
+                                options={options}
+                                type="button"
+                                variant="label-hidden"                
+                                onchange={onSelectedOption}></lightning-radio-group>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>       
+    </div>
+
+    <div style="margin-top: 20px;">
+        <lightning-card title="Principals">
+            <lightning-datatable key-field="id" data={principals} columns={columns} hide-checkbox-column="true" ></lightning-datatable>
+        </lightning-card>
+        <lightning-card title="Comorbids">
+            <lightning-datatable key-field="id" data={comorbids} columns={columns} hide-checkbox-column="true" ></lightning-datatable>                
+        </lightning-card>
+    </div>
+
+</template>

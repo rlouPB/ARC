@@ -1,0 +1,109 @@
+<aura:component>
+
+    <!-- External Attributes -->
+    <aura:attribute name="patient" type="Map"/>
+    <aura:attribute name="dischargeDisposition" type="Map"/>
+    <aura:attribute name="isEditable" type="Boolean" default="false"/>
+    <!-- Handlers -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:registerEvent name="DischargeDispositionActionEvent" type="c:DischargeDispositionActionEvent"/>
+    
+    <div >
+    <lightning:card class="slds-p-left_small slds-p-right_small">
+        <lightning:layout>
+            <lightning:layoutItem size="12">
+                <lightning:layout multipleRows="true">
+                    <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                        <aura:unescapedHtml value="{!v.dischargeDisposition.patient.Photo__c}"/>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                        <label for="Patient" class="slds-form-element__label">Patient</label>
+                        <aura:if isTrue="{!not(empty(v.patient.Name))}">
+                            <div id="Patient"><a href="{!'/'+v.patient.Id}" target="_blank">{!v.patient.Name}</a></div>
+                            <aura:set attribute="else">
+                                <div id="Patient"><a href="{!'/'+v.dischargeDisposition.patient.Id}" target="_blank">{!v.dischargeDisposition.patient.Name}</a></div>
+                            </aura:set>
+                        </aura:if>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                        <label for="Team" class="slds-form-element__label">Program</label>
+                        <div id="Team">IRP-G</div>
+                    </lightning:layoutItem>
+                </lightning:layout>
+                <aura:if isTrue="{!not(empty(v.dischargeDisposition))}">
+                    <lightning:layout multipleRows="true">
+                        <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                            <label for="Patient" class="slds-form-element__label">Anticipated Discharge Date</label>
+                            <div id="AnticipatedDischargeDate">
+                                <lightning:formattedDateTime value="{!v.dischargeDisposition.dischargeDispositionObj.Anticipated_Discharge_Date__c}"
+                                month="2-digit" day="2-digit" year="numeric"
+                                timeZone="UTC" />
+                            </div>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                </aura:if>
+            </lightning:layoutItem>
+        </lightning:layout>
+    <!-- </lightning:card>
+
+    <lightning:card class="slds-p-left_small slds-p-right_small"> -->
+        <aura:set attribute="footer" >
+            <lightning:layout multipleRows="true">
+                <aura:if isTrue="{!and(or(v.isEditable, v.dischargeDisposition.isMedRecords),not(v.dischargeDisposition.dischargeDispositionObj.Status__c == 'Finalized'))}" >
+                    <lightning:layoutItem size="12" padding="horizontal-large">
+                        <lightning:button variant="brand" 
+                            class="slds-button_stretch slds-button_stretch slds-var-m-top_xx-small"
+                            label="Save" 
+                            title="Save" 
+                            onclick="{!c.handleSaveDischarge}" disabled="{!not(or(v.isEditable, v.dischargeDisposition.isMedRecords))}"/>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="12" padding="horizontal-large">
+                            <lightning:button variant="brand" 
+                                class="slds-button_stretch slds-button_stretch slds-var-m-top_xx-small"
+                                label="Finalize" 
+                                title="Finalize" 
+                                onclick="{!c.handleFinalizeDischarge}" disabled="{!not(or(v.isEditable, v.dischargeDisposition.isMedRecords))}"/>
+                    </lightning:layoutItem>
+                </aura:if>
+                
+                <aura:if isTrue="{!and(or(v.isEditable, v.dischargeDisposition.isMedRecords),v.dischargeDisposition.dischargeDispositionObj.Status__c == 'Finalized')}" >
+                    <lightning:layoutItem size="12" padding="horizontal-large">
+                            <lightning:button variant="brand" 
+                                class="slds-button_stretch slds-button_stretch slds-var-m-top_xx-small"
+                                label="Re-Open" 
+                                title="Re-Open" 
+                                onclick="{!c.handleReOpenDischarge}" disabled="{!not(or(v.isEditable, v.dischargeDisposition.isMedRecords))}"/>
+                    </lightning:layoutItem>
+                </aura:if>
+
+                <lightning:layoutItem size="12" padding="horizontal-large">
+                        <lightning:button variant="brand" 
+                            class="slds-button_stretch slds-button_stretch slds-var-m-top_xx-small"
+                            label="Print" 
+                            title="Print" 
+                            onclick="{!c.handlePrintDischarge}" disabled="{!not(v.dischargeDisposition.dischargeDispositionObj.Status__c == 'Finalized')}" />
+                </lightning:layoutItem>
+
+                <lightning:layoutItem size="12" padding="horizontal-large">
+                        <lightning:button variant="brand" 
+                            class="slds-button_stretch slds-button_stretch slds-var-m-top_xx-small"
+                            label="Print Draft" 
+                            title="Print Draft" 
+                            onclick="{!c.handlePrintDraftDischarge}" disabled="{!not(v.dischargeDisposition.dischargeDispositionObj.Status__c == 'Draft')}" />
+                </lightning:layoutItem>
+
+                <aura:if isTrue="{!and(v.isEditable || v.dischargeDisposition.isMedRecords || v.dischargeDisposition.isSystemAdmin, not(v.dischargeDisposition.dischargeDispositionObj.Status__c == 'Finalized'))}" >
+                    <lightning:layoutItem size="12" padding="horizontal-large">
+                        <lightning:button variant="brand" 
+                            class="slds-button_stretch slds-button_stretch slds-var-m-top_xx-small"
+                            label="Discard" 
+                            title="Discard" 
+                            onclick="{!c.handleCancelDischarge}" />
+                    </lightning:layoutItem>
+                </aura:if>
+                
+            </lightning:layout>
+        </aura:set>
+    </lightning:card>
+    </div>
+</aura:component>

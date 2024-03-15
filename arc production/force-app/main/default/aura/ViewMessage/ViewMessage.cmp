@@ -1,0 +1,170 @@
+<aura:component controller="CreateMessageController" implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickActionwithoutheader,lightning:actionOverride">
+	
+	<aura:attribute name="id" type="String" default="" />
+	<aura:attribute name="type" type="String" default="" />
+	<aura:attribute name="clientId" type="String" default="" />
+	<aura:attribute name="message" type="Object" default="{}" />
+	<aura:attribute name="loading" type="Boolean" default="false" />
+	<aura:attribute name="messageLinks" type="Map" default="{}" description="object to store links to related records" />
+	<aura:attribute name="patientPageReference" type="Object" />
+	<aura:attribute name="patientNotePageReference" type="Object" />
+	<aura:attribute name="patientUrl" type="String" />
+	<aura:attribute name="patientNoteUrl" type="String" />
+	<aura:attribute name="prescriptionUrl" type="String" />
+	<aura:attribute name="showReplyAll" type="Boolean" default="" />
+	
+	<aura:handler name="init" value="{! this }" action="{! c.init }" />
+	<aura:handler event="c:MessagePreviewEvent" action="{!c.handlePreview}"></aura:handler>
+	<aura:handler event="c:MessageUnreadEvent" action="{!c.handleUnread}"></aura:handler>
+	
+	<aura:registerevent name="messageUnreadEvent" type="c:MessageUnreadEvent"></aura:registerevent>
+	<aura:registerevent name="messagePreviewEvent" type="c:MessagePreviewEvent"></aura:registerevent>
+	<aura:registerevent name="messageDeleteEvent" type="c:MessageDeleteEvent"></aura:registerevent>
+	
+	<lightning:navigation aura:id="navService" />
+	<ltng:require styles="{!$Resource.slds_page_header_hide}" />
+	
+	<lightning:card class="slds-var-m-horizontal_medium printDoc" title="">
+		<aura:set attribute="actions">
+			<div class="action-items slds-no-print">
+				<lightning:layout horizontalAlign="space">
+					<lightning:layoutItem size="6" flexibility="auto">
+						<lightning:layout verticalAlign="space" multipleRows="true">
+							<lightning:layoutItem size="12">
+								<aura:if isTrue="{!and(v.message.id != null, v.type == 'Standard Message')}">
+									<aura:if isTrue="{!v.showReplyAll}">
+										<lightning:button label="Reply All" value="{!v.message.messageId}" onclick="{!c.handleReply}" />
+									</aura:if>
+								</aura:if>
+							</lightning:layoutItem>
+							<lightning:layoutItem size="12">
+								<aura:if isTrue="{!and(v.message.id != null, or(v.type == 'Standard Message', v.type == 'Clinical Alert'))}">
+									<aura:if isTrue="{!v.message.read}">
+										<lightning:button value="{!v.message.id}" label="Mark Unread" onclick="{!c.handleUnread}" />
+										<aura:set attribute="else">
+											<lightning:button value="{!v.message.id}" label="Mark Read" onclick="{!c.handleRead}" />
+										</aura:set>
+									</aura:if>
+								</aura:if>
+							</lightning:layoutItem>
+						</lightning:layout>
+					</lightning:layoutItem>
+					<lightning:layoutItem size="6" flexibility="auto">
+						<lightning:layout verticalAlign="space" multipleRows="true">
+							<lightning:layoutItem size="12">
+								<!-- <aura:if isTrue="{!and(v.message.id != null, or(v.type == 'Standard Message', v.type == 'Clinical Alert'))}"> -->
+								<aura:if isTrue="{!and(v.message.id != null, v.type == 'Standard Message')}">
+									<lightning:button label="Reply" value="{!v.message.messageId}" onclick="{!c.handleReply}" />
+								</aura:if>
+							</lightning:layoutItem>
+							<aura:if isTrue="{! v.type != 'Clinical Alert'}">
+								<aura:if isTrue="{!and(v.message.id != null, and(v.type != 'Deleted Messages', v.type != 'Sent Messages'))}">
+									<lightning:layoutItem size="12">
+										<lightning:button label="Delete" value="{!v.message.id}" variant="destructive" onclick="{!c.handleDelete}" />
+									</lightning:layoutItem>
+								</aura:if>
+							</aura:if>
+							<!-- <aura:if isTrue="{!and(v.message.id != null, v.type == 'Deleted Messages')}">
+								<lightning:layoutItem size="12">
+									<lightning:button label="Undelete" value="{!v.message.id}" variant="destructive" onclick="{!c.handleUnDelete}" />
+								</lightning:layoutItem>
+							</aura:if> -->
+
+						</lightning:layout>
+					</lightning:layoutItem>
+				</lightning:layout>
+			</div>
+		</aura:set>
+		<aura:set attribute="footer">
+			<div class="slds-clearfix">
+				<div class="slds-float_left slds-text-align_left">
+					<aura:if isTrue="{! v.loading }">
+						<lightning:spinner variant="brand" size="small" alternativeText="Loading" />
+						<aura:set attribute="else">
+							<aura:if isTrue="{!and(v.message, v.message.id, v.message.id != '')}">
+								<div class="slds-var-p-horizontal_small">From: <span style="font-weight: 900">{!v.message.from}</span></div>
+								<div class="slds-var-p-horizontal_small">
+									To
+									<span style="{!'font-weight:900;' + (v.message.toCount > 4 ? ' cursor: pointer;' : '')}" onclick="{!c.toggleAllRecipients}">
+										<aura:if isTrue="{!v.message.displayMore}">
+											<aura:iteration items="{!v.message.to}" var="recipient">
+												<span title="{!recipient.members}">{!recipient.name}</span>
+											</aura:iteration>
+											<aura:set attribute="else">
+												<aura:iteration items="{!v.message.to}" var="recipient" end="4">
+													<span title="{!recipient.members}">{!recipient.name}</span>
+												</aura:iteration>
+												<aura:if isTrue="{!v.message.toCount > 4}">
+													<span class="slds-text-link">more...</span>
+												</aura:if>
+											</aura:set>
+										</aura:if>
+									</span>
+								</div>
+								<div class="slds-var-p-horizontal_small">
+									Sent:
+									<span style="font-weight: 900">
+										<lightning:formattedDateTime value="{!v.message.sent}" year="numeric" month="numeric" day="numeric" hour="2-digit" minute="2-digit" hour12="true" timeZoneName="short" timeZone="America/New_York" />
+									</span>
+								</div>
+								<div class="slds-var-p-horizontal_small">
+									Subject:
+									<span style="font-weight: 900">{!v.message.subject}</span>
+								</div>
+								<div class="slds-var-p-horizontal_small slds-var-p-vertical_medium uiOutputRichText" linkify="true">
+									<!-- @<aura:unescapedHtml value="{!v.message.body}" />@
+									<br/> -->
+									<lightning:formattedRichText value="{!v.message.body}" />
+								</div>
+							</aura:if>
+						</aura:set>
+					</aura:if>
+				</div>
+			</div>
+			<!-- <aura:if isTrue="{!v.clientId != ''}"> -->
+				<div class="slds-no-print">
+			<hr style="border-top: 2px solid #bbb" />
+		 
+			<lightning:layout verticalAlign="space" >
+				<lightning:layoutItem size="3">
+					&nbsp;
+				</lightning:layoutItem>
+				<lightning:layoutItem size="3">
+					&nbsp;
+				</lightning:layoutItem>
+				<lightning:layoutItem size="3">
+					&nbsp;
+				</lightning:layoutItem>
+				<lightning:layoutItem size="3">
+					<lightning:button class="slds-no-print " label="Print" value="{!v.message.messageId}" onclick="{!c.handlePrint}" />
+				</lightning:layoutItem>
+			</lightning:layout>
+		</div>
+			
+			<c:showMessageLinks  messageLinks="{!v.messageLinks}" />
+			<!-- <div style="width: 100%; text-align: left">
+				<aura:if isTrue="{!v.message.clientId != '' &amp;&amp; v.message.clientId != null &amp;&amp; v.message.clientId != undefined}">
+					<div style="width: 30%; margin: auto; display: inline-block">
+						Patient
+						<a href="{!v.patientUrl}" target="_blank">{!v.message.patientName}</a>
+					</div>
+				</aura:if>
+				<aura:if isTrue="{!v.message.patientNoteId != '' &amp;&amp; v.message.patientNoteId != null &amp;&amp; v.message.patientNoteId != undefined}">
+					<div style="width: 69%; margin: auto; display: inline-block">
+						Patient Note
+						<a href="{!v.patientNoteUrl}" target="_blank">{!v.message.patientNoteType}</a>
+					</div>
+				</aura:if>
+				<aura:if isTrue="{!v.message.prescriptionId != '' &amp;&amp; v.message.prescriptionId != null &amp;&amp; v.message.prescriptionId != undefined}">
+					<div style="width: 69%; margin: auto; display: inline-block">
+						<a href="{!v.prescriptionUrl}" target="_blank">Prescription</a>
+					</div>
+				</aura:if>
+			</div> -->
+
+			<!-- </aura:if> -->
+		</aura:set>
+	</lightning:card>
+	<lightning:overlayLibrary aura:id="overlayLibViewMsg" />
+	<lightning:notificationsLibrary aura:id="notifLib" />
+</aura:component>

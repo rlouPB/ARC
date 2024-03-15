@@ -1,0 +1,88 @@
+<template>
+    <div class="slds-col">
+        <div class="slds-form-element">
+            <span>
+                <lightning-radio-group
+              options={options}
+              value={radioButtonTitleValue}
+              type="button"
+              onchange={handleOpenItemTitle}></lightning-radio-group>
+            </span>
+        </div>
+    </div>
+
+    <div class="slds-grid">        
+
+        <div class="slds-col slds-size_1-of-3 slds-p-around_medium">
+            <div class="fullheight border slds-p-around_medium">
+                <div class="slds-text-heading_large slds-text-align_center">
+                    {title}
+                </div><br />
+                <div class="slds-grid" style="display: block;">
+                    <!-- <div style="width: 100%; display: block; margin-bottom: 20px;">
+                        <c-lookup-lwc
+                            selection={initialLookupSelection}
+                            errors={errors}
+                            onsearch={handleLookupSearch}
+                            onselectionchange={handleLookupSelectionChange}
+                            label="Search User"
+                            placeholder="Search Salesforce"
+                            is-multi-entry={isMultiEntry}
+                            new-record-options={newRecordOptions}
+                            required
+                        ></c-lookup-lwc>
+                    </div> -->
+                    <div style="width: 100%; display: block;">
+                        <!-- <lightning:checkboxGroup options="{!v.categories}" value="{!v.selectedCategories}" onchange="{!c.handleCheckboxChange}" /> -->
+                        <!-- <div style="width: 100%; text-align: center;">
+                            <lightning-radio-group
+                            options={optionsAllNone}
+                            value={allNoneValue}
+                            type="button"
+                            onchange={handleAllNone}></lightning-radio-group>
+                        </div> -->
+
+                        <lightning-button variant="base" label={selectAllNoneLabel} title={selectAllNoneLabel} onclick={handleSelectAllNone} class="slds-m-left_x-small"></lightning-button>
+                        
+                        <lightning-checkbox-group name="Categories"
+                              label="Categories"
+                              options={categoryOptions}
+                              value={categoryValue}
+                              onchange={handleChangeCategories}></lightning-checkbox-group>
+                        <template if:true={isLoading}>
+                            <div class="backgroundInverse">
+                                <lightning-spinner alternative-text="Loading"></lightning-spinner>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slds-col slds-size_2-of-3 slds-p-around_medium">
+            <div class="fullheight border slds-p-around_medium">
+                <div style="height: 500px;">
+                    <template if:true={isLoading}>
+                        <div class="backgroundInverse">
+                            <lightning-spinner alternative-text="Loading"></lightning-spinner>
+                        </div>
+                    </template>
+                    <lightning-datatable
+                            key-field="id"
+                            data={dataOpenItems}
+                            columns={columnsOpenItems}
+                            sorted-by={sortBy}
+                            sorted-direction={sortDirection}
+                            onsort={handleSortdata}
+                            hide-checkbox-column>
+                            
+                    </lightning-datatable>
+                </div>    
+            </div>
+        </div>
+        
+        
+
+    </div>
+    
+</template>

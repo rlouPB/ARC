@@ -1,0 +1,22 @@
+.THIS .borderTop {
+  border-top: 1px solid #d9dbdd;
+}
+
+.THIS .spinnerHolder {
+  position: relative;
+  display: inline-block;
+}
+
+.THIS input {
+  background-color: rgb(255, 255, 255);
+}
+
+.THIS .customRequired {
+  font-weight: normal;
+}
+
+.THIS .customRequired a:not(.display),
+.THIS .customRequired input,
+.THIS .customRequired .slds-pill_container {
+  border: 1px solid red;
+}

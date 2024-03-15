@@ -1,0 +1,103 @@
+<aura:component controller="CreateMessageController" implements="force:hasRecordId,force:lightningQuickActionwithoutheader,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,lightning:actionOverride">
+  <aura:attribute name="body" type="String" default="" />
+  <aura:attribute name="clientId" type="String" default="" />
+  <aura:attribute name="focus" type="String" default="" />
+  <aura:attribute name="groupLookupError" type="Map" default="{message: 'error', show: false}" />
+  <aura:attribute name="groupLookupFilter" type="List" default="[]" />
+  <aura:attribute name="groupPillItems" type="List" default="[]" />
+  <aura:attribute name="groupSearchText" type="String" default="" />
+  <aura:attribute name="isReply" type="Boolean" default="false" />
+  <aura:attribute name="label" type="String" default="" />
+  <aura:attribute name="loading" type="Boolean" default="false" />
+  <aura:attribute name="messageId" type="String" default="" />
+  <aura:attribute name="messageProfile" type="String" default="Staff" />
+  <aura:attribute name="patientNoteId" type="String" default="" />
+  <aura:attribute name="replied" type="Boolean" default="false" />
+  <aura:attribute name="selectedGroup" type="Map" default="{}" />
+  <aura:attribute name="selectedUser" type="Map" default="{}" />
+  <aura:attribute name="showUser" type="Boolean" default="true" />
+  <aura:attribute name="subject" type="String" default="" />
+  <aura:attribute name="type" type="String" default="" />
+  <aura:attribute name="userLookupError" type="Map" default="{message: 'error', show: false}" />
+  <aura:attribute name="userLookupFilter" type="List" default="[]" />
+  <aura:attribute name="userPillItems" type="List" default="[]" />
+  <aura:attribute name="userSearchText" type="String" default="" />
+  <aura:handler event="c:MessageEvent" action="{!c.handleUserEvent}"></aura:handler>
+  <aura:handler name="change" value="{!v.loading}" action="{!c.acquireFocus}" />
+  <aura:handler name="change" value="{!v.selectedGroup}" action="{!c.handleSelectedGroupChange}" />
+  <aura:handler name="change" value="{!v.selectedUser}" action="{!c.handleSelectedUserChange}" />
+  <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+  <aura:handler name="render" value="{!this}" action="{!c.onRender}" />
+  <aura:registerevent name="messageEvent" type="c:MessageEvent"></aura:registerevent>
+  <lightning:notificationsLibrary aura:id="notifLib" />
+  <lightning:overlayLibrary aura:id="overlayLib" />
+
+  <lightning:recordEditForm objectApiName="Message__c">
+    <!-- the messages component is for error messages -->
+    <lightning:messages />
+
+    <aura:if isTrue="{! v.loading }">
+      <div class="loadingHolder">
+        <div role="status" class="slds-spinner slds-spinner_medium slds-spinner_delayed">
+          <span class="slds-assistive-text">Loading</span>
+          <div class="slds-spinner__dot-a"></div>
+          <div class="slds-spinner__dot-b"></div>
+        </div>
+      </div>
+
+      <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if>
+
+    <!-- <span style="{!v.loading ? 'display:none' : 'display:inline'}"> -->
+    <aura:if isTrue="{! v.clientId == '' }">
+      <lightning:layout aura:id="section1" verticalAlign="stretch" multipleRows="true">
+        <aura:if isTrue="{!v.showUser}">
+          <lightning:layoutItem size="6" padding="around-small">
+            <lightning:layout multipleRows="true">
+              <lightning:layoutItem size="12">
+                <c:LookupComponent externalFieldPill="true" aura:attribute="userLookup" selectedRecord="{!v.selectedUser}" additionalOptions="" filters="{!v.userLookupFilter}" displayField="Name" allowFreeText="true" lookupFieldName="" splitSearchTextBySeperator="true" label="To User(s)" validationError="{!v.userLookupError}" objectName="User" displayFieldValue="Id" fieldsToSearch="Name" SearchKeyWord="{!v.userSearchText}" />
+              </lightning:layoutItem>
+
+              <lightning:layoutItem size="12">
+                <lightning:pillContainer class="border-less" items="{!v.userPillItems}" onitemremove="{!c.handleUserPillRemove}" />
+              </lightning:layoutItem>
+            </lightning:layout>
+          </lightning:layoutItem>
+        </aura:if>
+
+        <lightning:layoutItem size="6" padding="around-small">
+          <lightning:layout multipleRows="true">
+            <lightning:layoutItem size="12">
+              <c:LookupComponent externalFieldPill="true" aura:attribute="groupLookup" selectedRecord="{!v.selectedGroup}" additionalOptions="" filters="{!v.groupLookupFilter}" displayField="Name" allowFreeText="true" lookupFieldName="" splitSearchTextBySeperator="true" label="To Group(s)" validationError="{!v.groupLookupError}" objectName="Group__c" displayFieldValue="Id" fieldsToSearch="Name" SearchKeyWord="{!v.groupSearchText}" />
+            </lightning:layoutItem>
+
+            <lightning:layoutItem size="12">
+              <lightning:pillContainer class="border-less" items="{!v.groupPillItems}" onitemremove="{!c.handleGroupPillRemove}" />
+            </lightning:layoutItem>
+          </lightning:layout>
+        </lightning:layoutItem>
+      </lightning:layout>
+
+      <aura:set attribute="else">
+        <div style="width: 100%; text-align: center">
+          <p>This alert will be sent to the All Clinical Staff group.</p>
+        </div>
+      </aura:set>
+    </aura:if>
+
+    <lightning:layout aura:id="section2" verticalAlign="stretch" multipleRows="true">
+      <lightning:layoutItem size="12" padding="around-small">
+        <lightning:input name="subject" value="{!v.subject}" label="Subject" maxlength="255"/>
+      </lightning:layoutItem>
+
+      <lightning:layoutItem size="12" padding="around-small">
+        <lightning:inputField fieldName="Patient__c" aura:id="clientId" value="{!v.clientId}" />
+      </lightning:layoutItem>
+
+      <lightning:layoutItem size="12" padding="around-small">
+        <lightning:inputRichText value="{!v.body}" label="Body" aura:id="inputBody" disabledCategories="FORMAT_FONT,ALIGN_TEXT,INSERT_CONTENT,REMOVE_FORMATTING"/>
+      </lightning:layoutItem>
+    </lightning:layout>
+    <!-- </span> -->
+  </lightning:recordEditForm>
+</aura:component>

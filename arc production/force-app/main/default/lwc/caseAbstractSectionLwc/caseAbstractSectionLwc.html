@@ -1,0 +1,147 @@
+<template>
+	<div id="sectionDiv" class={sectionDivClassName}>
+		<lightning-card>
+			<template if:true={showSpinner}>
+				<lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+			</template>
+			<template if:true={isSectionHeaderLarge}>
+				<div slot="title" class="slds-text-heading_large slds-m-left_none">{section.sectionMdt.Section_Number__c}&nbsp;{section.sectionMdt.Title__c}</div>
+			</template>
+
+			<template if:false={isSectionHeaderLarge}>
+				<div slot="title">
+					<div class="slds-text-heading_small slds-m-left_medium">{section.sectionMdt.Section_Number__c}&nbsp;{section.sectionMdt.Title__c}</div>
+					<!-- <p>{section.ownerType}: {section.ownerName}</p> -->
+				</div>
+
+				<!-- <lightning-layout multiple-rows="true">
+					<lightning-layout-item size="6">
+						<lightning-formatted-text if:true={section.record.Assigned_To__c}
+												 value={section.record.Assigned_To__r.Professional_Name__c} ></lightning-formatted-text>
+					</lightning-layout-item>
+				</lightning-layout> -->
+
+				<div slot="actions">
+					<lightning-layout>
+						<!-- <lightning-layout-item size="6" class="slds-text-align_left"> -->
+						<!-- <p>{section.ownerType}: {section.ownerName}</p> -->
+						<!-- Responsible User: {section.record.Owner.Professional_Name__c} -->
+						<!-- <lightning-button label="Change" id="change-responsible-user" onclick={handleButtonClick}></lightning-button>
+						</lightning-layout-item> -->
+						<lightning-layout-item size="12" class="slds-text-align_left">
+							<lightning-button-group>
+								<template if:true={section.canSave}>
+									<lightning-button label="Save" id="save" data-id={section.record.Id} data-action="Save" onclick={handleButtonClick} disabled={isSectionDisabled}></lightning-button>
+								</template>
+								<template if:true={canRefreshFromSource}>
+									<lightning-button label="Refresh From Source" id="refresh" data-id={section.record.Id} data-action="Refresh From Source" onclick={handleButtonClick} disabled={canRefreshFromSourceDisabled}></lightning-button>
+								</template>
+
+								<template if:true={canViewChangeResponsibleUser}>
+									<lightning-button label={changeOwnerLabel} id="change-responsible-user" data-id={section.record.Id} disabled={isChangeResponsibleUserDisabled} data-action="Change Responsible User" onclick={handleButtonClick}></lightning-button>
+								</template>
+
+								<template if:false={completed}>
+									<lightning-button label="Mark Completed" id="mark-completed" data-id={section.record.Id} data-action="Mark Completed" disabled={markCompleteDisabled} onclick={handleButtonClick}></lightning-button>
+								</template>
+								<template if:true={completed}>
+									<lightning-button label="Re-Open" id="re-open" data-id={section.record.Id} data-action="Re-Open" disabled={reOpenDisabled} onclick={handleButtonClick}></lightning-button>
+								</template>
+							</lightning-button-group>
+							<p>{section.ownerType}: {section.ownerName}</p>
+						</lightning-layout-item>
+					</lightning-layout>
+				</div>
+				<!--
+				<div if:true={section.record.Error_Messages__c} class={errorMessagesClassName}>
+					<lightning-layout style="width: 100%;">
+						<lightning-layout-item size="1">
+							<lightning-icon icon-name="utility:warning" alternative-text="Warning" title="Warning" variant="warning" class="slds-float_left slds-m-right_small"></lightning-icon>
+						</lightning-layout-item>
+
+						<lightning-layout-item size="11">
+							<lightning-formatted-rich-text value={section.record.Error_Messages__c} ></lightning-formatted-rich-text>
+						</lightning-layout-item>
+					</lightning-layout>
+				</div>
+			-->
+				<template if:true={section.items}>
+					<lightning-layout multiple-rows="true" class="slds-m-left_small">
+						<template for:each={section.items} for:item="sectionItem">
+							<lightning-layout-item key={sectionItem.sectionItemMdt.Id} class="slds-var-m-top_large" size="12">
+								<c-case-abstract-section-item-lwc section={section} sectionitem={sectionItem} onitemchange={handleItemChange} section-completed={completed}></c-case-abstract-section-item-lwc>
+							</lightning-layout-item>
+						</template>
+					</lightning-layout>
+				</template>
+				<!-- end if items -->
+				
+				<template if:true={completed}>
+					<lightning-layout class="slds-var-m-left_small">
+						<lightning-layout-item key={sectionItem.sectionItemMdt.Id} size="12">
+							<div class="slds-var-m-left_medium slds-var-m-top_large">Completed By {completedBy}, <lightning-formatted-date-time value={completedDatetime} year="numeric" month="2-digit" day="2-digit" hour="2-digit" minute="2-digit" time-zone-name="short" hour12="ampm" time-zone="America/New_York"></lightning-formatted-date-time></div>
+						</lightning-layout-item>
+					</lightning-layout>
+				</template>
+			
+			</template>
+			<!-- end if header not large -->
+		</lightning-card>
+
+		<template if:true={showLookupComponent}>
+			<c-modal-lwc onclose={closeConfirmationBox} show-footer="true">
+				<div slot="header">Change Responsible User</div>
+				<div slot="footer">
+					<div class="modal-footer slds-modal__footer">
+						<lightning-button id="lookup-cancel-button" label="Cancel" title="Cancel" variant="neutral" class="slds-m-left_x-small slds-button_text-destructive" onclick={closeLookupComponent}> </lightning-button>
+						<lightning-button id="change-responsible-user-button" label="Change" title="Change" variant="brand" class="slds-m-left_x-small" onclick={changeResponsibleUser}> </lightning-button>
+					</div>
+				</div>
+				<div style="height: 400px; width: 50%">
+					<c-case-abstract-lookup-lwc label-hidden="true" onrecordselected={handleLookupChanged}></c-case-abstract-lookup-lwc>
+				</div>
+			</c-modal-lwc>
+		</template>
+
+		<template if:true={showConfirmModal}>
+			<c-modal-lwc onclose={closeConfirmationBox} show-footer="true">
+				<div slot="header">Confirmation</div>
+				<div slot="footer">
+					<div class="modal-footer slds-modal__footer">
+						<lightning-button id="cancel-button" label="Cancel" title="Cancel" variant="neutral" class="slds-m-left_x-small slds-button_text-destructive" onclick={closeConfirmationBox}> </lightning-button>
+						<lightning-button id="save-button" label={action} title={action} variant="brand" class="slds-m-left_x-small" onclick={performAction}> </lightning-button>
+					</div>
+				</div>
+				{confirmationModalText}
+			</c-modal-lwc>
+			<!--
+			<lightning-layout>
+				<lightning-layout-item size="12" class="slds-text-heading_small">
+					{confirmationModalText}
+				</lightning-layout-item>
+
+			</lightning-layout>
+			<div class="modal-footer slds-modal__footer">
+
+			<lightning-button
+								id="cancel-button"
+								label="Cancel"
+								title="Cancel"
+								variant="neutral"
+								class="slds-m-left_x-small slds-button_text-destructive"
+								onclick={closeModal}>
+			</lightning-button>
+			<lightning-button
+								id="save-button"
+								label="Submit"
+								title="Submit"
+								variant="brand"
+								class="slds-m-left_x-small"
+								onclick={save}>
+			</lightning-button>
+			</div>
+			-->
+		</template>
+	</div>
+</template>
+<!-- end root -->

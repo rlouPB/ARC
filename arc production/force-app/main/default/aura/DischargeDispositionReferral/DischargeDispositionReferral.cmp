@@ -1,0 +1,157 @@
+<aura:component controller="DischargeDispositionCtl" extends="c:ApexService">
+    <!-- Component Inputs -->
+    <aura:attribute name="isEditable" type="Boolean"/>
+    <aura:attribute name="mode" type="String" description="Put 'individual' for Contact and 'institution' for Account."/>
+    <aura:attribute name="grouping" type="String"/>
+    <aura:attribute name="dischargeStatus" type="String"/>
+    <aura:attribute name="dischargeDispositionId" type="String" description="Discharge Section Id"/>
+    <aura:attribute name="referral" type="Map" description="An object that contains index, Discharge_Referral__c object that holds the record."/>
+    <aura:attribute name="index" type="Integer"/>
+    <aura:attribute name="numReferral" type="Integer"/>
+    <aura:attribute name="isLoading" type="Boolean" default="false"/>
+    <aura:attribute name="dischargeSection" type="Map" description="Discharge Section"/>
+    
+    <!-- Internal Attributes -->
+    <aura:attribute name="referralName" type="String"/>
+    <aura:attribute name="referralFilter" type="List"/>
+    <aura:attribute name="selectedReferral" type="Map" description="Selected referral returned from LookupComponent where it contains only a label and value."/>
+
+    <!-- Handler -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler name="change" value="{!v.selectedReferral}" action="{!c.handleSelectedReferralChange}"/>
+    <aura:handler name="selectedItemEvent" event="c:selectedItemEvent" action="{!c.handleSelectedItemEvent}" />
+    
+    <!-- Register Event -->
+    <aura:registerEvent name="referralChanged" type="c:DischargeDispositionReferralChanged"/>
+    
+    <lightning:quickActionAPI aura:id="quickActionAPI" />
+
+    <div class="slds-box">
+        <lightning:layout multipleRows="true">
+            <lightning:layoutItem size="1" class="slds-var-p-around_xxx-small" alignmentBump="left">
+                <lightning:layout>
+                    <lightning:layoutItem size="1" class="slds-var-p-around_xxx-small" alignmentBump="left">
+                        <aura:if isTrue="{!and(and(v.numReferral>1,v.numReferral > v.index),v.isEditable)}">
+                            <lightning:buttonIcon iconName="utility:close" variant="bare" title="Remove" onclick="{!c.handleRemoveReferral}"/>
+                        </aura:if>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12" class="slds-var-p-around_xxx-small">
+                <lightning:layout multipleRows="true">
+                    <lightning:layoutItem size="2" class="slds-var-p-around_xxx-small">
+                        <label for="ReferralTo" class="slds-form-element__label"></label>
+                        <div id="ReferralTo">Referral To</div>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="3" class="slds-var-p-around_xxx-small">
+                        <aura:if isTrue="{!v.isEditable}">
+                            <aura:if isTrue="{!v.mode=='individual'}">
+                                <div style="min-width: 50%;" class="slds-float_left slds-m-top_small" id="lookupContainerDiv">
+                                    <c:LookupComponent required="false" aura:id="referralLookup" 
+                                                    selectedRecord="{!v.selectedReferral}" 
+                                                    splitSearchTextBySeperator="true" displayField="Name" displayFieldValue="Id" 
+                                                    allowFreeText="true" lookupFieldName="{!v.referralName}"
+                                                    filters="{!v.referralFilter}" 
+                                                    objectName="Contact" 
+                                                    fieldsToSearch="Name"
+                                                    minimumSearchTextLength="2"
+                                                    hideDropdownOnFocus="true"
+                                                    labelHidden="true"
+                                                    additionalOptions="[{'label': 'Create Professional Contact', 
+                                                                        'value': 'newContact', 
+                                                                        'isRecord': false, 
+                                                                        'componentName': 'c:DischargeNewBasicContact',
+                                                                        'attr': {
+                                                                            'contactRecordTypeName': 'Professional'}}]" />
+                                </div>
+                                <aura:if isTrue="{!v.selectedReferral.isRecord}" >
+                                    <a class="slds-float_left slds-p-left_large slds-m-top_small" href="{!'/' + v.selectedReferral.value}" target="_blank">
+                                        <lightning:icon iconName="utility:trending" size="medium" variant="success" alternativeText="{!'Go to ' + v.selectedReferral.label}" title="{!'Go to ' + v.selectedReferral.label}" />
+                                    </a>
+                                </aura:if>
+                            </aura:if>
+                            <aura:if isTrue="{!v.mode=='institution'}">
+                                <div style="min-width: 50%;" class="slds-float_left slds-m-top_small" id="lookupContainerDiv">
+                                    <c:LookupComponent required="false" aura:id="referralLookup" 
+                                                        selectedRecord="{!v.selectedReferral}" 
+                                                        splitSearchTextBySeperator="true" displayField="Name" displayFieldValue="Id" 
+                                                        allowFreeText="true" lookupFieldName="{!v.referralName}" 
+                                                        filters="{!v.referralFilter}" 
+                                                        labelHidden="true"
+                                                        objectName="Account" 
+                                                        fieldsToSearch="Name"
+                                                        minimumSearchTextLength="2"
+                                                        hideDropdownOnFocus="true"
+                                                        additionalOptions="" 
+                                                        />
+                                                        <!-- additionalOptions="[{'label': 'Create New Institution', 'value': 'newInstitution', 'isRecord': false, 'eventName': 'force:createRecord', 'attr': { 'entityApiName': 'Account' } }]"  -->
+                                </div>
+                                <aura:if isTrue="{!v.selectedReferral.isRecord}" >
+                                    <a class="slds-float_left slds-p-left_large slds-m-top_small" href="{!'/' + v.selectedReferral.value}" target="_blank">
+                                        <lightning:icon iconName="utility:trending" size="medium" variant="success" alternativeText="{!'Go to ' + v.selectedReferral.label}" title="{!'Go to ' + v.selectedReferral.label}" />
+                                    </a>
+                                </aura:if>
+
+
+                            </aura:if>
+                            <aura:set attribute="else">
+                                <!-- <label for="ReferralToName" class="slds-float_left slds-form-element__label"></label> -->
+                                <div id="ReferralToName" class="slds-float_left slds-m-top_large">
+                                    <lightning:formattedText value="{!v.referral.referralName}"/>
+                                    <aura:if isTrue="{!v.selectedReferral.isRecord}" >
+                                        <a class="slds-float_right slds-p-left_large slds-m-top_small " href="{!'/' + v.selectedReferral.value}" target="_blank">
+                                            <lightning:icon iconName="utility:trending" size="medium" variant="success" alternativeText="{!'Go to ' + v.selectedReferral.label}" title="{!'Go to ' + v.selectedReferral.label}" />
+                                        </a>
+                                    </aura:if>
+                                </div>
+                            </aura:set>
+                        </aura:if>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="1" class="slds-var-p-around_x-small">
+                        <label for="PhoneLabel" class="slds-form-element__label"></label>
+                        <div id="PhoneLabel">Phone</div>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="2" class="slds-var-p-around_x-small">
+                        <label for="Phone" class="slds-form-element__label"></label>
+                        <div id="Phone">{!v.referral.referralPhone}</div>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12" class="slds-var-p-around_xxx-small">
+                <lightning:layout multipleRows="true">
+                    <lightning:layoutItem size="2" class="slds-var-p-around_xxx-small">
+                        <label for="ReferralNoteLabel" class="slds-form-element__label"></label>
+                        <div id="ReferralNoteLabel">
+                            <p>Referral Notes</p>
+                            <p class="slds-p-left_x-small">(e.g. first appointment, frequency)</p>
+
+                        </div>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="8" class="slds-var-p-around_xxx-small">
+                        <aura:if isTrue="{!v.isEditable}">
+                            <lightning:inputRichText 
+                                                     disabledCategories="FORMAT_FONT,ALIGN_TEXT,INSERT_CONTENT,REMOVE_FORMATTING"
+                                                     value="{!v.referral.dischargeReferralObj.Referral_Notes__c}"
+                                                     disabled="{!!v.selectedReferral.isRecord}"/>
+                            <aura:set attribute="else">
+                                <label for="Referral_Notes__c" class="slds-form-element__label"></label>
+                                <div id="Referral_Notes__c"><lightning:formattedRichText value="{!v.referral.dischargeReferralObj.Referral_Notes__c}"/></div>
+                            </aura:set>
+                        </aura:if>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="1" class="slds-var-p-around_xxx-small">
+                        <label for="isPrimaryLabel" class="slds-form-element__label"></label>
+                        <div id="isPrimaryLabel">Primary</div>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="1" class="slds-var-p-around_xxx-small">
+                        <label for="isPrimary" class="slds-form-element__label"></label>
+                        <div id="isPrimary"><lightning:input type="checkbox" 
+                                                             name="referralPrimary" 
+                                                             checked="{!v.referral.dischargeReferralObj.Is_Primary__c}"
+                                                             disabled="{!not(v.isEditable)}"/></div>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </lightning:layoutItem>
+        </lightning:layout>
+    </div>
+</aura:component>

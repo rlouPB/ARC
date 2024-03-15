@@ -1,0 +1,70 @@
+<template>
+    <div class={elementClass} data-select="single">
+
+        <template if:false={labelHidden}>
+            <label class="slds-form-element__label">{label}</label>
+        </template>
+
+        <div  class={elementControllClass}>
+            <div class="slds-input-has-icon slds-input-has-icon_right">
+                <template if:true={recordId}>
+                    <div id="lookup-pill" class="slds-pill_container">
+                        <span style="width:-webkit-fill-available;" class="slds-pill">
+                            <span class="slds-pill__label">
+                                {selectedRecordName}  
+                            </span>
+                            <lightning-button-icon icon-name="utility:close" variant="bare" alternative-text="remove" onclick={clear}></lightning-button-icon>
+                            <span class="slds-assistive-text">Remove</span>
+                        </span>
+                    </div>
+                </template>
+                <template if:false={recordId}>
+                    <div class="slds">
+                        <lightning-input
+                            variant="label-hidden"
+                            value={searchKeyWord} 
+                            onblur={onTextInputBlurHandler}                            
+                            onkeydown={handleOnKeyDown}
+                            class="slds-lookup__search-input slds-input "
+                            placeholder={placeHolder}></lightning-input>                            
+                    </div>    
+                    <lightning-icon id="searchIcon" class="slds-input__icon slds-show slds-show" icon-name="utility:search" size="x-small" alternative-text="search"></lightning-icon>
+                </template>
+            </div>
+        </div>
+        <template if:true={showDropDown}>
+            <div class="slds-lookup__menu slds">                        
+                <ul class="slds-listbox slds-listbox_vertical   " role="presentation">
+                    <template for:each={searchResultItems} for:item="item">
+                        <li role="presentation" class="slds-listbox__item" key={item.id}>
+                            <a data-id={item.id} onclick={onSearchItemClickHandler}>
+                                <template if:true={item.selected}>
+                                    <div  class="slds-media slds-listbox__option slds-listbox__option_entity slds-listbox__option_has-meta slds-color__background_gray-4" role="option">
+                                        <span class="slds-media__figure">
+                                            <span class="slds-icon_container slds-icon-standard-use"></span>
+                                        </span>
+                                        <span class="slds-media__body">
+                                            <span class="slds-listbox__option-text slds-listbox__option-text_entity">{item.label}</span>
+                                            <span class="slds-listbox__option-meta slds-listbox__option-meta_entity"></span>
+                                        </span>
+                                    </div>       
+                                </template>
+                                <template if:false={item.selected}>
+                                    <div  class="slds-media slds-listbox__option slds-listbox__option_entity slds-listbox__option_has-meta" role="option">
+                                        <span class="slds-media__figure">
+                                            <span class="slds-icon_container slds-icon-standard-use"></span>
+                                        </span>
+                                        <span class="slds-media__body">
+                                            <span class="slds-listbox__option-text slds-listbox__option-text_entity">{item.label}</span>
+                                            <span class="slds-listbox__option-meta slds-listbox__option-meta_entity"></span>
+                                        </span>
+                                    </div>       
+                                </template>
+                            </a>
+                        </li>
+                    </template>                
+                </ul>
+        </div>
+        </template>
+    </div>
+</template>

@@ -1,0 +1,5 @@
+<template>
+    <template if:true={recordResponse.data}>
+        <c-record-link record-id={recordResponse.data.id} record-name={recordResponse.data.name}></c-record-link>
+    </template>
+</template>

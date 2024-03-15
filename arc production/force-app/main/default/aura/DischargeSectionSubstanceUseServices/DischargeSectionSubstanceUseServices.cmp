@@ -1,0 +1,112 @@
+<aura:component controller="DischargeSectionCtl" extends="c:DischargeSection">
+        
+    <!-- handler -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler name="dischargeSectionActionEvent" event="c:DischargeSectionActionEvent" action="{!c.handleSectionActionEvent}"/>
+    <aura:handler name="referralChanged" event="c:DischargeDispositionReferralChanged" action="{!c.handleReferralChanged}"/>
+
+    <!-- Register Events -->
+    
+    <lightning:card>
+        <lightning:layout multipleRows="true">
+            <lightning:layoutItem size="12">
+                <div class="slds-text-heading_medium">Individual Counseling Referrals</div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12">
+                <c:DischargeDispositionReferrals aura:id="IndividualCounselingReferrals"
+                                                 mode="individual" 
+                                                 isLoading="{!v.isLoading}"
+                                                 grouping="IndividualCounselingReferrals"
+                                                 referralList="{!v.referralListMap.IndividualCounselingReferrals}"
+                                                 removeReferralList="{!v.dischargeSection.removeReferralList}" 
+                                                 dischargeStatus="{!v.dischargeDisposition.dischargeDispositionObj.Status__c}" 
+                                                 dischargeDispositionId="{!v.dischargeSection.dischargeSectionObj.Discharge_Disposition__c}" 
+                                                 section="{!v.dischargeSection}"
+                                                 isEditable="{!v.isEditable}"
+                                                 />
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12">
+                <div class="slds-text-heading_medium">Group Counseling Referrals</div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12">
+                <c:DischargeDispositionReferrals aura:id="GroupCounselingReferrals"
+                                                 mode="institution" 
+                                                 isLoading="{!v.isLoading}"
+                                                 grouping="GroupCounselingReferrals"
+                                                 referralList="{!v.referralListMap.GroupCounselingReferrals}"
+                                                 removeReferralList="{!v.dischargeSection.removeReferralList}" 
+                                                 dischargeStatus="{!v.dischargeDisposition.dischargeDispositionObj.Status__c}" 
+                                                 dischargeDispositionId="{!v.dischargeSection.dischargeSectionObj.Discharge_Disposition__c}" 
+                                                 section="{!v.dischargeSection}"
+                                                 isEditable="{!v.isEditable}"
+                                                 />
+            </lightning:layoutItem>
+        </lightning:layout>
+        <lightning:layout multipleRows="true">
+            <lightning:layoutItem size="12">&nbsp;</lightning:layoutItem>
+            <lightning:layoutItem size="12">
+                <lightning:input type="checkbox" label="No separate referral required for this discipline"
+                    checked="{!v.dischargeSection.dischargeSectionObj.No_Separate_Referral_Required__c}" 
+                    disabled="{!not(v.isEditable)}"/> 
+            </lightning:layoutItem>
+            <lightning:layoutItem size="8">
+                &nbsp;
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12">&nbsp;</lightning:layoutItem>
+            <lightning:layoutItem size="3">
+                <label for="Comments" class="slds-form-element__label"></label>
+                <div id="Comments">Comments</div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="9">
+                <aura:if isTrue="{!v.isEditable}">
+                    <lightning:InputRichText value="{!v.dischargeSection.dischargeSectionObj.No_Separate_Referral_Required_Comments__c}" 
+                                             disabledCategories="FORMAT_FONT,ALIGN_TEXT,INSERT_CONTENT,REMOVE_FORMATTING"
+                                             disabled="{!not(v.isEditable)}"
+                                             />
+                    <aura:set attribute="else">
+                        <label for="No_Separate_Referral_Required_Comments__c" class="slds-form-element__label"></label>
+                        <div id="No_Separate_Referral_Required_Comments__c"><lightning:formattedRichText value="{!v.dischargeSection.dischargeSectionObj.No_Separate_Referral_Required_Comments__c}"/></div>
+                    </aura:set>
+                </aura:if>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12">&nbsp;</lightning:layoutItem>
+            <lightning:layoutItem size="3">
+                <label for="Comments" class="slds-form-element__label"></label>
+                <div id="Comments">Self-help organizations</div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="9">
+                <aura:if isTrue="{!v.isEditable}">
+                <lightning:InputRichText value="{!v.dischargeSection.dischargeSectionObj.Self_help_Organizations__c}" 
+                                         disabledCategories="FORMAT_FONT,ALIGN_TEXT,INSERT_CONTENT,REMOVE_FORMATTING"
+                                        disabled="{!not(v.isEditable)}"
+                                         />
+                    <aura:set attribute="else">
+                        <label for="Self_help_Organizations__c" class="slds-form-element__label"></label>
+                        <div id="Self_help_Organizations__c"><lightning:formattedRichText value="{!v.dischargeSection.dischargeSectionObj.Self_help_Organizations__c}"/></div>
+                    </aura:set>
+                </aura:if>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12">&nbsp;</lightning:layoutItem>
+
+            <lightning:layoutItem size="12">
+                <lightning:input type="checkbox" 
+                                    label="Not Applicable"
+                                    value="{!v.dischargeSection.dischargeSectionObj.Not_Applicable__c}" 
+                                    disabled="{!not(v.isEditable)}"
+                                    /> 
+            </lightning:layoutItem> 
+            <!--
+            <lightning:layoutItem size="3">
+                <label for="Comments" class="slds-form-element__label"></label>
+                <div id="Comments">Not Applicable</div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="9">
+                <lightning:input type="checkbox" 
+                                 value="{!v.dischargeSection.dischargeSectionObj.Not_Applicable__c}" 
+                                 disabled="{!not(v.isEditable)}"
+                                 />
+            </lightning:layoutItem>
+            -->
+        </lightning:layout>
+    </lightning:card>
+</aura:component>

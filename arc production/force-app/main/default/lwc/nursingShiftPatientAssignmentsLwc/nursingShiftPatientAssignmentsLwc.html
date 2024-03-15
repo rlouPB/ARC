@@ -1,0 +1,115 @@
+<template>
+    <lightning-card>
+        <lightning-button-icon icon-name="utility:refresh" slot="actions" title="reload" onclick={load}></lightning-button-icon>
+        
+        <lightning-spinner if:true={loading}></lightning-spinner>
+
+        <div class="slds-p-left_large">
+
+            <div class="slds-align_absolute-center">
+                <lightning-radio-group type="button" options={teams} value={selectedTeam} onchange={onTeamChangeHandler}></lightning-radio-group>
+            </div>            
+            
+            <!-- <c-nursing-shift-assignment-selector label="Select Nursing Shift Assignment" label-hidden="false" onrowselected={onRowSelectedHandler}></c-nursing-shift-assignment-selector> -->
+
+            <c-nurse-shift-lookup-lwc 
+                label=""                 
+                onrecordselected={onRowSelectedHandler} 
+                placeholder="Find nurse to assign..."
+                avoid-selected-record
+            ></c-nurse-shift-lookup-lwc>
+            
+            <br/>
+            
+            <table class="slds-table slds-table_bordered slds-table_fixed-layout" role="grid">
+                <thead>
+                    <tr>
+                        <th style="text-align: center;"><lightning-input class="selectAllCheck" type="checkbox" onchange={onSelectAllCheckChanged}></lightning-input></th>
+                        <template for:each={columns} for:item="column">
+                            <th key={column.fieldName}>
+                                <div onclick={onClickHandler} data-fieldname={column.fieldName} class="slds-th__action slds-text-link_reset slds-is-sorted slds-is-sorted_asc">
+                                    {column.label}
+                                    <template if:true={column.sortable}>
+                                        <template if:true={column.sorted}>
+                                            <template if:false={column.isDESC}>
+                                                <lightning-icon data-fieldname={column.fieldName} icon-name="utility:arrowup" size="xx-small"></lightning-icon>
+                                            </template>
+                                            <template if:true={column.isDESC}>
+                                                <lightning-icon data-fieldname={column.fieldName} icon-name="utility:arrowdown" size="xx-small"></lightning-icon>
+                                            </template>
+                                        </template>
+                                    </template>
+                                </div>
+                            </th>
+                        </template>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template for:each={pagedData} for:item="item">
+                        <tr key={item.id}>
+                            <td style="text-align: center;"><lightning-input type="checkbox" data-id={item.id} onchange={onCheckChanged} checked={item.selected}></lightning-input></td>
+                            <td>
+                                <div class="slds-p-horizontal_x-small">
+                                    <c-record-link record-id={item.patientId} record-name={item.patientName}></c-record-link>                                
+                                </div>
+                            </td>
+                            <td>
+                                <div class="slds-p-horizontal_x-small">{item.team}</div>
+                            </td>                            
+                            <td>
+                                <div class="slds-p-horizontal_x-small">{item.program}</div>
+                            </td>
+                            <td>
+                                <div class="slds-p-horizontal_x-small">{item.status}</div>
+                            </td>                            
+                            <td>
+                                <div class="slds-p-horizontal_x-small">{item.openShiftItems}</div>
+                            </td>
+                            <td>
+                                <div class="slds-p-horizontal_x-small">                                    
+                                    {item.nsaOwnerName}                                    
+                                </div>
+                            </td>                                                        
+                            <td>
+                                <div class="slds-p-horizontal_x-small">
+                                    <c-nursing-shift-assignment-selector hidetext="true" record-id={item.shiftAssignedToId} label-hidden="true" read-only="true" data-id={item.id} onrowselected={onRowSelectedRowHandler} ></c-nursing-shift-assignment-selector>                                    
+                                </div>
+                            </td>                            
+                        </tr>
+                    </template>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="7">
+                            <c-paginator-lwc class="paginator" values={dataItems} onpagechanged={pageChangedHandler}></c-paginator-lwc>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <lightning-button label="Add New" variant="brand" onclick={addNewPatientModalHandler}></lightning-button>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <template if:true={showReassignModal} >
+            <c-modal-lwc header="Reassign Shift Item" size="small" show-footer="true" onclose={onCloseModals}>            
+                <iframe src={iframeReassignSrc} width="100%" height="500" ></iframe>
+                <div slot="footer">                
+                    <lightning-button class="slds-p-left_x-small" label="Close"  onclick={onCloseModals}></lightning-button>
+                </div>
+            </c-modal-lwc>
+        </template>
+
+        <template if:true={addNewPatientModal} >
+            <c-modal-lwc header="Add new Patient Assignment" size="small" show-footer="true" onclose={onCloseModals}>            
+                <iframe src={iframeNewPatientAssignSrc} width="100%" height="500" ></iframe>
+                <div slot="footer">                
+                    <lightning-button class="slds-p-left_x-small" label="Close"  onclick={onCloseModals}></lightning-button>
+                </div>
+            </c-modal-lwc>
+        </template>
+
+    </lightning-card>
+</template>

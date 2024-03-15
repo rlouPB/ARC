@@ -1,0 +1,21 @@
+<aura:component controller="BulletinBoardCtl" implements="flexipage:availableForAllPageTypes">
+	<aura:attribute name="bulletSectionList" type="List" />
+	<aura:attribute name="isPermSetClinical" type="Boolean" default="false" />
+	<aura:attribute name="isPermSetVarianceGeneral" type="Boolean" default="false" />
+	<aura:attribute name="isPermSetVarianceMedication" type="Boolean" default="false" />
+	<aura:attribute name="userProfileName" type="String" />
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+	<!-- If user has Clinical permission set, redirect to ClinicalBulletinBoard Sols 060222 -->
+	<aura:if isTrue="{!v.isPermSetClinical}">
+		<c:ClinicalBulletinBoard bulletSectionList="{!v.bulletSectionList}" hasVarianceGeneral="{!v.isPermSetVarianceGeneral}" hasVarianceMedication="{!v.isPermSetVarianceMedication}"></c:ClinicalBulletinBoard>
+	</aura:if>
+
+	<aura:if isTrue="{!!v.isPermSetClinical}">
+		<aura:if isTrue="{!not(empty(v.bulletSectionList))}">
+			<div class="wrapper">
+				<c:ViewBulletinBoard bulletSectionList="{!v.bulletSectionList}"></c:ViewBulletinBoard>
+			</div>
+		</aura:if>
+	</aura:if>
+</aura:component>

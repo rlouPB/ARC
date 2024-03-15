@@ -1,0 +1,22 @@
+<aura:component controller="Ctl_UploadContent"
+                implements="force:appHostable,flexipage:availableForAllPageTypes,force:hasRecordId">
+
+    <aura:attribute name="label" type="String" default="" description="Label to display adjacent to upload button" />
+    <aura:attribute name="multiple" type="Boolean" default="true" description="If true, multiple files can be selected and uploaded together" />
+    <aura:attribute name="accept" type="List" default="[]" description="List of file extensions to allow" />
+    <aura:attribute name="disabled" type="Boolean" default="false" description="If true, upload is disabled" />
+    <aura:attribute name="additionalRelatedIds" type="List" default="[]" description="Record Ids to create additional ContentDocumentLinks" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <aura:registerEvent name="uploadFinished" type="c:refreshRelatedList" />
+    
+    <lightning:fileUpload name="fileUploader"
+                          label= "{!v.label}"
+                          multiple="{!v.multiple}"
+                          accept="{!v.accept}"
+                          disabled="{!v.disabled}"
+                          recordId="{!v.recordId}"
+                          onuploadfinished="{!c.handleUploadFinished}"
+                          />
+</aura:component>

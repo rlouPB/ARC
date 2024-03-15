@@ -1,0 +1,202 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId" controller="relatedConController">
+    <aura:attribute name="relContact" type="Related_Contact__c[]"/>
+    <aura:attribute name="filterRelCon" type="Related_Contact__c[]"/>
+    <aura:attribute name="recTypeIds" type="List"/>
+    <aura:attribute name="lstOfRecordType" type="String[]" />
+    <aura:attribute name="isOpen" type="boolean" default="false" />        
+    <aura:attribute name="accntId" type="Id" access="public" Description="Used to store Account Id"/>
+    <aura:attribute name="isRefreshing" type="Boolean" default="true" description="show spinner when true" />
+        
+    <aura:handler name="init" action="{!c.doInit}" value="{!this}"/>    
+    <aura:handler name="closeModalView" event="c:closeModal" action="{!c.closeModal}" />
+    <aura:handler event="c:refreshRelatedList" action="{!c.handleRefreshEvent}" />
+
+    <aura:attribute name="options" type="List" default="[
+        {'label': 'All', 'value': 'All'},
+        {'label': 'Personal', 'value': 'Personal'},                                                        
+        {'label': 'Professional', 'value': 'Professional'}
+    ]"/>
+
+    <aura:attribute name="value" type="String" default="All"/>
+
+	<aura:attribute name="showMergeComponent" type="Boolean" default="false"/>
+    <aura:if isTrue="{!v.showMergeComponent}">
+        <c:RelatedContactMerger showModal="{!v.showMergeComponent}" recordId="{!v.accntId}"/>
+    </aura:if>    
+    <div class="slds-grid slds-wrap slds-p-left_medium slds-p-right_medium">
+        <div class="slds-col slds-size_3-of-12">
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col">
+                    <div class="slds-form-element">
+                        <span style="float: left;">
+                            <h1 style="font-size: 18px; font-weight: 600;">
+                                <lightning:icon iconName="standard:household" size="small" alternativeText="Related Contacts" class="slds-m-right_small"/>
+                                Related Contacts
+                            </h1>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="slds-col slds-size_4-of-12">
+            <fieldset>
+                <lightning:radioGroup
+                                      aura:id="mygroup"
+                                      name="radioButtonGroup"                        
+                                      options="{! v.options }"
+                                      value="{! v.value }"
+                                      onchange="{! c.handleChange }"                        
+                                      type="button" />
+            </fieldset>
+        </div>
+        <div class="slds-col  slds-size_5-of-12">
+            <lightning:buttonGroup class="slds-p-bottom_medium slds-float_right">
+                <lightning:button variant="neutral" label="Add Related Contact" onclick="{!c.openModal}" />
+                <lightning:button variant="neutral" label="Merge Related Contacts" onclick="{!c.onLaunchMerge}" />
+                <lightning:buttonIcon iconName="utility:refresh" onclick="{!c.handleRefreshButtonClick}" alternativeText="Refresh" />
+                
+            </lightning:buttonGroup>
+        </div>        
+    </div>
+    
+
+    <div>
+        
+        <div id="spinnerHolder" >
+            <aura:if isTrue="{!v.isRefreshing}" >
+                <lightning:spinner alternativeText="Refreshing" />
+            </aura:if>
+        </div>
+        <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_col-bordered slds-border_bottom slds-border_left slds-border_right">
+            <thead>
+                <tr class="slds-text-title_caps">
+                    <th scope="col">
+                        <div class="slds-truncate slds-text-align_center" title="Name">Name</div>
+                    </th>
+                    <th scope="col">
+                        <div class="slds-truncate slds-text-align_center" title="Role">Role</div>
+                    </th>
+                    <th scope="col">
+                        <div class="slds-truncate slds-text-align_center" title="Primary Contact">Primary Contact</div>
+                    </th>
+                    <th scope="col">
+                        <div class="slds-truncate slds-text-align_center" title="Referrer">Referrer</div>
+                    </th>
+                    <th scope="col">
+                        <div class="slds-truncate slds-text-align_center" title="Payor">Payor</div>
+                    </th>
+                    <th scope="col">
+                        <div class="slds-truncate slds-text-align_center" title="Contact Permissions">Contact Permissions</div>
+                    </th>        
+                </tr>
+            </thead>
+            <tbody>
+                <aura:iteration items="{!v.filterRelCon}" var="record">
+                    <tr>
+                        <!-- COLUMN 1 ***************  NAME -->
+                        <td>
+                            <div class="slds-truncate slds-text-align_left ">
+                                <a href= "{!'/one/one.app?#/sObject/'+ record.Contact__r.Id + '/view'}">
+                                    {!record.Contact_Name__c}
+                                </a>
+                            </div>
+                        </td>
+                        <!-- COLUMN 2 ***************  ROLE -->
+                        <td>
+                            <div class="slds-hyphenate slds-text-align_center">                            
+                                <!-- <a id="{!record.Id}" onclick="{!c.editRecord}">{!record.Role__c}</a> -->
+                                <a id="{!record.Id}" onclick="{!c.editRecord}">{!record.Long_Role__c}</a>
+                                <br/>
+                                <div style="max-width: 20em; white-space: normal; display: inline-block;">{!record.Role_Details__c}</div>
+                                <!--
+                                <ui:outputURL click="{!c.editRecord}" label="{!record.Role__c}" title="{!record.Id}"/> 
+                                <a href="{!'/one/one.app?#/sObject/' + record.Id + '/edit'}" target="_top"> 
+                                                                {!record.Role__c}
+                                                            </a>
+                                -->
+                            </div>
+                        </td>
+                        <!-- COLUMN 3 ***************  PRIMARY CONTACT -->
+                        <td>                        
+                            <ui:outputCheckbox class="slds-align_absolute-center" value="{!record.Primary_Contact__c}"/>                        
+                        </td>
+                        <!-- COLUMN 4 ***************  REFERRER -->
+                        <aura:if isTrue="{!record.RecordTypeId == v.recTypeIds[2]}">
+                            <td>
+                                <ui:outputCheckbox class="slds-align_absolute-center" value="{!record.Referrer__c}"/>
+                            </td>
+                            <aura:set attribute="else">
+                                <td></td>
+                            </aura:set>
+                        </aura:if>
+                        <!-- COLUMN 5 ***************  PAYOR -->
+                        <aura:if isTrue="{!record.RecordTypeId == v.recTypeIds[0] || record.RecordTypeId == v.recTypeIds[1]}">
+                            <td>                        
+                                <ui:outputCheckbox class="slds-align_absolute-center" value="{!record.Payor__c}"/>                                                                                                        
+                            </td>
+                            <aura:set attribute="else">
+                                <td></td>
+                            </aura:set>
+                        </aura:if>                    
+                        <!-- COLUMN 6 ***************  CONTACT PERMISSIONS -->                    
+                        <aura:if isTrue="{!record.Role__c != 'Patient'}">
+                            <td>
+                                <div class="slds-truncate slds-text-align_center">
+                                    {!record.Contact_Permissions__c}                            
+                                </div>
+                            </td>
+                            <aura:set attribute="else">
+                                <td bgcolor="#D3D3D3">                               
+                                </td>
+                            </aura:set>
+                        </aura:if>
+                    </tr>
+                    <aura:if isTrue="{!record.Contact__r.Phone != null || record.Contact__r.MobilePhone != null || record.Contact__r.Personal_Assistant_Phone__c != null || record.Contact__r.npe01__WorkPhone__c != null}" >
+                        <tr >
+                            <td  colspan="6" class="slds-padding-left_large">
+                                <!-- class="slds-grid" style="border: 3px solid black;"> -->
+                                <aura:if isTrue="{!record.Contact__r.Phone}" >
+                                    <span class="{!record.Contact__r.npe01__PreferredPhone__c == 'Home' ? 'preferredPhone' : ''}" >
+                                        <label class="slds-p-left_small"> 
+                                            <span class="slds-form-element__label ">Home Phone: </span> 
+                                        </label>
+                                        {!record.Contact__r.Phone}
+                                    </span>
+                                </aura:if>
+                                
+                                <aura:if isTrue="{!record.Contact__r.MobilePhone}" >
+                                    <span class="{!record.Contact__r.npe01__PreferredPhone__c == 'Mobile' ? 'preferredPhone' : ''}" >
+                                        <label class="slds-p-left_small"> 
+                                            <span class="slds-form-element__label ">Mobile: </span> 
+                                        </label>
+                                        {!record.Contact__r.MobilePhone}
+                                    </span>
+                                </aura:if>
+
+                                <aura:if isTrue="{!record.Contact__r.npe01__WorkPhone__c}" >
+                                    <span class="{!record.Contact__r.npe01__PreferredPhone__c == 'Work' ? 'preferredPhone' : ''}" >
+                                        <label class="slds-p-left_small"> 
+                                            <span class="slds-form-element__label ">Work: </span> 
+                                        </label>
+                                        {!record.Contact__r.npe01__WorkPhone__c}
+                                    </span>
+                                </aura:if>
+                                <aura:if isTrue="{!record.Contact__r.Personal_Assistant_Phone__c}" >
+                                    <!-- <div class="slds-size_2-of-6" > -->
+                                        <label class="slds-p-left_small"> <span class="slds-form-element__label ">Personal Assistant: </span> </label> 
+                                        {!record.Contact__r.Personal_Assistant_Name__c} ({!record.Contact__r.Personal_Assistant_Phone__c})
+                                    <!-- </div> -->
+                                </aura:if>
+                            </td>
+                        </tr>
+                    </aura:if>
+                </aura:iteration>
+            </tbody>
+        </table>
+    </div>
+    <aura:if isTrue="{!v.isOpen}">
+        <c:newRelatedContactRecord showModal="{!v.isOpen}"  recordId="{!v.accntId}"/> <!-- closeModalView="{!c.closeModal}" -->
+        
+    </aura:if>
+    
+</aura:component>

@@ -1,0 +1,228 @@
+<aura:component controller="ChangeAdmittedProgramController" extends="c:ApexService" implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickActionWithoutHeader">
+
+	<aura:attribute name="patient" type="Object" description="PatientAccount object from apex controller" />
+	<aura:attribute name="currentAdmittedProgram" type="Admitted_Program__c" description="Admitted_Program__c record" />
+	<aura:attribute name="currentAdmittedProgramStatuses" type="List" description="List of current Admitted_Program_Status__c records" />
+
+	<aura:attribute name="chosenFunction" type="String" description="Action the component is doing right now" />
+	<aura:attribute name="showModal" type="Boolean" default="false" description="if true, show Change modal" />
+
+	<aura:attribute name="statusOptions" type="Object[]" />
+	<aura:attribute name="filteredStatusOptions" type="Object[]" />
+
+	<aura:attribute name="hasStatusesToUpdate" type="Boolean" />
+	<aura:attribute name="hasAdmittedProgramPermission" type="Boolean" />
+
+	<!-- New Program -->
+	<aura:attribute name="newAdmittedProgram" type="Map" description="new Admitted_Program__c record" />
+	<aura:attribute name="selectedProgram" type="Map" description="object set by lookupComponent" />
+	<aura:attribute name="selectedProgramManager" type="User" description="object set by lookupComponent" />
+	<aura:attribute name="changeProgramLookupFilter" type="List" default="[]" />
+
+	<aura:attribute name="programId2ProgramManagerMap" type="Object" description="reference map for Program Managers" />
+	<aura:attribute name="programStartDate" type="Date" />
+
+	<!-- New or Update Status -->
+	<aura:attribute name="selectedStatusRecord" type="Object" description="used for LDS" />
+	<aura:attribute name="admittedProgramStatusRecord" type="Map" description="Admitted_Program_Status__c record for create or update, copied from selectedStatusRecord" />
+	<aura:attribute name="newAdmittedProgramStatus" type="String" />
+	<aura:attribute name="selectedStatusId" type="String" description="record Id of Admitted Program Status to be updated" />
+
+	<!-- <aura:attribute name="updateStatusEndDate" type="Datetime" /> -->
+	<!-- <aura:attribute name="statusStartDateTime" type="Datetime" /> -->
+	<!-- <aura:attribute name="statusList" type="String" /> -->
+
+	<ltng:require scripts="{!$Resource.momentjs}" afterScriptsLoaded="{!c.doneScriptsLoading}" />
+	<ltng:require scripts="{!$Resource.momentTz}" afterScriptsLoaded="{!c.doneScriptsLoading}" />
+
+
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+	<aura:handler event="force:refreshView" action="{!c.doInit}" />
+	<aura:handler name="change" value="{!v.selectedStatusId}" action="{!c.onSelectedStatusIdChanged}" />
+	<aura:handler name="change" value="{!v.selectedProgram}" action="{!c.onSelectedProgramChanged}" />
+	<aura:handler name="render" value="{!this}" action="{!c.onRender}" />
+
+	<c:customRecordData aura:id="statusLoader"
+						recordId="{!v.selectedStatusId}"
+						selectFields="Id, Status__c, Start_Date_Time__c, End_Date_Time__c"
+						target="{!v.selectedStatusRecord}"></c:customRecordData>
+
+	<div>
+		<lightning:card title="Change Admitted Program or Status">
+			<!-- <aura:set attribute="actions">
+
+				<lightning:button variant="brand"
+									disabled="{!!v.chosenFunction}"
+									label="Save"
+									title="Save"
+									onclick="{!c.submitDetails}"/>
+
+			</aura:set> -->
+
+			<!-- View of the Admitted Program -->
+			<lightning:layout multipleRows="true">
+				<lightning:layoutItem size="12" smallDeviceSize="10" mediumDeviceSize="5" largeDeviceSize="1" padding="around-small" class="slds-text-heading_medium">
+					<lightning:input label="Current Admitted Program" value="{!v.currentAdmittedProgram.Name}" readonly="true" class="slds-text-heading_medium" />
+				</lightning:layoutItem>
+				<lightning:layoutItem size="12" smallDeviceSize="10" mediumDeviceSize="5" largeDeviceSize="2" padding="around-small">
+					<lightning:input label="Program Manager" value="{!v.currentAdmittedProgram.Program_Manager__r.Professional_Name__c}" readonly="true" />
+				</lightning:layoutItem>
+				<lightning:layoutItem size="12" smallDeviceSize="10" mediumDeviceSize="5" largeDeviceSize="3" padding="around-small">
+					<!-- <lightning:input  label="Current Status" value="{!v.currentAdmittedProgram.Current_Status__c}" readonly="true"/> -->
+					<!-- <lightning:textArea  label="Current Status" value="{!v.currentAdmittedProgram.Current_Status__c}" readonly="true"/> -->
+					<label for="currentStatus" class="slds-form-element__label ">Current Status</label>
+					<br />
+					<lightning:formattedText value="{!v.currentAdmittedProgram.Current_Status__c}"
+											 title="{!v.currentAdmittedProgram.Current_Status__c}" id="currentStatus" />
+				</lightning:layoutItem>
+			</lightning:layout>
+
+			<lightning:layout>
+				<!-- Choose type of function, status or program -->
+				<lightning:layoutItem size="4" smallDeviceSize="12" mediumDeviceSize="6" largeDeviceSize="5" padding="around-small">
+					<lightning:select
+									  name="selectFunction"
+									  label="Change Type"
+									  value="{!v.chosenFunction}"
+									  onchange="{!c.handleChangeFunction}">
+						<option value="">--None--</option>
+						<aura:if isTrue="{!v.hasAdmittedProgramPermission}">
+							<option value="Change Program">Change Admitted Program</option>
+						</aura:if>
+						<option value="New Status">New Program Status</option>
+						<option value="Update Status" disabled="{!!v.currentAdmittedProgram.Current_Status__c}">Update Program Status</option> <!-- disabled="{!!v.patient.currentStatus}"-->
+						<!-- <option value="Update Status" disabled="{!!v.statusList}">Update Program Status</option> -->
+						<!-- <option value="Discharge Patient" disabled="true">Discharge Patient</option> -->
+					</lightning:select>
+				</lightning:layoutItem>
+			</lightning:layout>
+
+			<lightning:layout multipleRows="true">
+
+				<lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="12" largeDeviceSize="12">
+					<lightning:layout multipleRows="true">
+
+						<!-- Display status inputs or program inputs based on above choice -->
+						<aura:if isTrue="{!v.chosenFunction == 'Change Program'}">
+							<lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="5" largeDeviceSize="4" padding="around-small">
+								<c:LookupComponent aura:id="changeProgramLookup"
+												   objectName="Program__c"
+												   label="New Program"
+												   fieldsToSearch="Name, Short_Name__c, Product_Code__c"
+												   selectedRecord="{!v.selectedProgram}"
+												   filters="{!v.changeProgramLookupFilter}"
+												   displayField="Name"
+												   displayFieldValue="Id"
+												   lookupFieldName="{!v.newAdmittedProgram.Program__c}"
+												   required="true" />
+
+							</lightning:layoutItem>
+
+							<lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="5" largeDeviceSize="3" padding="around-small">
+								<c:customElement label="Start Date">
+									<lightning:input aura:id="programStartDate" variant="label-hidden" type="date"
+													 value="{!v.newAdmittedProgram.Start_Date__c}"
+													 dateStyle="short"
+													 month="2-digit" day="2-digit" year="numeric"
+													 required="true"
+													 class="customRequired" /> <!-- value="{!v.programStartDate}" -->
+								</c:customElement>
+							</lightning:layoutItem>
+
+							<lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="5" largeDeviceSize="3" padding="around-small">
+								<c:LookupComponent
+												   aura:id="managerLookup"
+												   objectName="User" label="Program Manager"
+												   fieldsToSearch="Name"
+												   selectedRecord="{!v.selectedProgramManager}"
+												   displayField="Professional_Name__c"
+												   displayFieldValue="Id"
+												   lookupFieldName="{!v.newAdmittedProgram.Program_Manager__c}" />
+							</lightning:layoutItem>
+
+						</aura:if>
+
+						<aura:if isTrue="{!v.chosenFunction == 'New Status'}">
+							<lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="5" largeDeviceSize="4" padding="around-small">
+								<lightning:select aura:id="newStatusSelectStatus" name="selectFunction" label="New Status" value="{!v.admittedProgramStatusRecord.Status__c}" class="customRequired">
+									<aura:iteration items="{!v.filteredStatusOptions}" var="option">
+										<option value="{!option.value}">{!option.label}</option>
+									</aura:iteration>
+								</lightning:select>
+							</lightning:layoutItem>
+
+							<aura:if isTrue="{!v.admittedProgramStatusRecord.Status__c != ''}">
+								<lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="5" largeDeviceSize="3" padding="around-small">
+									<c:customElement label="Start Date Time">
+										<lightning:input aura:id="newStatusStartDate" variant="label-hidden" type="datetime"
+														 value="{!v.admittedProgramStatusRecord.Start_Date_Time__c}"
+														 dateStyle="short" timeStyle="short"
+														 year="numeric" month="2-digit" day="2-digit"
+														 required="true" />
+									</c:customElement>
+								</lightning:layoutItem>
+
+								<lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="5" largeDeviceSize="3" padding="around-small">
+									<c:customElement label="End Date Time">
+										<lightning:input aura:id="newStatusEndDate" variant="label-hidden" type="datetime"
+														 value="{!v.admittedProgramStatusRecord.End_Date_Time__c}"
+														 dateStyle="short" timeStyle="short"
+														 year="numeric" month="2-digit" day="2-digit" />
+									</c:customElement>
+
+								</lightning:layoutItem>
+							</aura:if>
+						</aura:if>
+
+						<aura:if isTrue="{!v.chosenFunction == 'Update Status'}">
+							<lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="5" largeDeviceSize="4" padding="around-small">
+								<lightning:select aura:id="updateStatusSelectStatusId" label="Select Status" value="{!v.selectedStatusId}">
+									<option value="">--None--</option>
+									<aura:iteration items="{!v.currentAdmittedProgramStatuses}" var="st">
+										<option value="{!st.Id}">{!st.Status__c}</option>
+									</aura:iteration>
+								</lightning:select>
+							</lightning:layoutItem>
+
+							<aura:if isTrue="{!v.selectedStatusId != ''}">
+								<lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="5" largeDeviceSize="3" padding="around-small">
+									<c:customElement label="Start Date Time">
+										<lightning:formattedDateTime aura:id="updateStatusStartDate"
+																	 value="{!v.admittedProgramStatusRecord.Start_Date_Time__c}"
+																	 year="numeric" month="numeric" day="numeric" hour="2-digit" minute="2-digit"
+																	 timeZoneName="short" timeZone="America/New_York" />
+									</c:customElement>
+								</lightning:layoutItem>
+
+								<lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="5" largeDeviceSize="3" padding="around-small">
+									<c:customElement label="End Date Time">
+										<lightning:input aura:id="updateStatusEndDate" variant="label-hidden" type="datetime"
+														 value="{!v.admittedProgramStatusRecord.End_Date_Time__c}"
+														 dateStyle="short" timeStyle="short"
+														 year="numeric" month="2-digit" day="2-digit"
+														 required="true" />
+									</c:customElement>
+								</lightning:layoutItem>
+							</aura:if>
+
+						</aura:if>
+
+					</lightning:layout>
+				</lightning:layoutItem>
+
+				<lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="12" largeDeviceSize="12" padding="horizontal-medium">
+					<!-- class="slds-p-top_x-large" -->
+					<aura:if isTrue="{!v.chosenFunction}">
+						<lightning:button label="Save" title="Save" variant="brand"
+										  disabled="{!!v.chosenFunction}"
+										  onclick="{!c.submitDetails}" />
+					</aura:if>
+				</lightning:layoutItem>
+			</lightning:layout>
+
+
+
+		</lightning:card>
+	</div>
+
+</aura:component>

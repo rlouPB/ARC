@@ -1,0 +1,187 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,lightning:actionOverride,forceCommunity:availableForAllPageTypes" 
+        controller="ManageAssignedClinicianController" extends="c:ApexService"  access="global" >
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+	<aura:attribute name="caseTeamMembers" type="CaseTeamMember[]" access="global"/>
+    <aura:attribute name="recordId" type="String"/>
+    <aura:attribute name="accountRecord" type="Account"/>
+    <aura:attribute name="caseTeamMembersRoles" type="CaseTeamRole[]" access="global"/>
+    <aura:handler name="CaseTeamRelatedListRoleChanged" event="c:CaseTeamRelatedListRoleChanged" action="{!c.handleCaseTeamRoleChanged}"/>
+
+    <aura:attribute name="isModalOpen" type="boolean" default="false"/>
+     <aura:attribute name="isModalOpenConfirmation" type="boolean" default="false"/>
+       <aura:attribute name="isDataChanged" type="boolean" default="false"/>
+
+
+    <aura:handler name="selectedItemEvent" event="c:selectedItemEvent" action="{!c.addMember}"/>
+    <aura:handler name="removedItemEvent" event="c:removedItemEvent" action="{!c.removeMember}"/>
+     <force:recordData aura:id="recordLoader"
+            recordId="{!v.recordId}"
+            fields="Name,Current_Case__c"
+            targetFields="{!v.accountRecord}"
+            
+    />
+    
+    <div class="slds-m-around_xx-large">
+      
+        <!--Use aura:if tag to display/hide popup based on isModalOpen value-->  
+        <aura:if isTrue="{!v.isModalOpen}">
+             
+            <!-- Modal/Popup Box starts here-->
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <!-- Modal/Popup Box Header Starts here-->
+                    <header class="slds-modal__header">
+                        <lightning:buttonIcon iconName="utility:close"
+                                              onclick="{! c.closeModel }"
+                                              alternativeText="close"
+                                              variant="bare-inverse"
+                                              class="slds-modal__close"/>
+                        <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Assigned Clinicians for {!v.accountRecord.Name}</h2>
+                    </header>
+                    <!--Modal/Popup Box Body Starts here-->
+      
+        <!--Use aura:if tag to display/hide popup based on isModalOpen value-->  
+        <aura:if isTrue="{!v.isModalOpenConfirmation}">
+             
+            <!-- Modal/Popup Box starts here-->
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <!-- Modal/Popup Box Header Starts here-->
+                    <header class="slds-modal__header">
+                        <lightning:buttonIcon iconName="utility:close"
+                                              onclick="{! c.closeModelConfirm }"
+                                              alternativeText="close"
+                                              variant="bare-inverse"
+                                              class="slds-modal__close"/>
+                        <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Confirmation</h2>
+                    </header>
+                    <!--Modal/Popup Box Body Starts here-->
+                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                      Are you sure you want to cancel? Any unsaved changes will be lost.
+
+                    </div>
+                    <!--Modal/Popup Box Footer Starts here-->
+                    <footer class="slds-modal__footer">
+                        <lightning:button variant="neutral"
+                                          label="Discard Changes"
+                                          title="Discard Changes"
+                                          onclick="{! c.closeModelConfirm }"/>
+                        <lightning:button variant="brand"
+                                          label="Go Back to Editing"
+                                          title="Go Back to Editing"
+                                          onclick="{!c.gobackToEditing}"/>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </aura:if>
+                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                       <table>
+                            <thead>
+                                <th>Member Role</th>
+                                <th style="padding-left:20px;">Member Name</th>
+                            </thead>
+                            <tbody>
+                                <aura:iteration items="{!v.caseTeamMembers}" indexVar="index" var="item">
+                                    <aura:if isTrue="{!!item.isDeleted}">
+                                        <c:SubManageAssignedClinician caseTeamMember="{!item}" rowNumber="{!index}" caseTeamMembersRoles="{!v.caseTeamMembersRoles}"/>
+                                    </aura:if>
+                                        
+                                </aura:iteration>
+                             </tbody>
+                             
+                             <div class="add-height" style="height: 200px;">
+            						
+        					</div> 
+                        </table>
+                           <!-- <lightning:icon iconName="utility:add" alternativeText="New Member" size="small" onclick="{!c.addMember}"/> -->
+
+                    </div>
+                    <!--Modal/Popup Box Footer Starts here-->
+                    <footer class="slds-modal__footer">
+                        <lightning:button variant="neutral"
+                                          label="Cancel"
+                                          title="Cancel"
+                                          onclick="{! c.closeModel }"/>
+                        <lightning:button variant="brand"
+                                          label="Save"
+                                          title="Save"
+                                          onclick="{!c.upsertCaseTeamMembers}"/>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </aura:if>
+    </div>
+    
+    
+    
+     <div class="slds-box slds-theme_default">
+        <div class="slds-grid slds-wrap">
+            <div class="slds-col slds-size_1-of-2">
+                <div class="slds-grid slds-gutters">
+                    <div class="slds-col">
+                        <div class="slds-form-element">
+                            <span style="float: left;">
+                                <h1 style="font-size: 18px; font-weight: 600;"> 
+                                    <lightning:icon iconName="standard:team_member" size="small" alternativeText="Assigned Clinicians" class="slds-m-right_small"/>
+                                    Assigned Clinicians
+                                </h1>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="slds-col slds-size_1-of-2">
+                <div class="slds-grid slds-gutters">
+                    <div class="slds-col">
+                        <div class="slds-form-element">
+                            <span style="float: right;">
+                                <lightning:button variant="brand" label="Manage Assigned Clinicians" title="Manage Assigned Clinicians" onclick="{! c.manageAssignedClinicians }" />
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>  
+         </div>
+            <div class="slds-grid slds-wrap" style="margin-top: 25px;">
+                <div class="slds-col slds-size_1-of-1">
+                    <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped">
+                        <thead>
+                            <tr class="slds-line-height_reset">
+                                <th class="" scope="col">
+                                    <div class="slds-truncate" title="Member Role">Member Role</div>
+                                </th>
+                                <th class="" scope="col">
+                                    <div class="slds-truncate" title="Team Member Name">Team Member</div>
+                                </th>
+                            
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <aura:iteration items="{!v.caseTeamMembers}" var="var">
+                                <tr class="slds-hint-parent">
+                                    <td data-label="Role">
+                                        <div class="slds-truncate" title="{!var.TeamRole.Name}">
+                                            {!var.TeamRole.Name}
+                                        </div>
+                                    </td>
+                                    <td data-label="Opportunity Name" scope="row">
+                                        <div class="slds-truncate" title="{!var.Member.Name}">
+                                            {!var.Member.Professional_Name__c}
+                                        </div>
+                                    </td>
+                                </tr>
+                            </aura:iteration>
+                        </tbody>
+                    </table>
+                </div>
+            </div>            
+        </div>
+        
+        <br/>
+        <br/>
+        
+    
+
+</aura:component>

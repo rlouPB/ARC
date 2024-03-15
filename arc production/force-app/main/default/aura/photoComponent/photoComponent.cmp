@@ -1,0 +1,97 @@
+<aura:component  Controller="PhotoComponentController"  extends="c:ApexService" access="public" >
+    <!-- Attribute sections -->
+    <aura:attribute name="parentRecordId" type="String" Description="Record to find Photo Id on" access="public" />
+    <aura:attribute name="photoIdField" type="String" Description="Field on record holding ContentDocumentId of Salesforce File to be displayed " access="public" />
+    <aura:attribute name="pictureSrc" type="String" default="" Description="Picture source"/>
+    <aura:attribute name="record" type="Object" Description="Used for Lightning data service"/>
+    <aura:attribute name="recordError" type="String" Description="Error from recordData"/>
+
+    <aura:attribute name="height" default="100" type="Integer" Description="Integer html display height" access="public" />
+    <aura:attribute name="width"  default="100" type="Integer" Description="nteger html display width" access="public" />
+    
+    <aura:attribute name="isOpenAlertModal" type="Boolean" default="false" Description="Alert Modal" access="public" />
+    <aura:attribute name="isPhotoIdFieldValid" type="Boolean" default="false" Description="store if Photo Id is valid" access="public" />
+    <aura:attribute name="isDraggedOver" type="Boolean" default="false" Description="Alert Modal" access="public" />
+    <aura:attribute name="isContentUpdated" type="Boolean" default="true" Description="Alert is Content Updated" access="public" />
+    <aura:attribute name="fileToUpload" type="Object" Description="Holds the Image files" access="public" />
+
+    
+    <!-- Handler sections -->    
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    
+    <!-- DataSevice -->
+    <force:recordData aura:id="recordLoader"
+                      recordId="{!v.parentRecordId}"
+                      targetFields="{!v.record}"
+                      targetError="{!v.recordError}"
+                      fields="Photo_Document_Id__c,Photo_Version_Id__c"
+                      mode="EDIT"
+                      recordUpdated="{!c.handleRecordUpdated}"
+                      />
+    
+    <!-- Image Component -->
+    <div class="slds-hide">
+        <c:contentUploader aura:id="contentUploader" fileType="image" parentId = "{!v.parentRecordId}" contentId="{!v.photoIdField}" />
+    </div>
+    
+    <div class="slds-m-around_small">
+        <aura:if isTrue ="{!v.isContentUpdated}">
+            <!-- Image Source -->        
+            <div aura:id="dragSpace" ondragover="{!c.onDragOver}" ondrop="{!c.onDrop}" ondragleave="{!c.onDragLeave}">
+                <aura:if isTrue ="{!!v.isDraggedOver}">
+                    <div >
+                        <div aura:id="file" class="imageFix" style="{! 'background-image:url(' + (v.pictureSrc == '' ? $Resource.Default_Photo_Component : v.pictureSrc) + ');'+ 'width:' +v.width + 'px;'+'height:' + v.height +'px;'}" onclick="{!c.showBiggerImage}" ></div>
+                    </div>
+                    <aura:set attribute="else">
+                        <div class="slds-align-absolute_center">
+                            <p aura:id="dragMessage"  class="aligncenter"  style="{!'height:' +v.height + 'px;'+ 'width:' +v.width + 'px;'}">Add/Replace Patient Photo</p>
+                        </div>
+                    </aura:set>
+                </aura:if>
+                
+                <!--img aura:id="file"  src="{!v.pictureSrc == '' ? $Resource.Default_Photo_Component : v.pictureSrc }" width="{!v.width}" height="{!v.height}" onclick="{!c.showBiggerImage}" style="{!'height:' +v.height + 'px;'}"/-->
+            </div>
+        </aura:if>
+
+        <div class="spinnerfix"  style="position:relative;top:-2.8rem;">
+            <lightning:spinner  size="small" aura:id="spinner" variant="brand" />
+        </div>
+        
+        <!-- Prompt Modal -->
+        <aura:if isTrue="{!v.isOpenAlertModal}">
+            <section class="slds-modal slds-fade-in-open slds-modal_prompt" >
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header slds-theme_error slds-theme_alert-texture">
+                        <h2 class="slds-text-heading_medium" id="prompt-heading-id">Replace current patient photo?</h2>
+                    </header>
+                    <div class="slds-modal__content slds-p-around_medium" >
+                        <lightning:button label="No" variant="neutral" onclick="{!c.cancel}"/>
+                        <lightning:button label="Yes" variant="Brand" onclick="{!c.confirm}"/>
+                    </div>   
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </aura:if>
+    </div>
+    <!-- Image Size Modal -->
+    <div  >
+        <section role="dialog" aura:id="showImageModal" aria-modal="true"  class="slds-modal" onclick="{!c.close}">
+            <div class="slds-modal__container">
+                <div>
+                    <div class="slds-clearfix">
+                        <div>
+                            <div class="slds-m-bottom--small" style="float:right;bottom:25px;position:relative;">
+                                <lightning:buttonIcon iconName="utility:close"  variant="bare-inverse" title="close" alternativeText="Close window" onclick="{!c.close}"/>
+                            </div>
+                            <div class="slds-align_absolute-center"> 
+                                <img src="{!v.pictureSrc}" class="slds-align_absolute-center" onclick="{!c.preventFromClose}"></img> 
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <div aura:id="showBackdrop" class="slds-backdrop"></div>
+    </div>
+    
+</aura:component>

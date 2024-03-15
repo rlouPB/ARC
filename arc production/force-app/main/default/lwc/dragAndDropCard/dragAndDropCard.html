@@ -1,0 +1,29 @@
+<template>
+    <template if:true={isSameStage}>
+   <li class="slds-item slds-var-m-around_small" draggable="true" ondragstart={itemDragStart}>
+       <article class="slds-tile slds-tile_board">
+           <h3 class="slds-truncate" title={record.Id}>
+               <a href="#" data-id={record.Id} onclick={navigateOppHandler}>
+                   <span class="slds-truncate" data-id={record.Id}>
+                    {record.Name}
+                   </span>
+               </a>
+           </h3>
+           <div class="slds-tile__detail slds-text-body_small">
+               <!-- <p>{record.Date_of_Variance__c}</p> -->
+               <template for:each={fields} for:item="i">
+                <lightning-formatted-rich-text style="display: block;" key={i.label} value={i.value}></lightning-formatted-rich-text>
+                    <!-- <p key={i.label} >{i.value}</p> -->
+               </template>
+               <!-- <p class="slds-truncate" title={record.Variance_Category__c}>
+                    <a href="#" data-id={record.Id} onclick={navigateAccHandler}>
+                    <span class="slds-truncate" data-id={record.Id}>
+                        {record.Id}
+                    </span>
+                </a>
+               </p> -->
+           </div>
+       </article>
+   </li>
+</template>
+</template>

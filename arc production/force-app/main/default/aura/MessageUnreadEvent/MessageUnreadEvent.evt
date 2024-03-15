@@ -1,0 +1,12 @@
+<aura:event
+	type="APPLICATION"
+	description="Unread Message Event">
+	<aura:attribute
+		name="count"
+		type="Integer"
+		default="0"></aura:attribute>
+	<aura:attribute
+		name="type"
+		type="String"
+		default=""></aura:attribute>
+</aura:event>

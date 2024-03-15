@@ -1,0 +1,11 @@
+<aura:event
+	type="APPLICATION"
+	description="Events of the NoteDiagnosis component">
+	<aura:attribute
+		name="type"
+		type="String"
+		required="true"></aura:attribute>
+	<aura:attribute
+		name="data"
+		type="Object"></aura:attribute>
+</aura:event>

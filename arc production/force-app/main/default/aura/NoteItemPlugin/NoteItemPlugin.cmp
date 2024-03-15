@@ -1,0 +1,18 @@
+<aura:component extensible="true" >
+    <aura:attribute name="theNote" type="Map" description="Patient Note "/>
+    <aura:attribute name="noteItem" type="Map" description="Note Item wrapper object"/>
+
+    <aura:attribute name="instanceName" type="String"/>
+    <aura:attribute name="changedFields" type="List" default="[]"
+        description="List of field objects [{field: 'Test__c', value: 'TEST'}] to include with noteChanged event."/>
+    
+    
+    <aura:registerEvent name="noteChanged" type="c:NoteChangedEvent"/>
+    <!-- plugin-
+    <div style="border: 2px solid black; min-height: 20vh;">
+        Instance: {!v.instanceName}
+    </div>
+    -plugin  -->
+    {!v.body}
+    
+</aura:component>

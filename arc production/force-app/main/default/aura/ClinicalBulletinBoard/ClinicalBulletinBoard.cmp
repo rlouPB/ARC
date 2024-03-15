@@ -1,0 +1,56 @@
+<aura:component implements="flexipage:availableForAllPageTypes">
+	<aura:attribute name="hasVarianceGeneral" type="Boolean" default="false" />
+	<aura:attribute name="hasVarianceMedication" type="Boolean" default="false" />
+	<aura:attribute name="bulletSectionList" type="List" default="[]" />
+
+	<!-- DOC today/tomorrow -->
+	<lightning:listView objectApiName="Meeting__c" listName="DOC_today" rows="10" showSearchBar="false" showActionBar="true" enableInlineEdit="false" showRowLevelActions="false" />
+
+	<!-- Charge Nurses Today -->
+	<lightning:listView objectApiName="Nursing_Shift__c" listName="Charge_Nurses_Today" rows="10" showSearchBar="false" showActionBar="true" enableInlineEdit="false" showRowLevelActions="false" />
+
+	<!-- Patient Status -->
+	<lightning:listView objectApiName="Admitted_Program_Status__c" listName="Patient_Status" rows="10" showSearchBar="false" showActionBar="true" enableInlineEdit="false" showRowLevelActions="false" />
+	<br />
+
+	<!-- Flagged Notes & Alerts -->
+	<c:flaggedNotesLwc></c:flaggedNotesLwc>
+
+	<!-- Employee Time Away/Other -->
+	<aura:if isTrue="{!not(empty(v.bulletSectionList))}">
+		<c:ViewBulletinBoard bulletSectionList="{!v.bulletSectionList}"></c:ViewBulletinBoard>
+	</aura:if>
+
+	<!-- Full schedule tip (notification) -->
+	<div class="slds-scoped-notification slds-media slds-media_center slds-scoped-notification_light slds-box slds-box_small slds-var-m-bottom_xx-small arcSchedulingTip" role="status">
+		<div class="slds-media__figure">
+			<lightning:icon alternativeText="info" iconName="utility:date_time" size="small" class="slds-var-m-right_x-small"></lightning:icon>
+		</div>
+		<div class="slds-media__body">
+			<p>
+				To view full schedule, please click the word
+				<b>Schedule</b> in the white bar at the top of the screen.
+			</p>
+		</div>
+	</div>
+	<br />
+
+	<!-- Clinical Pt Meetings & Case Conferences -->
+	<lightning:listView objectApiName="Meeting__c" listName="Clinical_Pt_Meetings_Case_Conferences" rows="10" showSearchBar="false" showActionBar="true" enableInlineEdit="false" showRowLevelActions="false" />
+
+	<!-- Recent Admissions -->
+	<lightning:listView aura:id="recentAdmits" objectApiName="Admission__c" listName="Recent_Admits" rows="10" showSearchBar="false" showActionBar="true" enableInlineEdit="false" showRowLevelActions="false" />
+
+	<!-- Recent Discharges -->
+	<lightning:listView aura:id="recentDischarges" objectApiName="Admission__c" listName="Recent_Discharges" rows="10" showSearchBar="false" showActionBar="true" enableInlineEdit="false" showRowLevelActions="false" />
+
+	<!-- General Variances In Last 72 Hours -->
+	<aura:if isTrue="{!v.hasVarianceGeneral}">
+		<lightning:listView objectApiName="Variance__c" listName="General_Variances_In_Last_48_Hours" rows="10" showSearchBar="false" showActionBar="false" enableInlineEdit="false" showRowLevelActions="false" />
+	</aura:if>
+
+	<!-- Medication Variances in last 48 hours -->
+	<aura:if isTrue="{!v.hasVarianceMedication}">
+		<lightning:listView objectApiName="Variance__c" listName="Medication_Variances_in_last_48_hours" rows="10" showSearchBar="false" showActionBar="false" enableInlineEdit="false" showRowLevelActions="false" />
+	</aura:if>
+</aura:component>

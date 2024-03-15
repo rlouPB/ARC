@@ -1,0 +1,24 @@
+.THIS .headerWrapper{
+	min-height: 200px;
+}
+
+.THIS .clsFieldset {    
+    margin-left: 2px;
+    margin-right: 2px;
+    padding-top: 0.35em;
+    padding-bottom: 0.625em;
+    padding-left: 0.75em;
+    padding-right: 0.75em;
+    border: 4px groove;
+    display: block;    
+	width: 90%;
+ }
+ 
+ .THIS .clsLegend {    
+    padding-left: 2px;
+    padding-right: 2px;
+	font-weight: bold;
+	color: red;
+    border: none;
+    display: block;
+ }

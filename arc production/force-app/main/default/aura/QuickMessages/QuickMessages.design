@@ -1,0 +1,10 @@
+<design:component label="Quick Messages">
+	<design:attribute
+		name="type"
+		label="Message Type"
+		description="Clinical Alert or Standard Message"/>
+	<design:attribute
+		name="barId"
+		label="Utility Id"
+		description="Utility Bar Id"/>
+</design:component>

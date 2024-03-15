@@ -1,0 +1,93 @@
+<aura:component extends="c:ApexService" controller="PatientSidebarCls" implements="force:hasRecordId">
+
+    <aura:attribute name="patientAccountId" type="String" access="public" description="Patient Record Id, this will be get patient specific fields and show them at the top of the sidebar" />
+    <aura:attribute name="parameters" type="Map" default="{
+        'fieldNames' : [{
+            'fieldName':'Account__r.Gender_Identifies_As__c',
+            'label':'Gender Identifies As'
+        },{
+            'fieldName':'Account__r.Preferred_Pronouns__c',
+            'label':'Preferred Pronouns'
+        },{
+            'fieldName':'Account__r.Age__c',
+            'label':'Age'
+        },{
+            'fieldName':'Account__r.Current_Admission__r.Psychiatrist__r.Name',
+            'label':'Psychiatrist'
+        },{
+            'fieldName':'Account__r.Current_Admission__r.Admit_Date__c',
+            'label':'Admit Date'
+        },{
+            'fieldName':'Account__r.Previous_Admissions_Numeric__c',
+            'label':'Previous Admissions'
+        }]
+    }" access="public" description="Parameters of the sidebar, currently it supports 2, fieldNames: fields to show from the current target object and patientFields: fields to show from the patient targeted" />
+    <aura:attribute name="collapsible" type="Boolean" default="true" description="if true, allow collapsing sidebar" access="public" />
+    <aura:attribute name="footer" type="Aura.Component[]" access="public" />
+    <aura:attribute name="fields" type="Aura.Component[]" access="public" />
+    <aura:attribute name="recordFieldsStyle" type="String" default="height:fit-content;" access="public" />
+
+    <aura:attribute name="isCollapsed" type="Boolean" description="if true, sidebar is in minimized / collapsed state" access="public" />
+    <aura:attribute name="data" type="Map" access="private" />
+
+    <aura:registerEvent name="ButtonClicked" type="c:clickedButton" />
+
+    <aura:handler name="change" value="{!v.parameters}" action="{!c.onParametersChange}" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler event="force:refreshView" action="{!c.doInit}" />
+
+    <aura:if isTrue="{!v.data}">
+        <lightning:layout multipleRows="true">
+            <lightning:layoutItem size="12">
+                <lightning:buttonIcon class="{!v.isCollapsed?'slds-clearfix icon':'slds-hide'}" iconName="utility:open" onclick="{!c.onOpenClickHandler}" />
+                <lightning:layoutItem class="{!v.isCollapsed?'slds-hide':'slds-show'}" aura:id="mainLayout">
+                    <lightning:card class="slds-card_boundary slds-card__body_inner">
+                        <aura:set attribute="actions">
+                            <aura:if isTrue="{!and(v.collapsible,!v.isCollapsed)}">
+                                <lightning:buttonIcon iconName="utility:close" onclick="{!c.onCloseClickHandler}" />
+                            </aura:if>
+                        </aura:set>
+                        <div class="header slds-card__body_inner">
+                            <lightning:layout multipleRows="true">
+                                <aura:if isTrue="{!v.data.patient.Photo__c}">
+                                    <lightning:layoutItem size="12">
+                                        <aura:unescapedHtml value="{!v.data.patient.Photo__c}" />
+                                    </lightning:layoutItem>
+                                </aura:if>
+                                <aura:if isTrue="{!v.data.patient.Name}">
+                                    <lightning:layoutItem size="12" class="slds-var-p-around_xx-small">
+                                        <label class="slds-form-element__label">Patient</label>
+                                        <div class="slds-form-element__control">
+                                            <c:recordLink recordId="{!v.patientAccountId}" recordName="{!v.data.patient.Name}" />
+                                        </div>
+                                    </lightning:layoutItem>
+                                </aura:if>
+                            </lightning:layout>
+                            <div style="{!v.recordFieldsStyle}" class="slds-scrollable_y">
+                                <lightning:layout multipleRows="true">
+                                    <lightning:layoutItem size="12">
+                                        <lightning:layout multipleRows="true">
+                                            <aura:iteration items="{!v.data.recordFields}" var="field">
+                                                <lightning:layoutItem size="12">
+                                                    <c:PatientSideBarField field="{!field}" />
+                                                </lightning:layoutItem>
+                                            </aura:iteration>
+                                        </lightning:layout>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem size="12">
+                                        {!v.fields}
+                                    </lightning:layoutItem>
+                                </lightning:layout>
+                            </div>
+                        </div>
+                        <aura:set attribute="footer">
+                            {!v.footer}
+                        </aura:set>
+                    </lightning:card>
+                </lightning:layoutItem>
+
+            </lightning:layoutItem>
+        </lightning:layout>
+    </aura:if>
+
+</aura:component>

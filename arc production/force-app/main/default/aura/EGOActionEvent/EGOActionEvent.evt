@@ -1,0 +1,6 @@
+<aura:event
+  type="APPLICATION"
+  description="EGO Action Event such as validate and finalize at Application level."
+>
+  <aura:attribute name="action" type="String" />
+</aura:event>

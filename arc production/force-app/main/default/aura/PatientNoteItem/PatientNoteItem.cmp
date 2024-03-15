@@ -1,0 +1,249 @@
+<aura:component implements="force:hasRecordId">
+    <!-- <aura:attribute name="recordId" type="String"/> -->
+    <aura:attribute name="noteItem" type="Map" />
+    <aura:attribute name="patientNote" type="Map" />
+    <aura:attribute name="hideNoteItem" type="Boolean" default="false" description="If true, this Note Item will be hidden from display and Snapshot. Based on Patient Note fields." />
+
+    <aura:attribute name="debugging" type="Boolean" default="false" />
+
+    <aura:attribute name="readOnly" type="Boolean" default="false" />
+    <aura:attribute name="instanceName" type="String" />
+    <aura:attribute name="embeddedComponents" type="Aura.Component[]" description="Instantiated component." />
+    <aura:attribute name="selectedRecord" type="Map" />
+
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler name="change" value="{!v.noteItem.value}" action="{!c.onValueChanged}" />
+    <aura:handler name="change" value="{!v.patientNote.patientNote}" action="{!c.onPatientNoteChanged}" />
+    <!-- <aura:handler name="change" value="{!v.patientNote}" action="{!c.onPatientNoteChanged}"/> -->
+
+    <aura:handler name="noteChanged" event="c:NoteChangedEvent" action="{!c.handleNoteChanged}" />
+    <aura:registerEvent name="noteChanged" type="c:NoteChangedEvent" />
+
+
+    <div class="wrapper">
+        <aura:if isTrue="{!v.debugging}">
+            @@ NoteItem instanceName {!v.instanceName}: {!v.noteItem.noteItem.Title__c}
+        </aura:if>
+
+        <aura:if isTrue="{!(v.hideNoteItem == false)}">
+
+            <aura:if isTrue="{!v.noteItem.noteItem.Type__c == 'Section Header 1'}">
+                <aura:if isTrue="{!and(v.noteItem.displayType != 'BOOLEAN', not(empty(v.noteItem.noteItem.Title__c)))}">
+                    <div class="slds-text-heading_large title">{!v.noteItem.noteItem.Title__c}</div>
+                </aura:if>
+                <aura:if isTrue="{!not(v.readOnly)}">
+                    <aura:if isTrue="{!not(empty(v.noteItem.noteItem.Subtitle__c))}">
+                        <div class="slds-text-title">{!v.noteItem.noteItem.Subtitle__c}</div>
+                    </aura:if>
+                    <aura:if isTrue="{!not(empty(v.noteItem.noteItem.Helptext__c))}">
+                        <div class="slds-text-title">{!v.noteItem.noteItem.Helptext__c}</div>
+                    </aura:if>
+                </aura:if>
+            </aura:if>
+
+            <aura:if isTrue="{!v.noteItem.noteItem.Type__c == 'Section Header 2'}">
+                <aura:if isTrue="{!and(v.noteItem.displayType != 'BOOLEAN', not(empty(v.noteItem.noteItem.Title__c)))}">
+                    <div class="slds-text-heading_medium title">{!v.noteItem.noteItem.Title__c}</div>
+                </aura:if>
+                <aura:if isTrue="{!not(v.readOnly)}">
+                    <aura:if isTrue="{!not(empty(v.noteItem.noteItem.Subtitle__c))}">
+                        <div class="slds-text-title">{!v.noteItem.noteItem.Subtitle__c}</div>
+                    </aura:if>
+                    <aura:if isTrue="{!not(empty(v.noteItem.noteItem.Helptext__c))}">
+                        <div class="slds-text-title">{!v.noteItem.noteItem.Helptext__c}</div>
+                    </aura:if>
+                </aura:if>
+            </aura:if>
+
+            <aura:if isTrue="{!v.noteItem.noteItem.Type__c == 'Section Header 3'}">
+                <aura:if isTrue="{!and(v.noteItem.displayType != 'BOOLEAN', not(empty(v.noteItem.noteItem.Title__c)))}">
+                    <div class="slds-text-heading_small title">{!v.noteItem.noteItem.Title__c}</div>
+                </aura:if>
+                <aura:if isTrue="{!not(v.readOnly)}">
+                    <aura:if isTrue="{!not(empty(v.noteItem.noteItem.Subtitle__c))}">
+                        <div class="slds-text-title">{!v.noteItem.noteItem.Subtitle__c}</div>
+                    </aura:if>
+                    <aura:if isTrue="{!not(empty(v.noteItem.noteItem.Helptext__c))}">
+                        <div class="slds-text-title">{!v.noteItem.noteItem.Helptext__c}</div>
+                    </aura:if>
+                </aura:if>
+            </aura:if>
+
+            <aura:if isTrue="{!v.noteItem.noteItem.Type__c == 'Field'}">
+                <aura:if isTrue="{!and(v.noteItem.displayType != 'BOOLEAN', not(empty(v.noteItem.noteItem.Title__c)))}">
+                    <div class="slds-text-heading_small title">{!v.noteItem.noteItem.Title__c}</div>
+                </aura:if>
+                <!--Do not display checkbox caption(label) in a separated line-->
+                <aura:if isTrue="{!and(v.noteItem.displayType != 'BOOLEAN', not(v.readOnly))}">
+                    <aura:if isTrue="{!not(empty(v.noteItem.noteItem.Subtitle__c))}">
+                        <div class="slds-text-title">{!v.noteItem.noteItem.Subtitle__c}</div>
+                    </aura:if>
+                    <aura:if isTrue="{!not(empty(v.noteItem.noteItem.Helptext__c))}">
+                        <div class="slds-text-title">{!v.noteItem.noteItem.Helptext__c}</div>
+                    </aura:if>
+                    <aura:set attribute="else">
+                        <aura:if isTrue="{!and(v.readOnly, or(not(empty(v.noteItem.stringValue)), not(empty(v.noteItem.value))))}">
+                            <aura:if isTrue="{!not(empty(v.noteItem.noteItem.Subtitle__c))}">
+                                <div class="slds-text-title">{!v.noteItem.noteItem.Subtitle__c}</div>
+                            </aura:if>
+                        </aura:if>
+                        
+                    </aura:set>
+                </aura:if>
+            </aura:if>
+
+            <aura:if isTrue="{!v.noteItem.noteItem.Type__c == 'Field'}">
+                <aura:if isTrue="{!v.noteItem.noteItem.Field_Name__c == null}">
+                    <b>No Field Specified</b>
+                    <aura:set attribute="else">
+                        <aura:if isTrue="{!v.noteItem.displayType == 'TEXTAREA'}">
+                            <aura:if isTrue="{!not(v.readOnly)}">
+                                <lightning:inputRichText value="{!v.noteItem.value}"
+                                                         disabledCategories="FORMAT_FONT,ALIGN_TEXT,INSERT_CONTENT,REMOVE_FORMATTING"
+                                                         class="{! v.noteItem.noteItem.Is_Required__c ? 'customRequired' : ''}" />
+                                <aura:set attribute="else">
+                                    <lightning:formattedRichText class="slds-var-m-top_xx-small" value="{!v.noteItem.value}" />
+                                </aura:set>
+                            </aura:if>
+                        </aura:if>
+                        <aura:if isTrue="{!v.noteItem.displayType == 'BOOLEAN'}">
+                            <aura:if isTrue="{!not(v.readOnly)}">
+                                <lightning:input name="{!v.noteItem.noteItem.Subtitle__c}" 
+                                                 label="{!v.noteItem.noteItem.Subtitle__c}" type="checkbox" checked="{!v.noteItem.value}" />
+                                <aura:set attribute="else">
+                                    <lightning:input name="{!v.noteItem.noteItem.Subtitle__c}" 
+                                                     label="{!v.noteItem.noteItem.Subtitle__c}" type="checkbox" checked="{!v.noteItem.value}" disabled="true" />
+                                </aura:set>
+                            </aura:if>
+                        </aura:if>
+                        <aura:if isTrue="{!v.noteItem.displayType == 'STRING'}">
+                            <!-- <aura:if isTrue="{!not(v.readOnly)}"> -->
+                            <aura:if isTrue="{!not(v.noteItem.noteItem.Is_Read_Only__c || v.readOnly)}">
+                                <!-- <lightning:input name="{!v.noteItem.noteItem.Title__c}"
+                                    label="{!v.noteItem.noteItem.Title__c}"
+                                    value="{!v.noteItem.value}"
+                                    class="{! v.noteItem.noteItem.Is_Required__c ? 'customRequired' : ''}"/> -->
+                                <lightning:input name="{!v.noteItem.noteItem.Title__c}"
+                                                 title="{!v.noteItem.noteItem.Title__c}"
+                                                 value="{!v.noteItem.value}"
+                                                 class="{! v.noteItem.noteItem.Is_Required__c ? 'customRequired' : ''}"
+                                                 variant="label-hidden" />
+                                <aura:set attribute="else">
+                                    <!-- <lightning:formattedText title="formatted text" value="{!v.noteItem.stringValue}" /> -->
+                                    <p>
+                                        <ui:outputText title="{!v.noteItem.noteItem.Title__c + ': ' + v.noteItem.value}" value="{!v.noteItem.value}" />
+                                    </p>
+                                </aura:set>
+                            </aura:if>
+                        </aura:if>
+
+                        <aura:if isTrue="{!v.noteItem.displayType == 'RICHTEXT'}">
+                            <aura:unescapedHtml value="{!v.noteItem.value}"/>
+                        </aura:if>
+
+                        <aura:if isTrue="{!v.noteItem.displayType == 'DATE'}">
+                            <div class="note-item-date">
+                                <aura:if isTrue="{!and(not(v.readOnly), not(v.noteItem.noteItem.Is_Read_Only__c))}">
+                                    <lightning:input type="date"
+                                                     label="{!v.noteItem.noteItem.Title__c}"
+                                                     readonly="{!v.noteItem.noteItem.Is_Read_Only__c}"
+                                                     value="{!v.noteItem.value}"
+                                                     variant="label-hidden"
+                                                     dateStyle="short"
+                                                     class="{! v.noteItem.noteItem.Is_Required__c ? 'customRequired' : ''}" />
+                                    <aura:set attribute="else">
+                                        {!v.noteItem.stringValue}&nbsp;
+                                    </aura:set>
+                                </aura:if>
+                            </div>
+                        </aura:if>
+                        <aura:if isTrue="{!v.noteItem.displayType == 'REFERENCE'}">
+                            <div class="note-item-reference">
+                                <aura:if isTrue="{!and(not(v.readOnly), not(v.noteItem.noteItem.Is_Read_Only__c))}">
+                                    <c:LookupComponent selectedRecord="{!v.selectedRecord}"
+                                                       displayField="{!v.noteItem.displayField}"
+                                                       displayFieldValue="Id"
+                                                       lookupFieldName="{!v.noteItem.value}"
+                                                       objectName="{!v.noteItem.objectName}"
+                                                       fieldsToSearch="{!v.noteItem.displayField}"
+                                                       required="{!v.noteItem.noteItem.Is_Required__c}" />
+                                    <aura:set attribute="else">
+                                        {!v.noteItem.stringValue}&nbsp;
+                                    </aura:set>
+                                </aura:if>
+                            </div>
+                        </aura:if>
+                        <aura:if isTrue="{!v.noteItem.displayType == 'MULTIPICKLIST'}">
+                            <aura:if isTrue="{!and(not(v.readOnly), not(v.noteItem.noteItem.Is_Read_Only__c))}">
+                                <c:MultiSelectPicklist objectName="Patient_Note__c"
+                                                       fieldName="{!v.noteItem.noteItem.Field_Name__c}"
+                                                       disableReordering="true"
+                                                       selectedOptionsString="{!v.noteItem.value}"
+                                                       variant="label-hidden"
+                                                       class="{! v.noteItem.noteItem.Is_Required__c ? 'customRequired' : ''}" />
+                                <aura:set attribute="else">
+                                    {!v.noteItem.value}&nbsp;
+                                </aura:set>
+                            </aura:if>
+                        </aura:if>
+                        <aura:if isTrue="{!v.noteItem.displayType == 'MULTISELECTCHECKBOX'}">
+                            <c:MultiSelectCheckbox objectName="Patient_Note__c"
+                                                   fieldName="{!v.noteItem.noteItem.Field_Name__c}"
+                                                   selectedOptionsString="{!v.noteItem.value}"
+                                                   readOnly="{!v.readOnly}"
+                                                   variant="label-hidden"
+                                                   class="{! v.noteItem.noteItem.Is_Required__c ? 'customRequired' : ''}" />
+                        </aura:if>
+
+                        <aura:if isTrue="{!v.noteItem.displayType == 'RADIOBUTTON'}">
+                            <aura:if isTrue="{!and(not(v.readOnly), not(v.noteItem.noteItem.Is_Read_Only__c))}">
+                                <!-- <div class="{!!if(v.noteItem.noteItem.Is_Required__c, 'customRequired', '')}"> -->
+                                <c:RadioButtons objectName="Patient_Note__c"
+                                                fieldName="{!v.noteItem.noteItem.Field_Name__c}"
+                                                selectedValue="{!v.noteItem.value}"
+                                                variant="label-hidden"
+                                                required="{!v.noteItem.noteItem.Is_Required__c}" />
+
+                                <!-- </div> -->
+                                <aura:set attribute="else">
+                                    {!v.noteItem.value}&nbsp;
+                                </aura:set>
+                            </aura:if>
+                        </aura:if>
+
+                        <aura:if isTrue="{!v.noteItem.displayType == 'PICKLIST'}">
+                            <aura:if isTrue="{!and(not(v.readOnly), not(v.noteItem.noteItem.Is_Read_Only__c))}">
+                                <c:Picklist objectName="Patient_Note__c"
+                                            fieldName="{!v.noteItem.noteItem.Field_Name__c}"
+                                            required="{!v.noteItem.noteItem.Is_Required__c}"
+                                            selectedValue="{!v.noteItem.value}"
+                                            variant="label-hidden" />
+                                <aura:set attribute="else">
+                                    {!v.noteItem.value}&nbsp;
+                                </aura:set>
+                            </aura:if>
+                        </aura:if>
+                    </aura:set>
+                </aura:if>
+
+            </aura:if>
+
+            <aura:if isTrue="{!v.noteItem.noteItem.Type__c == 'Embedded Component'}">
+                <aura:if isTrue="{!not(empty(v.noteItem.noteItem.Title__c))}">
+                    <div class="slds-text-heading_small title">{!v.noteItem.noteItem.Title__c}</div>
+                </aura:if>
+                <aura:if isTrue="{!not(v.readOnly)}">
+                    <aura:if isTrue="{!not(empty(v.noteItem.noteItem.Subtitle__c))}">
+                        <div class="slds-text-title">{!v.noteItem.noteItem.Subtitle__c}</div>
+                    </aura:if>
+                    <aura:if isTrue="{!not(empty(v.noteItem.noteItem.Helptext__c))}">
+                        <div class="slds-text-title">{!v.noteItem.noteItem.Helptext__c}</div>
+                    </aura:if>
+                </aura:if>
+                <div aura:id="embeddedContainer"></div>
+            </aura:if>
+
+        </aura:if>
+    </div>
+</aura:component>

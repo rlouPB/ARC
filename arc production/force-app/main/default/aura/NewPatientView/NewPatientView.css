@@ -1,0 +1,8 @@
+.THIS .customRequired {
+  font-weight: normal;
+}
+
+.THIS .customRequired a:not(.display),
+.THIS .customRequired input {
+  border: 1px solid red;
+}

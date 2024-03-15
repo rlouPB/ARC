@@ -1,0 +1,11 @@
+.THIS .type-selector, .THIS .lookup-component {
+    display: inline-block;
+}
+
+.THIS .record-selector-container {
+    padding-bottom: 5px;
+}
+
+.THIS .record-selector-container .slds-form-element__label {
+    display: none;
+}

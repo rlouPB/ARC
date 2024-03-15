@@ -1,0 +1,139 @@
+<aura:component implements="force:hasRecordId" extends="c:ApexService" controller="NoteDiagnosisCtl">
+    <aura:attribute name="diagnosis" type="Map" default="{}"></aura:attribute>
+    <aura:attribute name="type" type="String"></aura:attribute>
+    <aura:attribute name="source" type="String"></aura:attribute>
+    <aura:attribute name="isActive" type="Boolean"></aura:attribute>
+    <aura:attribute name="contactDate" type="Date" />
+    <aura:attribute name="codeSet" type="String" default="DSM-5" />
+    <aura:attribute name="hideLabels" type="Boolean"></aura:attribute>
+    <aura:attribute name="admissionId" type="Id" access="public" />
+    <aura:attribute name="patientNoteId" type="Id" access="public" />
+    <aura:attribute name="resetAfterSave" type="Boolean" default="false" access="public"></aura:attribute>
+    <aura:attribute name="clinicalCodeInfo" type="Object" access="private"></aura:attribute>
+    <aura:attribute name="code" type="String" access="private"></aura:attribute>
+    <aura:attribute name="dsmCodeLookupFilter" type="List" default="[]" />
+    <aura:attribute name="codeDescription" type="String" access="private"></aura:attribute>
+    <aura:attribute name="readonly" type="Boolean" />
+    <aura:attribute name="hideLookup" type="Boolean" />
+    <aura:attribute name="loading" type="Boolean" />
+
+    <aura:registerEvent name="saved" type="c:NoteDiagnosisEvent" />
+
+    <aura:handler name="change" value="{!v.diagnosis.Clinical_Code__c}" action="{!c.onClinicalCodeChanged}" />
+    <aura:handler name="change" value="{!v.code}" action="{!c.onCodeChanged}" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <aura:if isTrue="{!v.diagnosis.Type__c}">
+        <div class="slds-card">
+            <lightning:spinner class="{!v.loading?'slds-show':'slds-hide'}" />
+            <aura:if isTrue="{!!v.readonly}">
+
+                <aura:if isTrue="{!!v.hideLabels}">
+                    <lightning:layout class="line">
+                        <lightning:layoutItem size="5">
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label bold">DSM Diagnosis</label>
+                                <div class="slds-form-element__control"></div>
+                            </div>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="1">
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label bold">ICD Code</label>
+                                <div class="slds-form-element__control"></div>
+                            </div>
+                        </lightning:layoutItem>
+
+                        <lightning:layoutItem size="4">
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label bold">Additional Specifiers</label>
+                                <div class="slds-form-element__control"></div>
+                            </div>
+                        </lightning:layoutItem>
+
+                        <lightning:layoutItem size="2">
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                </aura:if>
+                <lightning:layout class="line hover">
+                    <lightning:layoutItem size="5">
+                        <div style="margin-left: 15px;">
+                            <aura:if isTrue="{!!v.hideLookup}">
+                                <c:LookupComponent aura:id="diagnosisLookup"
+                                                   labelHidden="True"
+                                                   displayHoverText='True'
+                                                   displayField="Description__c"
+                                                   displayFieldValue="Id"
+                                                   filters="{!v.dsmCodeLookupFilter}"
+                                                   lookupFieldName="{!v.diagnosis.Clinical_Code__c}"
+                                                   objectName="Clinical_Code__c"
+                                                   fieldsToSearch="Description__c"
+                                                   orderByClause="Description__c ASC"
+                                                   maxQuickSearchRows="20+"
+                                                   splitSearchTextBySeperator="true" />
+                                <aura:set attribute="else">
+
+                                    <div class="slds-form-element">
+                                        <label class="slds-form-element__label bold">{!v.codeDescription}</label>
+                                        <div class="slds-form-element__control">&nbsp;</div>
+                                    </div>
+
+                                </aura:set>
+                            </aura:if>
+                        </div>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="1">
+                        {!v.code}
+                    </lightning:layoutItem>
+
+                    <lightning:layoutItem size="4">
+                        <aura:if isTrue="{!v.diagnosis.Id}">
+                            {!v.diagnosis.Additional_Specifiers__c}
+                            <aura:set attribute="else">
+                                <lightning:textarea variant="label-hidden" value="{!v.diagnosis.Additional_Specifiers__c}"></lightning:textarea>
+                            </aura:set>
+                        </aura:if>
+                    </lightning:layoutItem>
+
+                    <lightning:layoutItem size="2" padding="around-small">
+                        <lightning:buttonGroup class="buttons">
+                            <aura:if isTrue="{!v.diagnosis.Id}">
+                                <lightning:button name="{!v.diagnosis.Id}" onclick="{!c.onMarkForRemoval}" label="Mark For Removal" variant="destructive"></lightning:button>
+                                <aura:set attribute="else">
+                                    <lightning:button disabled="{!!v.hideLookup}" label="Save" onclick="{!c.onSaveClickHandler}" variant="brand" />
+                                    <lightning:button disabled="{!!v.hideLookup}" label="Clear" onclick="{!c.onRemoveHandler}" />
+                                </aura:set>
+                            </aura:if>
+                        </lightning:buttonGroup>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </aura:if>
+            <aura:if isTrue="{!v.readonly}">
+                <lightning:layout class="hover">
+                    <lightning:layoutItem size="5">
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label bold">{!v.hideLabels?'':'DSM Description'}</label>
+                            <div class="slds-form-element__control">{!v.codeDescription}</div>
+                        </div>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="1">
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label bold">{!v.hideLabels?'':'Diagnosis Code'}</label>
+                            <div class="slds-form-element__control">{!v.code}</div>
+                        </div>
+                    </lightning:layoutItem>
+
+                    <lightning:layoutItem size="4">
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label bold">{!v.hideLabels?'':'Additional Specifiers'}</label>
+                            <div class="slds-form-element__control">{!v.diagnosis.Additional_Specifiers__c}</div>
+                        </div>
+                    </lightning:layoutItem>
+
+                    <lightning:layoutItem size="2">
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </aura:if>
+        </div>
+    </aura:if>
+
+</aura:component>

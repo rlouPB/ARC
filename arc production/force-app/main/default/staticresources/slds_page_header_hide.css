@@ -1,0 +1,8 @@
+@media print {
+	.slds-page-header{
+		display:none !important;
+	}
+	.slds-modal__close {
+		display:none !important;
+	}
+}

@@ -1,0 +1,19 @@
+.THIS .border-less {
+  border: none !important;
+}
+
+.THIS .loadingHolder {
+  position: relative;
+  margin: 0 auto;
+  width: 80px;
+  height: 80px;
+}
+
+.THIS .customRequired {
+  font-weight: normal;
+}
+
+.THIS .customRequired a:not(.display),
+.THIS .customRequired input {
+  border: 1px solid red;
+}

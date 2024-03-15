@@ -1,0 +1,123 @@
+<aura:component controller="ViewTreatmentPlanCtl" extends="c:ApexService" implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickActionwithoutheader,lightning:actionOverride">
+    
+    <aura:attribute name="recordId" type="String"/>
+    <aura:attribute name="edit" type="Boolean" default="false" />
+    <aura:attribute name="treatmentPlan" type="Object" description="Treatment Plan contains case, domains, goals and objectives."/>
+    <aura:attribute name="loading" type="Boolean" default="false" />
+
+    <aura:attribute name="currentTreatmentPlanRecord" type="Object" />
+
+    <aura:handler name="init" value="{! this }" action="{! c.doInit }"/>
+
+    <aura:attribute name="treatmentPlanEdit" type="Object" default="{}" />
+
+
+
+    <aura:if isTrue="{!v.treatmentPlan.currentTreatmentPlan.Id}">
+        <c:customRecordData recordId="{!v.treatmentPlan.currentTreatmentPlan.Id}" 
+                            selectFields="Snapshot__r.Html__c"
+                            target="{!v.currentTreatmentPlanRecord}"></c:customRecordData>
+    </aura:if>
+
+    v.treatmentPlan.currentTreatmentPlan.Status: {!v.treatmentPlan.currentTreatmentPlan.Status}
+
+    <lightning:card class="slds-card_boundary">
+        <aura:set attribute="title">
+            <aura:if isTrue="{!v.treatmentPlan.currentTreatmentPlan.Status == 'Draft'}">
+                <aura:if isTrue="{!v.edit}">
+                    Edit Treatment Plan
+                    <aura:set attribute="else">
+                        Draft Treatment Plan
+                    </aura:set>
+                </aura:if> 
+                <aura:set attribute="else">
+                    Treatment Plan
+                </aura:set>
+            </aura:if> 
+
+        </aura:set>
+
+        <!-- <aura:if isTrue="{!v.status == 'Finalized'}">
+            <div class="slds-form-element__control snapshotHtml" >
+                <aura:unescapedHtml value="{!v.snapshotHtml}" />
+            </div>
+        </aura:if> -->
+
+        <aura:if isTrue="{!and(v.treatmentPlan.currentTreatmentPlan,v.treatmentPlan.currentTreatmentPlan.Status == 'Finalized', v.currentTreatmentPlanRecord.Snapshot__r.Html__c)}">
+            <div class="slds-form-element__control snapshotHtml" >
+                <hr />
+                <aura:unescapedHtml value="{!v.currentTreatmentPlanRecord.Snapshot__r.Html__c}" />
+                <hr />
+            </div>
+        </aura:if>
+
+        <aura:if isTrue="{!v.treatmentPlan.currentTreatmentPlan.Status == 'Draft'}">
+            <div class="slds-p-horizontal_x-small">
+                
+                <!--<c:TreatmentPlanHeader patient="{!v.currentTreatmentPlan.Account.Name}" treatment="{!v.currentTreatmentPlan}" edit="{!v.edit}" />-->
+                
+                <lightning:layout>
+                    <lightning:layoutItem size="6" padding="around-small">
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" padding="around-small">
+                                Patient: {!v.treatmentPlan.currentTreatmentPlan.Account.Name}
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" padding="around-small">
+                                <aura:if isTrue="{!v.edit}">
+                                    <lightning:input variant="label-hidden" value="{! v.treatmentPlan.currentTreatmentPlan.Goal__c }" name="{!v.treatmentPlan.currentTreatmentPlan.Id}" onchange="{!c.onGoalChange}" />
+                                    <aura:set attribute="else">
+                                        {!v.treatmentPlan.currentTreatmentPlan.Goal__c}
+                                    </aura:set>
+                                </aura:if>
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="6" padding="around-small">
+                        <aura:if isTrue="{!v.edit == false}">
+                            <lightning:layoutItem size="6" padding="around-small">
+                                Last Ego Conducted: {!v.treatmentPlan.currentTreatmentPlan.CreatedDate}
+                            </lightning:layoutItem>
+                            <aura:set attribute="else">
+                                <lightning:layoutItem size="6" padding="around-small" alignmentBump="left">
+                                    <lightning:layout multipleRows="true">
+                                        <lightning:layoutItem size="12" padding="around-small">
+                                            <lightning:button variant="brand" label="Save" onclick="{!c.save}" />
+                                        </lightning:layoutItem>
+                                        <lightning:layoutItem size="12" padding="around-small">
+                                            <lightning:button variant="brand" label="Save as Complete" onclick="{!c.saveAsComplete}" />
+                                        </lightning:layoutItem>
+                                        <lightning:layoutItem size="12" padding="around-small">
+                                            <lightning:button variant="brand" label="Finalize Treatment Plan" onclick="{!c.finalize}" />
+                                        </lightning:layoutItem>
+                                        <lightning:layoutItem size="12" padding="around-small">
+                                            <lightning:button variant="brand" label="Cancel" onclick="{!c.cancel}" />
+                                        </lightning:layoutItem>
+                                    </lightning:layout>
+                                </lightning:layoutItem>
+                            </aura:set>
+                        </aura:if>
+                    </lightning:layoutItem>
+                </lightning:layout>
+
+                <h1>Goals</h1>
+                
+                <aura:if isTrue="{! v.loading }">
+                    <lightning:spinner variant="brand" size="small" alternativeText="Loading" />
+                    <aura:set attribute="else">
+                        <aura:iteration items="{!v.treatmentPlan.domains}" var="domain">
+                            <div class="slds-card_boundary slds-p-horizontal_x-small slds-p-vertical_x-small slds-m-vertical_x-small">
+                                Domain: {!domain.domainObj.Domain_Number__c}.&nbsp;{!domain.domainObj.Label__c}
+                                <c:TreatmentPlanGoals edit="{!v.edit}" goals="{!domain.goals}" domainNumber="{!domain.domainObj.Domain_Number__c}"/>
+                            </div>
+                        </aura:iteration>
+
+                    </aura:set>
+                </aura:if>
+
+            </div>
+
+        </aura:if>
+
+    </lightning:card>   
+    
+</aura:component>

@@ -1,0 +1,54 @@
+<template>
+    <lightning-card >
+      <div class="slds-border_top slds-border_bottom slds-border_right slds-border_left">
+        <div class="slds-page-header">
+          <h1 slot="title" class="slds-text-heading_medium .slds-text-title_bold">
+              <span class="slds-var-p-around_medium" >
+                <lightning-icon icon-name={iconName} size="medium"></lightning-icon>
+              </span>
+                {tableTitle} 
+          </h1>
+          <lightning-layout horizontal-align={horizontalAlign}>
+            <lightning-layout-item flexibility="auto" >
+              <div class="slds-var-p-left_medium slds-var-p-top_medium ">
+                {itemCount} items
+              </div>
+            </lightning-layout-item>
+            <lightning-layout-item flexibility="auto" class="slds-float_right">
+              <template if:true={showNewButton}>
+                  <div class="slds-var-p-left_medium slds-var-p-top_medium slds-float_right">
+                    <lightning-button-group>
+                      <lightning-button-icon icon-name="utility:refresh"  alternative-text="Settings" title="Refresh" onclick={handleRefresh} ></lightning-button-icon>
+                      <lightning-button label="New" title="New" onclick={handleNewClick} ></lightning-button>
+                    </lightning-button-group>
+                  </div>
+              </template>
+            </lightning-layout-item>
+        </lightning-layout>
+
+        </div>
+       
+        <!--
+        <lightning-datatable
+          class="slds-table_header-fixed_container slds-scrollable_x slds-border_top"
+          key-field="id"
+          data={mydata}
+          columns={mycolumns}
+          hide-checkbox-column=true
+          show-row-number-column=true>
+        </lightning-datatable>
+      -->
+
+        <c-custom-datatable-lwc 
+              class="slds-table_header-fixed_container slds-scrollable_x slds-border_top"
+              columns={mycolumns}
+              data={mydata}
+              sorted-by={sortBy}
+              sorted-direction={sortDirection}
+              onsort={handleSortEvent}
+              key-field="id"
+              show-row-number-column=true
+              hide-checkbox-column=true></c-custom-datatable-lwc>
+      </div>
+    </lightning-card>
+  </template>

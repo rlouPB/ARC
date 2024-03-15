@@ -1,0 +1,4 @@
+<aura:component implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickActionwithoutheader,lightning:actionOverride">
+    <lightning:overlayLibrary aura:id="overlayLib"/>
+    <lightning:button name="modal" label="View Treatment History" onclick="{!c.handleShowViewTreatmentHistoryModal}" />
+</aura:component>

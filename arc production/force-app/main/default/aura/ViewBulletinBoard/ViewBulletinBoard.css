@@ -1,0 +1,89 @@
+.THIS lightning:buttonicon {
+	color: white;
+}
+
+.THIS .scrollable-section {
+	height: 65vh;
+	grid-column-gap: 10px;
+}
+
+.THIS {
+	--slds-c-card-spacing-block-start: 0.5rem;
+	--slds-c-card-spacing-block-end: 0.5rem;
+	--slds-c-card-spacing-inline-start: 0.5rem;
+	--slds-c-card-spacing-inline-end: 0.5rem;
+}
+
+/* .THIS li:nth-child(2) {
+  display: none;
+} */
+
+/* .THIS .arcNotificationBorder {
+  border: 1px solid lightgray !important;
+} */
+
+.THIS .outer-card {
+	background-color: inherit;
+	/* border: 0 !important; */
+}
+
+.THIS .inner-card {
+	background-color: #e6e6e6 !important;
+	/* border: 0 !important; */
+}
+
+.THIS .slds-card {
+	/* border: 1px groove gray !important; */
+	background-color: #dddddd;
+}
+
+.THIS .slds-card__header {
+	/* padding: .1rem .1rem 0; */
+	padding-left: 0.5rem;
+	/* margin-bottom: 0.25rem; */
+}
+
+.THIS div.slds-card__body {
+	margin-bottom: 0.25rem;
+}
+
+.THIS .section {
+	margin-bottom: 10px;
+}
+
+.THIS .section-item {
+	background-color: white;
+}
+
+.THIS .section-height {
+	height: 10rem;
+}
+
+.THIS .bulletin-board-label {
+	font-size: 0.9rem;
+}
+
+.THIS .rich-text {
+	background-color: white;
+}
+
+.THIS .customRequired {
+	font-weight: normal;
+}
+
+.THIS .customRequired a:not(.display),
+.THIS .customRequired input,
+.THIS .customRequired select {
+	border: 1px solid red;
+}
+
+/* .THIS .customRequired::after {
+  color: red;
+  content: "Complete this field.";
+} */
+
+.THIS .bgLighter {
+	background-color: rgb(223, 220, 220) !important;
+	border-color: gainsboro;
+	border-radius: 7px;
+}

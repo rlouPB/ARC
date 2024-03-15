@@ -1,0 +1,32 @@
+<aura:component access="public">
+    <!--Attributes section-->
+    <aura:attribute name="toastProperties" type="Map"  access="public" description="Used to store Toast properties"/>    
+    <!--aura methods -->
+    <aura:method name="showToast" action="{!c.showToast}" 
+                 description="To Show Toast">
+        <aura:attribute name="toastProperties" type="Map"  access="public" description="Used to store Toast properties"/>    
+    </aura:method>
+    <aura:method name="hideToast" action="{!c.closeToast}" 
+                 description="To Show Toast"></aura:method>
+    
+    <!--Toast section-->
+    <div aura:id="toastContainer" class="slds-hide">
+        <div class="slds-notify_container">
+            <div class="{! 'slds-notify slds-notify_toast ' + (v.toastProperties.type == 'success' ?  'slds-theme_success': (v.toastProperties.type == 'error' ? 'slds-theme_error':'slds-theme_warning'))}" role="alert">
+                <span class="slds-assistive-text">info</span>
+                <span class="{! 'slds-icon_container slds-m-right_small slds-no-flex slds-align-top '+ (v.toastProperties.type == 'success' ?  'slds-icon-utility-success': (v.toastProperties.type == 'error' ? 'slds-icon-utility-error':'slds-icon-utility-warning'))}" title="Description of icon when needed">
+                    <lightning:icon iconName="utility:info" alternativeText="close" size="small" />                    
+                </span>
+                <div class="slds-notify__content">
+                    <h2 class="slds-text-heading_small">{!v.toastProperties.title}</h2>
+                    <p><lightning:formattedText value="{!v.toastProperties.message}" /></p>
+                </div>
+                <button class="slds-button slds-button_icon slds-notify__close slds-button_icon-inverse" title="Close" onclick="{!c.closeToast}">
+                   	<lightning:icon iconName="utility:close" alternativeText="close" size="small" />
+                    <span class="slds-assistive-text">Close</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+</aura:component>

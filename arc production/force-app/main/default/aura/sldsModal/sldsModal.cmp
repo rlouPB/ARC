@@ -1,0 +1,59 @@
+<aura:component access="public">
+	<aura:attribute name="instanceName" type="String" default="" access="public" />
+	<aura:attribute name="header" type="Aura.Component[]" access="public" />
+	<aura:attribute name="content" type="Aura.Component[]" access="public" />
+	<aura:attribute name="footer" type="Aura.Component[]" access="public" />
+	<aura:attribute name="modalSize" type="String" access="public" default="large"/>
+	<aura:attribute name="maxHeight" type="Boolean" access="public" default="false" />
+	<aura:attribute name="closeIconVariant" type ="String" default="border-filled"/>
+	<aura:attribute name="showXIcon" type="Boolean" access="public" default="true" />
+	
+	<aura:registerEvent name="closeModalEvent" type="c:closeModal" />
+
+	<aura:if isTrue="{!v.maxHeight}">
+		<section
+				aura:id="modal"
+				role="dialog"
+				tabindex="-1"
+				aria-labelledby="modal-heading-01"
+				aria-modal="true"
+				aria-describedby="modal-content-id-1"
+				class="{!v.modalSize == 'large' ? 'slds-show slds-modal slds-fade-in-open slds-modal--large':'slds-show slds-modal slds-fade-in-open slds-modal--small'}"
+				style="max-height: 75% !important; height: 75% !important; position: fixed; top: 12.5%;">
+			<div class="slds-modal__container" style="max-height: 100% !important; height: 100% !important;">
+				<header class="slds-modal__header">
+					<aura:if isTrue="{!v.showXIcon}">
+						<lightning:buttonIcon iconName="utility:close" class="slds-modal__close" variant="{!v.closeIconVariant}" alternativeText="close" onclick="{!c.handleCloseModal}" />
+					</aura:if>
+					<h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">{!v.header}</h2>
+				</header>
+				<div class="slds-modal__content slds-p-around_medium maxHeight" id="modal-content-id-1" style="max-height: 100% !important; height: 100% !important;">
+					{!v.content}
+				</div>
+				<footer class="slds-modal__footer">
+					{!v.footer}
+				</footer>
+			</div>
+		</section>
+
+		<aura:set attribute="else">
+			<section aura:id="modal" role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="{!v.modalSize == 'large' ? 'slds-show slds-modal slds-fade-in-open slds-modal--large':'slds-show slds-modal slds-fade-in-open slds-modal--small'}">
+				<div class="slds-modal__container">
+					<header class="slds-modal__header">
+						<aura:if isTrue="{!v.showXIcon}">
+							<lightning:buttonIcon iconName="utility:close" class="slds-modal__close" variant="{!v.closeIconVariant}" alternativeText="close" onclick="{!c.handleCloseModal}" />
+						</aura:if>
+						<h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">{!v.header}</h2>
+					</header>
+					<div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+						{!v.content}
+					</div>
+					<footer class="slds-modal__footer">
+						{!v.footer}
+					</footer>
+				</div>
+			</section>
+		</aura:set>
+	</aura:if>
+	<div class="slds-backdrop slds-backdrop_open"></div>
+</aura:component>

@@ -1,0 +1,29 @@
+.THIS .fc-unthemed td.fc-today {
+    background-color: rgba(0, 0, 255, 0.21);
+    font-weight: bold;
+}
+
+.THIS .user-lookup {
+    display: inline-block;
+    width: 50%;
+    padding-left: 15px;
+}
+
+.THIS .user-lookup .slds-form-element__control {
+    display: inline-block;
+}
+
+.THIS .header-date {
+	text-align: center;
+    /* font-weight: bold; */
+}
+
+.THIS .new-meeting-button {
+    margin-left: 15px;
+}
+/* .THIS div.slds-col {
+    border: 2px solid black;
+} */
+/* .THIS .patientMeeting {
+    background-color: pink;
+} */

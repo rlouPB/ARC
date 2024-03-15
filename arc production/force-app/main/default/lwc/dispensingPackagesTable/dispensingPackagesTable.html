@@ -1,0 +1,76 @@
+<template>
+    <div class="slds-card">
+        <lightning-spinner if:true={loading}></lightning-spinner>
+        <table class="slds-table slds-table_bordered slds-table_fixed-layout" role="grid">
+            <thead>        
+                <tr>
+                    <th style="width:50px;">
+                        <lightning-input class="selectall" type="checkbox" title="select all" onchange={selectAll}></lightning-input>
+                    </th>
+                    <template for:each={columns} for:item="col" if:true={hasColumns}>                    
+                        <th key={col.name} style={col.style} >
+                            <div onclick={updateColumnSorting} data-fieldname={col.name} class="slds-th__action slds-text-link_reset slds-is-sorted slds-is-sorted_asc">
+                                {col.label}
+                                <template if:true={col.sorted}>
+                                    <template if:false={col.isDESC}>
+                                        <lightning-icon data-fieldname={col.name} icon-name="utility:arrowup" size="xx-small"></lightning-icon>
+                                    </template>
+                                    <template if:true={col.isDESC}>
+                                        <lightning-icon data-fieldname={col.name} icon-name="utility:arrowdown" size="xx-small"></lightning-icon>
+                                    </template>
+                                </template>
+                            </div>
+                        </th>                            
+                    </template>
+                </tr>
+            </thead>
+            <tbody>           
+                <template for:each={pagedData} for:item="item" >
+                    <tr key={item.id} class={item.rowClass}>
+                        <td>
+                            <lightning-input class="selectcheck" data-rowid={item.id} type="checkbox" title="select" checked={item.selected} onchange={selectRow}></lightning-input>
+                        </td>
+                        <template for:each={item.fields} for:item="field">
+                            <td key={field.name} class="slds-cell-wrap"> 
+                                <div class="slds-p-horizontal_x-small">
+                                    <template if:true={field.isName}>
+                                        <c-record-link record-id={item.record.Id} record-name={field.value}></c-record-link>
+                                    </template>
+                                    <template if:true={field.isLookup}>
+                                        <c-record-link record-id={field.valueId} record-name={field.lookupName}></c-record-link>
+                                    </template>
+                                    <template if:true={field.isLookup2}>
+                                        <c-record-link record-id={field.valueId} record-name={field.lookupName2}></c-record-link>
+                                    </template>
+                                    <template if:true={field.isDate}>        
+                                        <lightning-formatted-date-time value={field.value} year="numeric" month="2-digit" day="2-digit" time-zone="UTC"></lightning-formatted-date-time>
+                                    </template>
+                                    <template if:true={field.isDateTime}>        
+                                        <lightning-formatted-date-time value={field.value} year="numeric" month="2-digit" day="2-digit"  hour="2-digit" minute="2-digit" time-zone="America/New_York" ></lightning-formatted-date-time>
+                                    </template>
+                                    <template if:true={field.isCheckbox}>        
+                                        <lightning-input type="checkbox" disabled readonly="true" checked={field.value}></lightning-input>
+                                    </template>
+                                    <template if:true={field.isHtml}>
+                                        <lightning-formatted-rich-text value={field.value}></lightning-formatted-rich-text>
+                                    </template>
+                                    <template if:true={field.isAction}>
+                                        <div style="color:blue; cursor:pointer;" data-rowid={item.id} data-action={field.action} onclick={onRecordActionClickHandler}>{field.value}</div>
+                                    </template>
+                                    <template if:true={field.isText}>{field.value}</template>
+                                </div>              
+                            </td>
+                        </template>
+                    </tr>
+                </template>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th>
+                        <c-paginator-lwc class="paginator" values={dataItems} onpagechanged={pageChangedHandler}></c-paginator-lwc>
+                    </th>
+                </tr>               
+            </tfoot>
+        </table>
+    </div>
+</template>

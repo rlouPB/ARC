@@ -1,0 +1,14 @@
+.THIS .egoError{
+    color:red;
+    font-weight: bold;
+}
+.THIS.c-lightgrey-darker{
+    background: rgb(235, 235, 235);
+}
+.THIS .cancel-icon-middle
+{
+    text-align: center;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+}

@@ -1,0 +1,56 @@
+<aura:component extends="c:NoteItemPlugin">
+    <aura:attribute name="patientRecord" type="Account" />
+    <aura:attribute name="monitorParameters" type="Object" />
+    <aura:attribute name="test" type="String" />
+    <aura:attribute name="showFlowModal" type="Boolean" />
+
+    <aura:if isTrue="{!v.theNote.patientNote.Account__c}">
+        <force:recordData recordId="{!v.theNote.patientNote.Account__c}" fields="External_Patient_Id__c" targetFields="{!v.patientRecord}" />
+    </aura:if>
+
+
+    <div class="slds-box">
+        <aura:if isTrue="{!and(v.patientRecord,v.theNote.patientNote.Account__c)}">
+            <div class="slds-card" >
+                <!-- <lightning:card title="Prescriptions"> -->
+                    <!-- <body class="slds-p-horizontal_small"> -->
+
+                        <div id="button-container" style="width: 100%;text-align: right;height: 50px;padding: 5px;">
+                            <lightning:button label="New" onclick="{!c.openCreateMonitorFlow}"/>
+                        </div>
+
+                        
+                        <aura:if isTrue="{!v.showFlowModal}">
+                            <c:sldsModal instanceName="showCreateNewFLow">
+                                <aura:set attribute="header">
+                                    <label>Select Sections to Display</label>
+                                </aura:set>
+                                <aura:set attribute="content">
+                                    <lightning:flow aura:id="createMonitor" />
+                                </aura:set>
+                                <aura:set attribute="footer">
+                                    <lightning:button class="slds-button slds-button_neutral" variant="brand" label="Cancel" title="Cancel" onclick="{!c.onCloseModalHandler}"/>
+                                </aura:set>
+                            </c:sldsModal>
+
+                        </aura:if>
+                        
+                        <c:singleRelatedList 
+                            sobjectApiName="Physical_Monitor__c"
+                            relatedFieldApiName="Account__c"
+                            fields="{!v.monitorParameters.fields}"
+                            columns="{!v.monitorParameters.columns}"
+                            sortedBy="Date_Time__c"
+                            recordId="{!v.theNote.patientNote.Account__c}"
+                            canCustomizeColumns="false"
+                            containerRecordId="{!v.theNote.patientNote.Admission__c}"
+                            containerApiFieldName="{!v.monitorParameters.containerApiFieldName}"
+                            columnLinkApiName="Date_Time__c"
+                            createNew="false"
+                        ></c:singleRelatedList>
+                    <!-- </body> -->
+                <!-- </lightning:card> -->
+            </div>
+        </aura:if>
+    </div>
+</aura:component>

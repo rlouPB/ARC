@@ -1,0 +1,126 @@
+<aura:component extends="c:NoteItemPlugin" controller="NoteDiagnosisCtl">
+	<aura:attribute name="theNote" type="Map" access="global"></aura:attribute>
+	<aura:attribute name="principalDiagnosis" type="Map" access="private" />
+	<aura:attribute name="comorbidDiagnoses" type="Map[]" default="[]" access="private" />
+	<aura:attribute name="principalsToDelete" type="Map[]" default="[]" access="private" />
+	<aura:attribute name="contactDate" type="Date" />
+	<aura:attribute name="source" type="String" description="Possible Values:  ['Psychotherapist', 'Admissions', 'Psychiatrist'] " access="global" />
+	<aura:attribute name="loaded" type="Boolean" access="private" />
+	<aura:attribute name="loading" type="Boolean" access="private" />
+	<aura:attribute name="principalDiagnosisJson" type="String" />
+	<aura:attribute name="readonly" type="Boolean" />
+
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+	<aura:handler event="force:refreshView" action="{!c.doInit}" />
+	<aura:handler event="c:NoteDiagnosisEvent" action="{!c.onSaveNoteDiagnosis}" />
+
+	<div class="slds-card">
+		<div class="slds-var-m-left_medium">
+			<aura:if isTrue="{!v.loading}">
+				<lightning:spinner alternativeText="loading..." size="small" variant="base" />
+			</aura:if>
+			<aura:if isTrue="{!v.loaded}">
+				<aura:if isTrue="{!!v.readonly}">
+					<br />
+					<i style="font-weight:bold;color: red;">Be sure to save diagnoses before saving/finalizing note</i>
+					<br />
+					<br />
+				</aura:if>
+				<h1 class="bold">Principal Diagnosis</h1>
+				<lightning:layout multipleRows="true">
+					<lightning:layoutItem size="12" class="line">
+						<c:NoteDiagnosisItem readonly="{!v.readonly}" recordId="{!v.principalDiagnosis.Id}" patientNoteId="{!v.theNote.patientNote.Id}" admissionId="{!v.theNote.patientNote.Admission__c}" type="Principal" source="{!v.source}" isActive="true"></c:NoteDiagnosisItem>
+
+						<lightning:layoutItem size="12">
+							<aura:iteration items="{!v.principalsToDelete}" var="principal" indexVar="idx">
+								<lightning:layout class="mark line hover" title="Mark For Delete">
+									<lightning:layoutItem size="5">
+										<div style="margin-left: 15px;">
+											<aura:if isTrue="{!principal.Clinical_Code__r}">{!principal.Clinical_Code__r.Description__c}</aura:if>
+										</div>
+									</lightning:layoutItem>
+									<lightning:layoutItem size="1">
+										<aura:if isTrue="{!principal.Clinical_Code__r}">{!principal.Clinical_Code__r.Name}</aura:if>
+									</lightning:layoutItem>
+									<lightning:layoutItem size="4">
+										{!principal.Additional_Specifiers__c}
+									</lightning:layoutItem>
+									<lightning:layoutItem size="2" padding="around-small"></lightning:layoutItem>
+								</lightning:layout>
+							</aura:iteration>
+						</lightning:layoutItem>
+
+					</lightning:layoutItem>
+					<lightning:layoutItem size="12">
+						<h1 class="bold">Comorbid Diagnoses</h1>
+					</lightning:layoutItem>
+					<lightning:layoutItem size="12">
+						<lightning:layout class="line">
+							<lightning:layoutItem size="5">
+								<div class="slds-form-element">
+									<label class="slds-form-element__label bold">DSM Diagnoses</label>
+									<div class="slds-form-element__control"></div>
+								</div>
+							</lightning:layoutItem>
+							<lightning:layoutItem size="1">
+								<div class="slds-form-element">
+									<label class="slds-form-element__label bold">ICD Code</label>
+									<div class="slds-form-element__control"></div>
+								</div>
+							</lightning:layoutItem>
+
+							<lightning:layoutItem size="4">
+								<div class="slds-form-element">
+									<label class="slds-form-element__label bold">Additional Specifiers</label>
+									<div class="slds-form-element__control"></div>
+								</div>
+							</lightning:layoutItem>
+
+							<lightning:layoutItem size="2">
+							</lightning:layoutItem>
+						</lightning:layout>
+
+						<aura:iteration items="{!v.comorbidDiagnoses}" var="comorbid" indexVar="idx">
+							<lightning:layout class="{!comorbid.Marked_for_Delete__c?'mark line hover':'line hover'}" title="{!comorbid.Marked_for_Delete__c?'Mark For Delete':''}">
+								<lightning:layoutItem size="5">
+									<div style="margin-left: 15px;">
+										{!comorbid.Clinical_Code__Description__c}
+									</div>
+								</lightning:layoutItem>
+								<lightning:layoutItem size="1">
+									{!comorbid.Clinical_Code__Name}
+								</lightning:layoutItem>
+								<lightning:layoutItem size="4">
+									{!comorbid.Additional_Specifiers__c}
+								</lightning:layoutItem>
+								<lightning:layoutItem size="2" padding="around-small">
+									<aura:if isTrue="{!!v.readonly}">
+										<lightning:button class="{!comorbid.Marked_for_Delete__c?'slds-show':'slds-hide'}" name="{!comorbid.Id}" onclick="{!c.onUnmarkForRemoval}" label="Cancel Removal"></lightning:button>
+										<lightning:button class="{!comorbid.Marked_for_Delete__c?'slds-hide':'slds-show'}" name="{!comorbid.Id}" onclick="{!c.onMarkForRemoval}" label="Mark for Removal" variant="destructive"></lightning:button>
+									</aura:if>
+								</lightning:layoutItem>
+							</lightning:layout>
+						</aura:iteration>
+
+					</lightning:layoutItem>
+					<lightning:layoutItem size="12" class="line">
+						<aura:if isTrue="{!!v.readonly}">
+							<c:NoteDiagnosisItem readonly="{!v.readonly}" admissionId="{!v.theNote.patientNote.Admission__c}" patientNoteId="{!v.theNote.patientNote.Id}" type="Comorbid" hideLabels="true" source="{!v.source}" resetAfterSave="true"></c:NoteDiagnosisItem>
+						</aura:if>
+					</lightning:layoutItem>
+				</lightning:layout>
+
+				<aura:if isTrue="{!!v.readonly}">
+					<div class="slds-card">
+						<div style="text-align: center;">
+							<br />
+							<p>* Reprinted with permission from the Diagnostic and Statistical Manual of Mental Disorders, Fifth Edition, Text Revision ®. Copyright © 2022, American Psychiatric Association. All Rights Reserved. Unless authorized in writing by the APA, no part may be reproduced or used in a manner inconsistent with the APA’s copyright. This prohibition applies to unauthorized uses or reproductions in any form. The American Psychiatric Association is not affiliated with and is not endorsing this product.</p>
+							<br />
+							<p>* DSM and DSM-5-TR are registered trademarks of the American Psychiatric Association, and are used with permission herein. Use of these terms is prohibited without permission of the American Psychiatric Association. Use of this trademark does not constitute endorsement of this product by the American Psychiatric Association.</p>
+						</div>
+					</div>
+				</aura:if>
+			</aura:if>
+		</div>
+	</div>
+</aura:component>
